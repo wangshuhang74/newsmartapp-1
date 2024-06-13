@@ -113,11 +113,16 @@
     /* 快应用特有相关 */
     "mp-weixin" : {
         /* 小程序特有相关 */
-        "appid" : "",
+        "appid" : "wx93c38db02fbd7647",
         "setting" : {
             "urlCheck" : false
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "需要您的同意，才能在使用时获取位置信息，以便于定位为您提供导航路线"
+            }
+        }
     },
     "vueVersion" : "3",
     "fallbackLocale" : "zh-Hans"

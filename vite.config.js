@@ -14,7 +14,7 @@ export default ({}) => {
           /\.vue\?vue/, // .vue
         ],
         imports: ["vue", "uni-app"],
-        dts: "typings/auto-imports.d.ts",
+        dts: "./auto-imports.d.ts",
       }),
     ],
   });

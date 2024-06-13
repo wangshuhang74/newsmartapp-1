@@ -1,1 +1,12 @@
 @import '@/uni_modules/uni-scss/variables.scss';
+
+:root,
+page {
+  // 修改按主题色
+  // --wot-color-theme: #37c2bc;
+
+  overflow: hidden;
+
+  // 修改按钮背景色
+  // --wot-button-primary-bg-color: green;
+}
