@@ -78,6 +78,7 @@
         <image src="http://116.62.107.90:8673/images/tips/connect_blue3.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">请将电子车牌置于设备上方进行激活<br />正在激活电子车牌，请稍后…</view>
         <view class="open_blue">
+          <view class="btn search_btn" @tap="goActive">立即激活</view>
           <view class="btn" @tap="nextStep(4)">已激活，下一步</view>
         </view>
       </view>
@@ -102,7 +103,8 @@
   </view>
 </template>
 
-<script  setup>
+<script setup>
+import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
 import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
@@ -132,27 +134,27 @@ onUnload(() => {
   if (BLEConnection.value) {
     uni.closeBLEConnection({
       deviceId: deviceId.value,
-      success(res) {
+      success (res) {
         console.log('断开蓝牙成功', res)
         setTimeout(() => {
           // 关闭蓝牙模块
           if (BluetoothAdapter.value) {
             uni.closeBluetoothAdapter({
-              success(res) {
+              success (res) {
                 console.log(res)
               },
             })
           }
         }, 200)
       },
-      fail(err) {
+      fail (err) {
         console.log('断开蓝牙失败', err)
       },
     })
   } else {
     if (BluetoothAdapter.value) {
       uni.closeBluetoothAdapter({
-        success(res) {
+        success (res) {
           console.log(res)
         },
       })
@@ -165,7 +167,7 @@ onUnload(() => {
 const openBlue = () => {
   if (!BluetoothAdapter.value) {
     uni.openBluetoothAdapter({
-      success(res) {
+      success (res) {
         console.log('初始化蓝牙成功')
         console.log('open', res)
         BluetoothAdapter.value = true;
@@ -184,7 +186,7 @@ const openBlue = () => {
           })
         })
       },
-      fail(err) {
+      fail (err) {
         console.log('初始化蓝牙失败')
         console.error('open', err)
         // #ifdef APP-PLUS
@@ -247,7 +249,7 @@ const connectBlue = (item) => {
     mask: true
   });
   uni.stopBluetoothDevicesDiscovery({
-    success(res) {
+    success (res) {
       BluetoothDevicesDiscovery.value = false;
       console.log('停止搜索', res)
     },
@@ -268,7 +270,7 @@ const connectBlue = (item) => {
 
   uni.createBLEConnection({
     deviceId: item.deviceId,
-    success(res) {
+    success (res) {
       console.log('蓝牙已连接', res)
 
       setTimeout(function () {
@@ -292,22 +294,22 @@ const connectBlue = (item) => {
         uni.getBLEDeviceServices({
           // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
           deviceId: item.deviceId,
-          success(res) {
+          success (res) {
             uni.getBLEDeviceCharacteristics({
               // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
               deviceId: item.deviceId,
               // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
               serviceId: serviceId.value,
-              success(res) {
+              success (res) {
                 readBlueOn(item.deviceId);//启动蓝牙监听
               },
-              fail(res) {
+              fail (res) {
                 console.log('获取特征值失败', res)
               },
             })
 
           },
-          fail(res) {
+          fail (res) {
             console.log('获取service失败', res)
           },
         })
@@ -322,7 +324,7 @@ const connectBlue = (item) => {
       //   console.log(`device ${res.deviceId} state has changed, connected: ${res.connected}`)
       // })
     },
-    fail(err) {
+    fail (err) {
       console.log('蓝牙连接失败', err);
       clearTimeout(_timer); //关闭10000连接超时
       uni.hideLoading();
@@ -350,10 +352,10 @@ const readBlueOn = (params) => {
       serviceId: serviceId.value ? serviceId.value : '0000FFE0-0000-1000-8000-00805F9B34FB',
       // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
       characteristicId: characteristicId_notify.value ? characteristicId_notify.value : '0000FFE4-0000-1000-8000-00805F9B34FB',
-      success(res) {
+      success (res) {
         console.log('启用 notify 功能', res)
       },
-      fail(res) {
+      fail (res) {
         console.log(res)
       },
     })
@@ -382,7 +384,7 @@ const readBlueOn = (params) => {
     serviceId: serviceId.value ? serviceId.value : '0000FFE0-0000-1000-8000-00805F9B34FB',
     // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
     characteristicId: characteristicId_notify.value ? characteristicId_notify.value : '0000FFE4-0000-1000-8000-00805F9B34FB',
-    success(res) {
+    success (res) {
       console.log('启用 notify 功能', res)
       notifyBLEChar.value = true;
       deviceId.value = params;
@@ -404,7 +406,7 @@ const readBlueOn = (params) => {
         dealRecvData(buffer, 0, buffer.length)
       })
     },
-    fail(res) {
+    fail (res) {
       console.log(res)
     },
   })
@@ -548,10 +550,10 @@ const writeFun = (buffer) => {
       characteristicId: characteristicId.value ? characteristicId.value : '0000FFE9-0000-1000-8000-00805F9B34FB',
       // 这里的value是ArrayBuffer类型
       value: buffer,
-      success(res) {
+      success (res) {
         console.log('writeBLECharacteristicValue success', res.errMsg)
       },
-      fail(err) {
+      fail (err) {
         console.log(err);
 
       }
@@ -570,7 +572,7 @@ const writeFun = (buffer) => {
       characteristicId: characteristicId.value ? characteristicId.value : '0000FFE9-0000-1000-8000-00805F9B34FB',
       // 这里的value是ArrayBuffer类型
       value: writeBuffer,
-      success(res) {
+      success (res) {
         console.log('writeBLECharacteristicValue success', res.errMsg)
         setTimeout(() => {
           writeFun(newData);
@@ -591,6 +593,13 @@ const goForm = () => {
   // uni.navigateTo({
   //   url: '/pagesFn/electronicsTag/form'
   // })
+}
+
+//激活电子标签
+const goActive = () => {
+  auth({ step: 1, data: 22 }).then((res) => {
+    console.log(res);
+  })
 }
 
 </script>
