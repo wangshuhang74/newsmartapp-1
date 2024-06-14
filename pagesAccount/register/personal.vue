@@ -1,45 +1,64 @@
-
-<script  setup>
+<script setup>
 import navbar from '@/pages/components/navbar.vue'
 import qr_code from '../../static/images/logins/qr_code.png'
+import { storeToRefs } from 'pinia'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+import { addUser, sendCode } from '../../api'
+import { useUserStore } from '@/store'
+const userStore = useUserStore()
+const { deviceId, } = storeToRefs(userStore)
 const Toast = useToast()
 const postForm = ref({
-  personalPhone: null,//手机号
-  personalCode: null,//验证码
+  repeatPwd: null,//确认密码
+  phone: null,//登录手机号
+  captcha: null,//验证码
   password: null,//密码
-  recurPassword: null,//确认密码
-  firmId: null
+  orgId: null, // 企业ID
+  userName: null // 用户名
 })
 const firmIdShow = ref(null);
 
 onLoad(() => {
+  console.log("🚀 ~ onLoad ~ deviceId.value:", deviceId.value)
 })
 
 
 
-const registerBtn = () => {
+const registerBtn = async () => {
   console.log("postForm", postForm.value);
-  if (!postForm.value.personalCode) return Toast.warning('请输入验证码')
+  if (!postForm.value.captcha) return Toast.warning('请输入验证码')
   if (!postForm.value.password) return Toast.warning('请输入密码')
-  if (!postForm.value.recurPassword) return Toast.warning('请确认密码')
-  if (postForm.value.password != postForm.value.recurPassword) return Toast.warning('两次输入的密码不一致')
-  if (!postForm.value.firmId) return Toast.warning('请输入企业ID')
+  if (!postForm.value.repeatPwd) return Toast.warning('请确认密码')
+  if (postForm.value.password != postForm.value.repeatPwd) return Toast.warning('两次输入的密码不一致')
+  if (!postForm.value.orgId) return Toast.warning('请输入企业ID')
   console.log("postForm1", postForm.value);
+  const { code, data, msg } = await addUser(postForm.value)
+  if (code != 0) return Toast.warning(msg)
+  Toast.success('注册成功,正在登录中...')
+  setTimeout(function () {
+    userStore.loginInfo({
+      phone: postForm.value.phone,
+      password: postForm.value.password,
+      isLastingCookie: false,
+      phoneId: deviceId.value,
+      platform: 1
+    })
+  }, 1000)
+
 }
 
-
+let timer;
 const SendCodeFlag = ref(false)
 const SendSecond = ref(60) // 倒计时
 const SendCodeFn = () => {
-  if (!postForm.value.personalPhone) return Toast.warning('请输入手机号')
-  if (!/^1[3456789]\d{9}$/.test(postForm.value.personalPhone)) return Toast.warning('请输入正确的手机号')
+  if (!postForm.value.phone) return Toast.warning('请输入手机号')
+  if (!/^1[3456789]\d{9}$/.test(postForm.value.phone)) return Toast.warning('请输入正确的手机号')
   if (SendSecond.value !== 60) return
   if (SendCodeFlag.value) return
   SendCodeFlag.value = true
-  const timer = setInterval(() => {
+  SendCodeApi()
+  timer = setInterval(() => {
     if (SendSecond.value > 0) {
-      SendCodeApi()
       SendSecond.value--
     } else {
       SendCodeFlag.value = false
@@ -51,7 +70,16 @@ const SendCodeFn = () => {
 
 
 const SendCodeApi = async () => {
-  //调用验证码接口 postForm.value.personalPhone
+  //调用验证码接口 postForm.value.phone
+  const { code, data, msg } = await sendCode(postForm.value.phone)
+  if (code == 0) {
+    Toast.success('验证码发送成功')
+  } else {
+    Toast.warning(msg)
+    SendCodeFlag.value = false
+    SendSecond.value = 60
+    clearInterval(timer)
+  }
 }
 
 const noFirmId = () => {
@@ -100,14 +128,14 @@ const toWeChatAccount = () => {
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/phone_icon.png"></image>
         </view>
-        <input v-model="postForm.personalPhone" type="text" class="input" maxlength="11" placeholder="请输入手机号" />
+        <input v-model="postForm.phone" type="text" class="input" maxlength="11" placeholder="请输入手机号" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/yzm_icon.png"></image>
         </view>
-        <input v-model="postForm.personalCode" type="text" class="input" placeholder="请输入验证码" />
+        <input v-model="postForm.captcha" type="text" class="input" placeholder="请输入验证码" />
         <view class="code_box" @tap="SendCodeFn">
           <text v-if="SendCodeFlag">{{ SendSecond }}秒后重新发送</text>
           <text v-else>发送验证码</text>
@@ -125,14 +153,14 @@ const toWeChatAccount = () => {
         <view class="left_icon">
           <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
         </view>
-        <input v-model="postForm.recurPassword" type="text" class="input" placeholder="请再次输入密码" />
+        <input v-model="postForm.repeatPwd" type="text" class="input" placeholder="请再次输入密码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/qy_icon.png"></image>
         </view>
-        <input v-model="postForm.firmId" type="text" class="input" placeholder="请输入企业ID" />
+        <input v-model="postForm.orgId" type="text" class="input" placeholder="请输入企业ID" />
         <view class="code_box" @tap="noFirmId">
           <text style="text-decoration: underline;">无企业ID?</text>
         </view>
@@ -310,7 +338,11 @@ const toWeChatAccount = () => {
 }
 
 :deep(.wd-popup) {
-  background-color: transparent;
+  background-color: transparent !important;
+}
+
+.wd-popup {
+  background-color: transparent !important;
 
   .firmId_box {
     width: 527rpx;
@@ -374,7 +406,7 @@ const toWeChatAccount = () => {
     justify-content: center;
     width: 527rpx;
     height: 100rpx;
-    background-color: transparent;
+    background-color: transparent !important;
 
     .img_close {
       width: 66rpx;

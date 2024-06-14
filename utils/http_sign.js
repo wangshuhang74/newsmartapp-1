@@ -10,8 +10,8 @@
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/store'
 import Request from "luch-request";
-const { userInfo } = storeToRefs(useUserStore()); // 解构pinia的store
-console.log("🚀 ~ token:", userInfo)
+// const { userInfo } = storeToRefs(useUserStore()); // 解构pinia的store
+// console.log("🚀 ~ userInfo123:", userInfo)
 
 export const baseURL = "http://92904u2h83.zicp.fun/api";
 const http = new Request();
@@ -31,19 +31,20 @@ http.interceptors.request.use(
     config.header = {
       ...config.header,
     };
-    // const url_notoken = ['/app/login/alipayLogin', '/app/login/phoneLogin', '/app/login/getWxUserPhone', '/app/login/wxPayLogin', '/app/login/sendSms', '/app/login/getAlipayPhone2', '/app/index/getCityCodeByLat', '/system/sysProtocol/getOneProtocol'];
-    // if (token.value) {
-    //   // config.header.Authorization = token.value;
-    // } else if (!config.custom.noAuth) { //接口配置不需要登录
-    //   const { logout } = useAuthStore();
-    //   logout();//store退出
+    
+    const url_notoken = ['/app/login/alipayLogin', '/app/login/phoneLogin', '/app/login/getWxUserPhone', '/app/login/wxPayLogin', '/app/login/sendSms', '/app/login/getAlipayPhone2', '/app/index/getCityCodeByLat', '/system/sysProtocol/getOneProtocol'];
+  //   if (token.value) {
+  //     // config.header.Authorization = token.value;
+  //   } else if (!config.custom.noAuth) { //接口配置不需要登录
+  //     const { logout } = useAuthStore();
+  //     logout();//store退出
 
-    //   // 未登录跳转登录
-    //   uni.navigateTo({
-    //     url: "/pages/login/login",
-    //   });
-    //   return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
-  }
+  //     // 未登录跳转登录
+  //     uni.navigateTo({
+  //       url: "/pages/login/login",
+  //     });
+  //     return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
+  // }
     return config;
   },
 (config) => {

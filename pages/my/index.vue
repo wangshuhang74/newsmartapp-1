@@ -17,7 +17,6 @@ const { userInfo } = storeToRefs(userStore)
 const Message = useMessage()
 
 onShow(() => {
-  console.log("userInfo", userInfo.value);
   userStore.isLoginFn()
 })
 
@@ -61,7 +60,7 @@ const fnList = [
 ]
 
 const itemClick = (item) => {
-  console.log("🚀 ~ itemClick ~ itemClick:", item)
+  console.log("token", userInfo.value.token);
   if (item.id == 6) {
     Message.confirm({
       title: "退出登录",
@@ -90,29 +89,26 @@ const itemClick = (item) => {
         <view class="active_info_left">
           <image v-if="userInfo.active" :src="userInfo.active" mode="scaleToFill" />
           <view v-else class="avatar_text">{{
-            userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : ""
-          }}</view>
+            userInfo.nickName ? userInfo.nickName.charAt(0).toUpperCase() : userInfo.phone ?
+              userInfo.phone.charAt(0).toUpperCase() : ""
+            }}</view>
         </view>
-        <view class="active_info_right" v-if="userInfo.userName">
+        <view class="active_info_right" v-if="userInfo.nickName || userInfo.phone">
           <view class="title_box">
-            <text class="title">{{ userInfo.userName }}</text>
-            <view class="type_box">【工程师】</view>
-            <view class="tag_box">
-              <text class="tag">维修</text>
-              <text class="tag">安装</text>
-              <text class="tag">新装</text>
-              <text class="tag">售后</text>
-              <text class="tag">管理</text>
+            <text class="title">{{ userInfo.nickName ? userInfo.nickName : userInfo.phone }}</text>
+            <view class="type_box" v-if="userInfo.roleName">【{{ userInfo.roleName }}】</view>
+            <view class="tag_box" v-if="userInfo.tags && userInfo.tags.length > 0">
+              <text class="tag" v-for="(item, idx) in userInfo.tags" :key="idx">{{ item }}</text>
             </view>
           </view>
-          <view class="phone_box">19210964479</view>
+          <view class="phone_box">{{ userInfo.phone }}</view>
         </view>
 
         <view class="active_info_right" v-else>
           <view class="title_box">
             <text class="title">未登录</text>
           </view>
-          <view class="phone_box">--</view>
+          <view class="phone_box">请先登录...</view>
         </view>
 
       </view>

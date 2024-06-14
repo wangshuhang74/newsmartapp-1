@@ -1,21 +1,26 @@
-
-<script  setup>
+<script setup>
 import navbar from '@/pages/components/navbar.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import areaData from '../../utils/areaData.json'
+import { addOrgUser, sendCode } from '../../api'
+import { storeToRefs } from 'pinia'
+import { useUserStore } from '@/store'
+import { baseURL } from '../../utils/http'
+const userStore = useUserStore()
+const { deviceId, } = storeToRefs(userStore)
 const Toast = useToast()
 const postForm = ref({
-  firmPhone: null,//手机号
-  firmCode: null,//验证码
+  phone: null,//手机号
+  captcha: null,//验证码
   password: null,//密码
-  recurPassword: null,//确认密码
-  uniformCreditCode: null,//统一社会信用代码
-  firmName: null,//企业名称
-  firmAbbreviation: null,//企业简称
-  linkmanContacts: null,//联系人
-  firmEmail: null,//邮箱
-  firmArea: null,//企业区域行政区码
-  firmAddress: null,//企业详细地址
+  repeatPwd: null,//确认密码
+  creditCode: null,//统一社会信用代码
+  orgName: null,//企业名称
+  orgShortName: null,//企业简称
+  dutyUser: null,//联系人
+  email: null,//邮箱
+  area: null,//企业区域行政区码
+  address: null,//企业详细地址
   license: null,//营业执照
 })
 
@@ -51,24 +56,36 @@ const columnChange = ({ selectedItem, resolve, finish }) => {
 
 function handleConfirm({ value }) {
   console.log('area-value', value)
-  postForm.value.firmArea = value[2]
+  postForm.value.area = value[2]
 }
 
-const registerBtn = () => {
+const registerBtn = async () => {
   console.log("postForm", postForm.value);
-  if (!postForm.value.firmCode) return Toast.warning('请输入验证码')
+  if (!postForm.value.captcha) return Toast.warning('请输入验证码')
   if (!postForm.value.password) return Toast.warning('请输入密码')
-  if (!postForm.value.recurPassword) return Toast.warning('请确认密码')
-  if (postForm.value.password != postForm.value.recurPassword) return Toast.warning('两次输入的密码不一致')
-  if (!postForm.value.uniformCreditCode) return Toast.warning('请输入统一社会信用代码')
-  if (!postForm.value.firmName) return Toast.warning('请输入企业名称')
-  if (!postForm.value.firmAbbreviation) return Toast.warning('请输入企业简称')
-  if (!postForm.value.linkmanContacts) return Toast.warning('请输入联系人')
-  if (!postForm.value.firmEmail) return Toast.warning('请输入邮箱')
-  if (!postForm.value.firmArea) return Toast.warning('请选择所属区域')
-  if (!postForm.value.firmAddress) return Toast.warning('请输入详细地址')
+  if (!postForm.value.repeatPwd) return Toast.warning('请确认密码')
+  if (postForm.value.password != postForm.value.repeatPwd) return Toast.warning('两次输入的密码不一致')
+  if (!postForm.value.creditCode) return Toast.warning('请输入统一社会信用代码')
+  if (!postForm.value.orgName) return Toast.warning('请输入企业名称')
+  if (!postForm.value.orgShortName) return Toast.warning('请输入企业简称')
+  if (!postForm.value.dutyUser) return Toast.warning('请输入联系人')
+  if (!postForm.value.email) return Toast.warning('请输入邮箱')
+  if (!postForm.value.area) return Toast.warning('请选择所属区域')
+  if (!postForm.value.address) return Toast.warning('请输入详细地址')
   if (!postForm.value.license) return Toast.warning('请上传营业执照')
-  console.log("postForm1", postForm.value);
+  const { code, data, msg } = await addOrgUser(postForm.value)
+  if (code != 0) return Toast.warning(msg)
+  Toast.success('注册成功,正在登录中...')
+  setTimeout(function () {
+    userStore.loginInfo({
+      phone: postForm.value.phone,
+      password: postForm.value.password,
+      isLastingCookie: false,
+      phoneId: deviceId.value,
+      platform: 1
+    })
+  }, 1000)
+
 }
 
 const handleUploadLicense = async () => {
@@ -79,7 +96,7 @@ const handleUploadLicense = async () => {
     success: function (res) {
       const tempFilePaths = res.tempFilePaths;
       uni.uploadFile({
-        url: `${'https://report.gb19056.com:8650'}/sysFile/uploadFile`,
+        url: `${baseURL}sysFile/uploadFile`,
         filePath: tempFilePaths[0],
         name: "file",
         formData: {
@@ -87,26 +104,26 @@ const handleUploadLicense = async () => {
         },
         success: (uploadFileRes) => {
           const { code, data } = JSON.parse(uploadFileRes.data);
-          console.log("uploadFileRes", uploadFileRes);
-          postForm.value.license = data.path
-
+          console.log("🚀 ~ handleUploadLicense ~ data:", data)
+          postForm.value.license = data.url
         },
       });
     },
   });
 }
 
+let timer;
 const SendCodeFlag = ref(false)
 const SendSecond = ref(60) // 倒计时
 const SendCodeFn = () => {
-  if (!postForm.value.firmPhone) return Toast.warning('请输入手机号')
-  if (!/^1[3456789]\d{9}$/.test(postForm.value.firmPhone)) return Toast.warning('请输入正确的手机号')
+  if (!postForm.value.phone) return Toast.warning('请输入手机号')
+  if (!/^1[3456789]\d{9}$/.test(postForm.value.phone)) return Toast.warning('请输入正确的手机号')
   if (SendSecond.value !== 60) return
   if (SendCodeFlag.value) return
   SendCodeFlag.value = true
-  const timer = setInterval(() => {
+  SendCodeApi()
+  timer = setInterval(() => {
     if (SendSecond.value > 0) {
-      SendCodeApi()
       SendSecond.value--
     } else {
       SendCodeFlag.value = false
@@ -116,11 +133,18 @@ const SendCodeFn = () => {
   }, 1000)
 }
 
-
 const SendCodeApi = async () => {
-  //调用验证码接口 postForm.value.firmPhone
+  //调用验证码接口 postForm.value.phone
+  const { code, data, msg } = await sendCode(postForm.value.phone)
+  if (code == 0) {
+    Toast.success('验证码发送成功')
+  } else {
+    Toast.warning(msg)
+    SendCodeFlag.value = false
+    SendSecond.value = 60
+    clearInterval(timer)
+  }
 }
-
 </script>
 
 <template>
@@ -132,14 +156,14 @@ const SendCodeApi = async () => {
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/phone_icon.png"></image>
         </view>
-        <input v-model="postForm.firmPhone" type="text" class="input" maxlength="11" placeholder="请输入手机号" />
+        <input v-model="postForm.phone" type="text" class="input" maxlength="11" placeholder="请输入手机号" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/yzm_icon.png"></image>
         </view>
-        <input v-model="postForm.firmCode" type="text" class="input" placeholder="请输入验证码" />
+        <input v-model="postForm.captcha" type="text" class="input" placeholder="请输入验证码" />
         <view class="code_box" @tap="SendCodeFn">
           <text v-if="SendCodeFlag">{{ SendSecond }}秒后重新发送</text>
           <text v-else>发送验证码</text>
@@ -157,42 +181,42 @@ const SendCodeApi = async () => {
         <view class="left_icon">
           <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
         </view>
-        <input v-model="postForm.recurPassword" type="text" class="input" placeholder="请再次输入密码" />
+        <input v-model="postForm.repeatPwd" type="text" class="input" placeholder="请再次输入密码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/dm_icon.png"></image>
         </view>
-        <input v-model="postForm.uniformCreditCode" type="text" class="input" placeholder="请输入统一信用代码" />
+        <input v-model="postForm.creditCode" type="text" class="input" placeholder="请输入统一信用代码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/qy_icon.png"></image>
         </view>
-        <input v-model="postForm.firmName" type="text" class="input" placeholder="请输入企业名称" />
+        <input v-model="postForm.orgName" type="text" class="input" placeholder="请输入企业名称" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image src="http://116.62.107.90:8673/images/icons/qy_icon.png"></image>
         </view>
-        <input v-model="postForm.firmAbbreviation" type="text" class="input" placeholder="请输入企业简称" />
+        <input v-model="postForm.orgShortName" type="text" class="input" placeholder="请输入企业简称" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image style="width: 45rpx; height: 45rpx" src="http://116.62.107.90:8673/images/icons/lxr_icon.png"></image>
         </view>
-        <input v-model="postForm.linkmanContacts" type="text" class="input" placeholder="请输入联系人" />
+        <input v-model="postForm.dutyUser" type="text" class="input" placeholder="请输入联系人" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
           <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/yx_icon.png"></image>
         </view>
-        <input v-model="postForm.firmEmail" type="text" class="input" placeholder="请输入电子邮箱" />
+        <input v-model="postForm.email" type="text" class="input" placeholder="请输入电子邮箱" />
       </view>
 
       <view class="input_item">
@@ -212,13 +236,13 @@ const SendCodeApi = async () => {
         <view class="left_icon">
           <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/dw_icon.png"></image>
         </view>
-        <input v-model="postForm.firmAddress" type="text" class="input" placeholder="请输入详细地址" />
+        <input v-model="postForm.address" type="text" class="input" placeholder="请输入详细地址" />
       </view>
 
       <view class="up_img_box">
         <view class="title">请上传营业执照：</view>
         <view class="up_box" @tap="handleUploadLicense">
-          <image v-if="postForm.license" :src="postForm.license" class="license" mode="scaleToFill" />
+          <image v-if="postForm.license" :src="baseURL + postForm.license" class="license" mode="scaleToFill" />
           <image v-else src="http://116.62.107.90:8673/images/icons/add_icon.png" class="add_icon" mode="scaleToFill" />
         </view>
       </view>

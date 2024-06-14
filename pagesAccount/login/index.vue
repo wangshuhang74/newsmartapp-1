@@ -1,6 +1,7 @@
 <script setup>
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/store'
+import { login } from '../../api'
 import { useNotify, useToast, useMessage } from "wot-design-uni"; // ui组件库
 import zhengyan from '../../static/images/icons/zhengyan.png'
 import biyan from '../../static/images/icons/biyan.png'
@@ -8,45 +9,50 @@ import biyan from '../../static/images/icons/biyan.png'
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync() // 获取屏幕边界到安全区域距离
 const userStore = useUserStore()
-const { userInfo, loginForm } = storeToRefs(userStore)
-const visible = ref(true)
+const { userInfo, deviceId, loginForm } = storeToRefs(userStore)
+const visible = ref(false)
 const postForm = ref({
-  userName: null,
+  phone: null,
   password: null,
-  rememberPassword: false,
+  isLastingCookie: false,
+  phoneId: null,
+  platform: 1
 })
 
 onLoad(() => {
-  console.log("loginForm", loginForm.value);
-  if (loginForm.value.rememberPassword) {
-    postForm.value.userName = loginForm.value.userName
+  if (loginForm.value.isLastingCookie) {
+    postForm.value.phone = loginForm.value.phone
     postForm.value.password = loginForm.value.password
-    postForm.value.rememberPassword = loginForm.value.rememberPassword
+    postForm.value.isLastingCookie = loginForm.value.isLastingCookie
   }
+  uni.getSystemInfo({
+    success: (res) => {
+      deviceId.value = res.deviceId
+      postForm.value.phoneId = res.deviceId
+    },
+    fail: (err) => {
+      console.log("获取系统信息失败", err);
+    },
+  });
 })
 
 
 
 const loginBtn = async () => {
-  if (!postForm.value.userName) {
+  if (!postForm.value.phone) {
     return Toast.warning('请输入用户名或手机号')
   }
   if (!postForm.value.password) {
     return Toast.warning('请输入登录密码')
   }
-  if (postForm.value.rememberPassword) {
+  if (postForm.value.isLastingCookie) {
     loginForm.value = postForm.value
   } else {
     loginForm.value = {}
   }
-  // userInfo.value = form
-  postForm.value.token = '123456'
-  userStore.setUserInfo(postForm.value)
-  console.log("userInfo", userInfo.value);
-  //关闭当前页面 跳转到指定页面
-  uni.switchTab({
-    url: '/pages/home/index',
-  })
+  const { code, data, msg } = await userStore.loginInfo(postForm.value)
+  if (code != 0) return Toast.warning(msg)
+
 }
 
 const passwordChange = ({ value }) => {
@@ -85,9 +91,9 @@ const visibleBtn = () => {
     <view class="forms">
       <view class="input_item">
         <image src="http://116.62.107.90:8673/images/icons/user.png" mode="scaleToFill" class="input_icon" />
-        <input v-model="postForm.userName" placeholder="请输入用户名/手机号" />
-        <image v-if="postForm.userName" src="http://116.62.107.90:8673/images/icons/clear.png" mode="scaleToFill"
-          class="input_icon" @tap="postForm.userName = ''" />
+        <input v-model="postForm.phone" placeholder="请输入用户名/手机号" />
+        <image v-if="postForm.phone" src="http://116.62.107.90:8673/images/icons/clear.png" mode="scaleToFill"
+          class="input_icon" @tap="postForm.phone = ''" />
       </view>
       <view class="input_item">
         <image src="http://116.62.107.90:8673/images/icons/password.png" mode="scaleToFill" class="input_icon" />
@@ -100,7 +106,7 @@ const visibleBtn = () => {
       </view>
 
       <view class="bottom_box">
-        <wd-checkbox v-model="postForm.rememberPassword" @change="passwordChange">记住密码</wd-checkbox>
+        <wd-checkbox v-model="postForm.isLastingCookie" @change="passwordChange">记住密码</wd-checkbox>
         <text class="forget" @tap="forgetBtn">忘记密码?</text>
       </view>
       <button class="loginBtn" @tap="loginBtn">登录</button>

@@ -1,6 +1,11 @@
-<script  setup>
+<script setup>
 import navbar from '@/pages/components/navbar.vue'
+import { forgetPassword } from '../../api';
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+import { storeToRefs } from 'pinia'
+import { useUserStore } from '@/store'
+const userStore = useUserStore()
+const { deviceId, } = storeToRefs(userStore)
 const Toast = useToast()
 const postForm = ref({
   personalPhone: null,//手机号
@@ -14,13 +19,26 @@ onLoad(() => {
 
 
 
-const registerBtn = () => {
+const registerBtn = async () => {
   console.log("postForm", postForm.value);
   if (!postForm.value.personalCode) return Toast.warning('请输入验证码')
   if (!postForm.value.password) return Toast.warning('请输入密码')
   if (!postForm.value.recurPassword) return Toast.warning('请确认密码')
   if (postForm.value.password != postForm.value.recurPassword) return Toast.warning('两次输入的密码不一致')
   console.log("postForm1", postForm.value);
+
+  const { code, data, msg } = await forgetPassword(postForm.value)
+  if (code != 0) return Toast.warning(msg)
+  Toast.success('修改成功,正在登录中...')
+  setTimeout(function () {
+    userStore.loginInfo({
+      phone: postForm.value.phone,
+      password: postForm.value.password,
+      isLastingCookie: false,
+      phoneId: deviceId.value,
+      platform: 1
+    })
+  }, 1000)
 }
 
 
