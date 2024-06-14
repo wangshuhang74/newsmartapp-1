@@ -7,7 +7,7 @@ import { persist } from "./store/persist";
 const pinia = Pinia.createPinia();
 // pinia.use(piniaPluginPersistedstate)
 pinia.use(persist);
-export function createApp() {
+export function createApp () {
   const app = createSSRApp(App)
   app.use(pinia);
   return {

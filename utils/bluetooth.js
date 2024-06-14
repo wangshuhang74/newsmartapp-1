@@ -49,28 +49,28 @@ const P_CSYS = 1013;
 const P_DID = 1014;
 const P_SFDM = 1015;
 
-function TParamHead() {
+function TParamHead () {
 	var ParamType = 0;
 	var ParamLength = 0;
 }
 
-function TU8V() {
+function TU8V () {
 	var dataLen = 0;
 	var data = new Uint8Array(0);
 }
 
-function TParamInfo() {
+function TParamInfo () {
 	var paramHead = new TParamHead();
 	var data = new Uint8Array(0);
 }
 
-function TSelectSpecResult() {
+function TSelectSpecResult () {
 	var paramHead = new TParamHead();
 	var Result = 0;
 	var TagData = new TU8V();
 }
 
-function VehicleInfo() {
+function VehicleInfo () {
 	var TID = "";             //标签TID
 	//User0个性化数据，88xx和89xx都是在这里
 	var CID = "";                                 //标签CID/DID
@@ -263,7 +263,9 @@ export const PrivateConfigAck = (finishData) => {
 					configAckData[i] = finishData[index++]
 				}
 				var secPrivateAck = ab2hex(configAckData);
-				console.log('接收到私有配置信息：', secPrivateAck)
+				console.log(secPrivateAck);
+				var secRandom = secPrivateAck.substr(2, 16);
+				console.log('接收到私有配置信息(随机数)：', secRandom)
 				index += configAckLen;
 				break;
 			case SecSNAck:

@@ -1,6 +1,7 @@
 import { http } from "../utils/http_sign";
 
 export const auth = (params) => {
+  console.log('http2' + params);
   return http.post("/card/auth", params, { custom: { noAuth: true } });
 };
 //获取微信access_token信息

@@ -78,6 +78,8 @@
         <image src="http://116.62.107.90:8673/images/tips/connect_blue3.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">请将电子车牌置于设备上方进行激活<br />正在激活电子车牌，请稍后…</view>
         <view class="open_blue">
+          <view class="btn search_btn" @tap="readRandom">安全模块随机数</view>
+          <view class="btn search_btn" @tap="sendCmd(secSNQuery)">安全模块序列号</view>
           <view class="btn search_btn" @tap="goActive">立即激活</view>
           <view class="btn" @tap="nextStep(4)">已激活，下一步</view>
         </view>
@@ -597,9 +599,120 @@ const goForm = () => {
 
 //激活电子标签
 const goActive = () => {
+  console.log('http1');
   auth({ step: 1, data: 22 }).then((res) => {
     console.log(res);
   })
+}
+
+//获取安全模块序列号
+const secSNQuery = ref([0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x69, 0x0c, 0x00, 0xef, 0x86, 0x7e]);
+
+
+//获取安全模块生成的随机数
+//获取设备配置(安全模块私有配置)
+const getDeviceConfig = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xee, 0x0b, 0x00, 0x02, 0xac, 0x00, 0x00, 0x00, 0x00];
+
+//发送指令缓存
+var SendFrame = new Uint8Array(1024)
+var SendLen = 0
+//获取安全模块私有配置
+const getDeviceSecConfig = (privateinfo) => {
+  var msgLenIndex = 11;
+  var paramLenIndex = 23;
+  var arrayLenIndex = 25;
+  //zllrp帧
+  var frame = new Uint8Array(getDeviceConfig.length + privateinfo.length)
+  for (var i = 0; i < getDeviceConfig.length; i++) {
+    frame[i] = getDeviceConfig[i]
+  }
+  for (var i = 0; i < privateinfo.length; i++) {
+    frame[i + getDeviceConfig.length] = privateinfo[i]
+  }
+
+  setLenthRegion(frame, arrayLenIndex, privateinfo.length, 2)
+  setLenthRegion(frame, paramLenIndex, privateinfo.length + 2, 2)
+  setLenthRegion(frame, msgLenIndex, frame.length - 19, 4)
+
+  comm_llrp_encodeRS(frame, frame.length)
+  var senddata = new Uint8Array(SendLen);
+  for (var i = 0; i < SendLen; i++) {
+    senddata[i] = SendFrame[i]
+  }
+
+  var sdata = ab2hex(senddata)
+  console.log('发送数据帧：', sdata)
+
+  sendCmd(senddata);
+}
+
+const readRandom = () => {
+  var privateinfo = new Uint8Array(2)
+  privateinfo[0] = 0x62
+  privateinfo[1] = 0x0
+  getDeviceSecConfig(privateinfo)
+}
+
+//设置长度区域
+const setLenthRegion = (buff, index, len, size) => {
+  for (var i = 0; i < size; i++) {
+    buff[index++] = (len >> (size - i - 1) * 8) & 0xff;
+  }
+}
+
+//将llrp协议数据编码
+const comm_llrp_encodeRS = (frame, len) => {
+  SendLen = 0;
+  SendFrame[SendLen++] = 0x7e;
+  SendFrame[SendLen++] = 0x0;
+  SendFrame[SendLen++] = 0x0;
+  for (var i = 0; i < len; i++) {
+    switch (frame[i]) {
+      case 0x7d://125
+        SendFrame[SendLen++] = 0x7d;
+        SendFrame[SendLen++] = 0x5d;
+        break;
+      case 0x7e:
+        SendFrame[SendLen++] = 0x7d;
+        SendFrame[SendLen++] = 0x5e;
+        break;
+      default:
+        SendFrame[SendLen++] = frame[i];
+        break;
+    }
+  }
+
+  var crc = comm_llrp_calCrc(frame, len, 0);
+
+  var crcHigh = (crc >> 8) & 0xff;
+  if (crcHigh == 0x7d) {
+    SendFrame[SendLen++] = 0x7d;
+    SendFrame[SendLen++] = 0x5d;
+  }
+  else if (crcHigh == 0x7e) {
+    SendFrame[SendLen++] = 0x7d;
+    SendFrame[SendLen++] = 0x5e;
+  }
+  else {
+    SendFrame[SendLen++] = crcHigh;
+  }
+
+  var crcLow = crc & 0xff;
+  if (crcLow == 0x7d) {
+    SendFrame[SendLen++] = 0x7d;
+    SendFrame[SendLen++] = 0x5d;
+  }
+  else if (crcLow == 0x7e) {
+    SendFrame[SendLen++] = 0x7d;
+    SendFrame[SendLen++] = 0x5e;
+  }
+  else {
+    SendFrame[SendLen++] = crcLow;
+  }
+
+  SendFrame[SendLen++] = 0x7e;
+
+  return SendLen;
 }
 
 </script>
