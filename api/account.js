@@ -32,9 +32,9 @@ export const sendCode = (phone) => {
 
 // /account/updPassword 修改密码
 export const updPassword = (params) => {
-    return http.post("/account/addUser", params,);
+    return http.post("/account/updPassword", params,);
 };
 // /account/forgetPassword 忘记密码 
 export const forgetPassword = (params) => {
-    return http.post("/account/addUser", params, { custom: { noAuth: true } });
+    return http.post("/account/forgetPassword", params, { custom: { noAuth: true } });
 };

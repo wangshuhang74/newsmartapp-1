@@ -3,7 +3,7 @@ import navbar from '@/pages/components/navbar.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import areaData from '../../utils/areaData.json'
 import { addOrgUser, sendCode } from '../../api'
-import { storeToRefs } from 'pinia'
+
 import { useUserStore } from '@/store'
 import { baseURL } from '../../utils/http'
 const userStore = useUserStore()

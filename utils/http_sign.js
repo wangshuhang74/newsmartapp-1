@@ -7,7 +7,7 @@
  * DCloud: http://ext.dcloud.net.cn/plugin?id=392
  * HBuilderX: beat-3.0.4 alpha-3.0.4
  */
-import { storeToRefs } from 'pinia'
+
 import { useUserStore } from '@/store'
 import Request from "luch-request";
 // const { userInfo } = storeToRefs(useUserStore()); // 解构pinia的store

@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { login, logout } from '../api'
-import { useToast } from "wot-design-uni"; // ui组件库
-const Toast = useToast()
+
 const initState = { userName: '', avatar: '', token: null, }
 
 export const useUserStore = defineStore(
@@ -10,11 +9,30 @@ export const useUserStore = defineStore(
   () => {
     const userInfo = ref({ ...initState })
     const loginForm = ref({})
-    const deviceId = ref(null)
+    const deviceId = ref(null) // 设备id
+    const lang = ref('zh') // 语言
 
 
     const setUserInfo = (val) => {
       userInfo.value = val
+    }
+
+    //切换语言
+    const switchLang = (locale) => {
+      console.log("🚀 ~ switchLang ~ locale:", locale.value)
+      if (lang.value == 'zh') {
+        locale.value = 'en';
+        lang.value = 'en'
+      } else if (lang.value == 'en') {
+        locale.value = 'zh';
+        lang.value = 'zh'
+      }
+      return true
+
+      //以下是需要切换页面标题和tabbar时候刷新的操作
+      // uni.redirectTo({
+      //   url: '/pages/index/index'
+      // })
     }
 
     const loginInfo = async (postForm) => {
@@ -59,6 +77,8 @@ export const useUserStore = defineStore(
       userInfo,
       loginForm,
       deviceId,
+      lang,
+      switchLang,
       setUserInfo,
       loginInfo,
       clearUserInfo,

@@ -54,7 +54,7 @@ onMounted(() => {
   justify-content: space-between;
   width: 100%;
   // #ifdef APP-PLUS
-  height: 100px;
+  height: 80px;
   // #endif
   background: linear-gradient(90deg, #4557d1 0%, #75dbed 100%);
   box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);

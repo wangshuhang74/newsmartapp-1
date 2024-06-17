@@ -1,7 +1,7 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
 import qr_code from '../../static/images/logins/qr_code.png'
-import { storeToRefs } from 'pinia'
+
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { addUser, sendCode } from '../../api'
 import { useUserStore } from '@/store'

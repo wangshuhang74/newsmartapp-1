@@ -5,7 +5,7 @@ import marker1 from '@/static/images/homeMap/marker1.png'
 import marker1_active from '@/static/images/homeMap/marker1_active.png'
 import marker2 from '@/static/images/homeMap/marker2.png'
 import marker2_active from '@/static/images/homeMap/marker2_active.png'
-import { storeToRefs } from 'pinia'
+
 import { useUserStore } from '@/store'
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
@@ -237,6 +237,7 @@ const getLocation = () => {
       console.log("res定位", res);
       userMap.value.latitude = res.latitude;
       userMap.value.longitude = res.longitude;
+      mapCtx.value.moveToLocation();
       setMyMarker(res)
       mapScale.value = 16
 

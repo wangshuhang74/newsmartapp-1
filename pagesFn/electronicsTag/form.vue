@@ -136,7 +136,7 @@
 
 <script  setup>
 import navbar from '@/pages/components/navbar.vue'
-import { storeToRefs } from 'pinia'
+
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
 const { tagsInfo } = storeToRefs(tagsStore) // 识读电子标识的具体内容

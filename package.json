@@ -5,6 +5,7 @@
     "pinia": "^2.0.0-rc.10",
     "pinia-plugin-persistedstate": "^3.2.1",
     "unplugin-auto-import": "^0.17.6",
+    "vue-i18n": "^9.13.1",
     "wot-design-uni": "^1.2.25"
   }
 }

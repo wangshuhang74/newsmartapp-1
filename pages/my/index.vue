@@ -2,7 +2,7 @@
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 import { useUserStore } from '@/store'
-import { storeToRefs } from 'pinia'
+
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import icon1 from '@/static/images/icons/grda_icon.png'
 import sk_icon from '@/static/images/icons/sk_icon.png'

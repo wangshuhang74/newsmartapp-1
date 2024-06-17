@@ -107,7 +107,7 @@
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
 import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus } from "../../utils/bluetooth";
-import { storeToRefs } from 'pinia'
+
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
 const { tagsInfo, blueToothDevices } = storeToRefs(tagsStore) // 识读电子标识的具体内容
@@ -598,7 +598,7 @@ const goForm = () => {
 //激活电子标签
 const goActive = () => {
   auth({ step: 1, data: 22 }).then((res) => {
-    console.log(res);
+    console.log("🚀 ~ auth ~ res:", res)
   })
 }
 

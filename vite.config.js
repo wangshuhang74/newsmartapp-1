@@ -13,7 +13,7 @@ export default ({}) => {
           /\.vue$/,
           /\.vue\?vue/, // .vue
         ],
-        imports: ["vue", "uni-app"],
+        imports: ["vue", "uni-app","pinia"],
         dts: "./auto-imports.d.ts",
       }),
     ],

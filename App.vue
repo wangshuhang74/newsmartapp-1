@@ -1,7 +1,6 @@
 <script setup >
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 
-import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
 const { blueToothDevices } = storeToRefs(tagsStore) // 识读电子标识的具体内容

@@ -1,7 +1,6 @@
 <script setup>
-import { storeToRefs } from 'pinia'
+
 import { useUserStore } from '@/store'
-import { login } from '../../api'
 import { useNotify, useToast, useMessage } from "wot-design-uni"; // ui组件库
 import zhengyan from '../../static/images/icons/zhengyan.png'
 import biyan from '../../static/images/icons/biyan.png'
@@ -51,6 +50,7 @@ const loginBtn = async () => {
     loginForm.value = {}
   }
   const { code, data, msg } = await userStore.loginInfo(postForm.value)
+  console.log("🚀 ~ loginBtn ~ code:", code)
   if (code != 0) return Toast.warning(msg)
 
 }
