@@ -26,13 +26,13 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>行驶记录仪编号</text>
-							<input type="text" class="boxFlex" value="" placeholder="自识别" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.jlyCID" placeholder="自识别" />
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>行驶记录仪安全芯片ID</text>
-							<input type="text" class="boxFlex" value="" placeholder="自识别" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.jlyID" placeholder="自识别" />
 						</view>
 					</view>
 				</view>
@@ -62,7 +62,8 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>发牌代号</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.FPDH" placeholder="自识别/请输入" />
+							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.FPDH" placeholder="自识别/请输入" /> -->
+							<view class="boxFlex" @tap="openFPDH">{{ tagsInfo.FPDH ? tagsInfo.FPDH : '请选择' }}</view>
 						</view>
 					</view>
 					<view class="view_rows">
@@ -86,7 +87,9 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>车辆类型</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.CLLX" placeholder="自识别/请输入" />
+							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.CLLX" placeholder="自识别/请选择" /> -->
+							<wd-picker :columns="carTypeList" label="" v-model="tagsInfo.CLLX" @confirm="handleConfirm"
+								placeholder="自识别/请输入" />
 						</view>
 					</view>
 					<view class="view_rows">
@@ -134,62 +137,100 @@
 			</view>
 		</view>
 	</view>
-	<view class="car-number-container" v-if="showKeyboard">
-		<view class="plate-close" @tap="closeProvince"><text class="plate-close-btn">关闭</text></view>
-		<view class="plate-popup-list">
-			<view class="plate-popup-item province-item" v-for="(item, index) in keyProvince1" :key="index"
-				@tap="tapKeyboard(item)">{{ item }}</view>
-		</view>
-		<view class="plate-popup-list">
-			<view class="plate-popup-item province-item" v-for="(item, index) in keyProvince2" :key="index"
-				@tap="tapKeyboard(item)">{{ item }}</view>
-		</view>
-		<view class="plate-popup-list">
-			<view class="plate-popup-item province-item" v-for="(item, index) in keyProvince3" :key="index"
-				@tap="tapKeyboard(item)">{{ item }}</view>
-		</view>
-		<view class="plate-popup-list">
-			<view class="plate-popup-item province-item" v-for="(item, index) in keyProvince4" :key="index"
-				@tap="tapKeyboard(item)">{{ item }}</view>
-			<!-- 删除 -->
-			<!-- <view class="plate-popup-item province-item del" @click="onPlateDelTap">
-				<image :src="deleteImgBase64" />
-			</view> -->
-		</view>
-	</view>
+
+	<!--SFDM-->
+	<keyboard v-if="showKeyboard" :keyList="keyList" @keyClick="keyClick" @confirm="SFDMConfirm"></keyboard>
+
+	<!--FPDM-->
+	<keyboard v-if="showKeyboard2" :keyList="keyList2" @keyClick="keyClick" @confirm="FPDHConfirm"></keyboard>
+
 </template>
 
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
+import keyboard from '@/pages/components/keyboard.vue'
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
 const { tagsInfo } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 console.log(tagsInfo.value);
+import { analysisCarNumber,analysisJlyCID } from '@/utils/message'
 
 const showKeyboard = ref(false);
-const keyProvince1 = ref(['京', '津', '晋', '冀', '蒙', '辽', '吉', '黑', '沪']);
-const keyProvince2 = ref(['苏', '浙', '皖', '闽', '赣', '鲁', '豫', '鄂', '湘']);
-const keyProvince3 = ref(['粤', '桂', '琼', '渝', '川', '贵', '云', '藏']);
-const keyProvince4 = ref(['陕', '甘', '青', '宁', '新']);
-// const deleteImgBase64 = ref("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAMe0lEQVR4Xu2dX04cxxbGT48j5+Va14+RAlJfKcZ5u+zgwgoCKwjsAFYQvALwCkxWYO4KTFYQ7lsYLKUjBimPIPNiknRFrem5DND1p6v/1Kk6n19dVVPn+86P6qk+U5UR/kEBKKBVIIM2UAAK6BUAIMgOKGBQAIAgPaAAAEEOQAE/BbCC+OmGXkIUACBCjEaYfgoAED/d0EuIAgBEiNEI008BAOKnG3oJUQCACDEaYfopAED8dEMvIQoAECFGI0w/BQCIn27oJUQBACLEaITppwAA8dMNvYQoAECEGI0w/RQAIH66oZcQBQCIEKMRpp8CAMRPN/QSogAAEWI0wvRTAID46YZeQhQAIEKMRph+CgAQP93QS4gCAESI0QjTTwEA4qcbeglRAIB4GP11/mo9o8mhR1d0iUYBda1IvQEgLQ2r4JhQ9oEoe9myK5rHp0ABQFqY9nX+amdC2SHgaCFa5E0BiKOBczgm7xybo1kiCgAQByMBh4NIiTYBIBZjV/K1HzLKDpqbqR8VlceJ5oa4sBQ9W58QPdh8ASCGNFjN194RZTs6OC6Lqeb/xOVWEgGv5N9sZPTsw3IwAERjLeBIIudbBQFAHOR6mecvX9DzaqeqcXUoifavivMjh6HQJDIFAIjFsAqOf9DzDxll601NSyp3r4oLfOeILPFdpwtADEoBDtc0SrcdANF4+1X+bf4Fle+bVw51o6jcmhUfT9NNDURWKQBAGvLAXDqibkpSG1fFxRlSKH0FAMgjjwFH+knfJkIAsqSWCQ5F6n+K1A5WjjbpFX9bAFJ7aCodqeC4pbuN66K4jt9yRNBGAQBCRICjTcrIaiseEHPRofrvJ7rbwcohC4rlaEUDspq/OiSa7DXbr35EXZVcMBaRiwUEdVVIfhcFRAJigqP6zfGsmGpK2V0kRZuUFBAFyLx05Mv3GdFGk4moq0optfuJRQwgqKvqJ2GkjSICEDMc6oaIdi6L6Yk08xGvXYHkAZmfV5W90xUdoq7KniSSWyQNCOqqJKd2P7EnCwjqqvpJEOmjJAnIPKjJ+6bD3FBXJT3l28WfHCCoq2qXAGhtViApQMxw0E+39HkLdVVAoo0CyQBiKTpEXVWbrEDb/yuQBCCoq0JGD6VA9ICY66ro7aw411TrDiUpxk1JgagBMcGBuqqU0jRcLFECgrqqcAkj7ZOjA8RWV1WS2sNJh9LSeLh4owLEAQ6cVzVcrogcORpA5qUj1dtxyp86hcPcRGbvCEFHAYi5rop+q44BxXlVI2SLwI9gD4it6BDnVQnM2hFDZg3Iar62RUTVjU5PrldG0eGIWSL4o9gCgqJDwVnJKHSWgEivq1rcaPWJ7vZTLK6cPzbT95fFxT4jFhqnwg4Q2w2yqR/mtryVrUid3dLdZkqQPPxOqY4vi+kuZ0hYASK96LDpPU9KkDRvuPCGhA0gqKsimm9KZNW7ngf/UoBEvxupbv6gyfrvxS8Fx5UkOCD2G2RlXZKp+/4VMyQmOLifKhMUEBQdNv/NTAmSmOGo3AkGCOqqzA8UKUASOxzBAAEcbk/bMUOSAhxBAMFhbm5wLFrFCEkqcIwOCOqq2sERIyQpwTEqIIDDD46YIEkNjtEAQV1VNzhigKTerv/1aWFp3L/VGXwXS3pdVT9o3I/C8TuJftMlbjgGX0EAR994zMfjBEnKcAwKCG6QHQYOTo9bpu16RX9tzoqPp8OqMPzogzximeuqaP+qOD8aPrT0PyHkSmKCI6UzyXoHBEWH44IZAhIpcPT6iFWLVl11Vv1M9sm/lP6qjIuA/dPGhEQSHL0BYisdqU4dSeF51J6q4VqMAYk0OHoBxAYH93LmcCnd/ycPCYlEODoDghtk+0/yriMOAYlUODoBYisd+ZMmW1x/JdY1Cbn37xMSyXB4A2KDA4e5hUeoL0hW8rWfm+6Yl7Lp0nqbFzfIhk9+1xl0hUS3ZS8FjtYriK105BPd7aV0RI1rInJu5wsJ4Ji76ryC2OBI/bwqzhDY5tYWEj0c8qognAABHLYU5P//rpDoKyGUyJuCrYCYL8lUb2bF9IB/emCGlQI2SF7Q80OibOepWjLhsD5ioa4qPbD0TwPquukUfSK5cBgBARzpwbGIyPzIvBy3bDi0gBj+ytwQ0c5lMT1JN31kRGaHBHBoAVnNX//69C7A+H8+KSP13aNcyV9/yIg2Gr5zXH+iu39hy16zzbuav1ZNopWkNnEXoHsCcm5pPkmfKOazgPvUvXEXayVfO8so+3cTJES0i0esPi0YfywbHIsZARLNClJfufyzzjpJpQbjp++wn6iDQxH9lBH95/GnS4dE+x7E9iUOkAybyEOMbnsJaHtPIvE7ifFFYV21e0qU/bPJMEXqYFZM3wxhJsbsTwHzHSwPd6sAyUPdrW/SbZAQ8b5Cq780i3Mkyy8+G8tHAMm911ZAqqaARA4ci0gByVwJJ0Cqhl/l3+ZfUHnSvLtVtVDHqV5bHCMePivH4zgBSQtAKvFq0U91kEjf8eACUp8/k5UOifMKsjAfkHDBoHkefcKBx62WK8gyJC/o+TFR9p1md+vsT5ps49CGcWEaAg7pkLReQZYtX83XKki+b04DdY3SlPEAGRIOyZB0AqQSDpCMB4Huk8aAQyoknQGZb4WtHWSU/aBbSRSV2zh6dBiQxoRDIiS9AFK/K9mZ0OSdLg1QmtI/ICHgkAZJb4AAkv4BMI1Yv5d6H/JQNwlbwL0Ccg9JdqSv36K9WXH+dtx0SuvTTCdbjr1Spw5J74DUkKxPKNMWOaJ+yx9YTnBIeNwaBBBA4g+AqSdHOFKHZDBAAEm/kOjh4HNWQIqPW4MCUqUISlO6gxIDHKmuJIMDAki6ARITHClCMgoggMQPkhjhSA2S0QBZCIfSFDdYYoYjJUhGB6QSD5CYIUkBjlQgCQIIINEDkhIcKUASDJD5NvDrvQnRoS5dxn4r7PbwM1yrFOGIHZKggNTvSlDkWGdR8+EYfN5zdP3T0PyehPch2cEBASQP0+4hJOnA0byS8IajmjMLQOrvJFtEVP1CsfGQOkn1WxUkGU1OFJVbKR4WPl9Jso0Y7rVkA0i9kqDIsetzDPr3qgArQABJr95isB4UYAfIApKMsmOcv9WDwxiikwIsAakiQpFjJ1/RuScF2AICSHpyGMN0UoA1IPeQfHnSdLlLHXlRUrmd4m5PJ2fRuRcF2AOyiBL1W734jUFaKhANIPW7Epzk2NJgNO+mQFSAOEKyf1VcHHeTBb2hwFyB6ACpt4FRv4UMHkWBKAEBJKPkBj4k1hVk4ZztJl6i8uiyuNiH01DAV4FoV5AlSFC/5es++lkViB6Q+nELkFitRgMfBZIAxAUSRXR6S5+3r4vi2kco9JGpQDKAVPbZbuLFJaMyk7xL1EkBUgmBIscu6YC+jxVIDhBXSBSpXdRvAQibAkkCsoDEdBMvES4ZtSUH/j/SN+ltjEORYxu10FbEI9bjIG2QENHuZTE9QXpAAZGAVEGbb+IlknZIHVBwUyDZ7yBN4dtKUwCJW9JIaiUKkPqForESWJE6mBXTN5KSALHqFRAHyD0k+pt4JR1SBzjMCogEpIYE9Vugw6qAWEBcIFGkTm7pbhf1W9Y8SraBaEAcITm7pbtNQJIsA8bAxANSqYP6LZnJ7xI1AKlVcoEE9VsuKZVWGwCy5KcNEtRvpZX8LtEAkAaVbKUpJalNVAK7pFf8bQCIxkMbJIrK7Vnx8TT+FEAEJgUAiEEdMySo35KAFgCxuIybeCVgoI8RgDj4bytyVER7s+L8rcNQaBKZAgDE0TAbJKjfchQysmYApIVhq/kabuJtoVcKTQFISxcf3mPe1FkdKypxunxLXfk2f7aeER0tzy/jO1keM7NDwmOemMUwCgAQB10rSEw38ToMgSaRKgBAHI2zl6Y4DoRmUSkAQFrYBUhaiJVAU0X0GwBpaeQcEuNNvC1HRHOuCpRE+wDE051qG1gRrXt2RzfGCihSBRGdVUWqAISxUZhaeAUASHgPMAPGCgAQxuZgauEVACDhPcAMGCsAQBibg6mFVwCAhPcAM2CsAABhbA6mFl4BABLeA8yAsQIAhLE5mFp4BQBIeA8wA8YKABDG5mBq4RUAIOE9wAwYKwBAGJuDqYVXAICE9wAzYKwAAGFsDqYWXgEAEt4DzICxAgCEsTmYWngFAEh4DzADxgoAEMbmYGrhFQAg4T3ADBgrAEAYm4OphVcAgIT3ADNgrAAAYWwOphZeAQAS3gPMgLECAISxOZhaeAX+BoapE+jHYWlmAAAAAElFTkSuQmCC");
+const showKeyboard2 = ref(false);
+
+const keyClick = (e) => {
+	showKeyboard.value = e;
+	showKeyboard2.value = e;
+}
+
+
+const SFDM_transfer = ref('');
+const keyList = ref([
+	[{ name: '京', value: '000001' }, { name: '津', value: '000010' }, { name: '冀', value: '000011' }, { name: '晋', value: '000100' }, { name: '蒙', value: '000101' }, { name: '辽', value: '000110' }, { name: '吉', value: '000111' }, { name: '黑', value: '001000' }, { name: '沪', value: '001001' }],
+	[{ name: '苏', value: '001010' }, { name: '浙', value: '001011' }, { name: '皖', value: '001100' }, { name: '闽', value: '001101' }, { name: '赣', value: '001110' }, { name: '鲁', value: '001111' }, { name: '豫', value: '010000' }, { name: '鄂', value: '010001' }, { name: '湘', value: '010010' }],
+	[{ name: '粤', value: '010011' }, { name: '桂', value: '010100' }, { name: '琼', value: '010101' }, { name: '渝', value: '010110' }, { name: '川', value: '010111' }, { name: '贵', value: '011000' }, { name: '云', value: '011001' }, { name: '藏', value: '011010' }],
+	[{ name: '陕', value: '011011' }, { name: '甘', value: '011100' }, { name: '青', value: '011101' }, { name: '宁', value: '011110' }, { name: '新', value: '011111' }, { name: '港', value: '100000' }, { name: '澳', value: '100001' }]
+]);
+//打开SFDM
 const openProvince = () => {
 	showKeyboard.value = true;
 }
-const closeProvince = () => {
-	showKeyboard.value = false;
-}
-const tapKeyboard = (e) => {
+const SFDMConfirm = (e) => {
 	console.log(e);
-	tagsInfo.value.SFDM = e;
+	tagsInfo.value.SFDM = e.name;
+	SFDM_transfer.value = e.value;
 }
+
+
+
+const FPDH_transfer = ref('');
+const keyList2 = ref([
+	[{ name: 'A', value: '00000' }, { name: 'B', value: '00001' }, { name: 'C', value: '00010' }, { name: 'D', value: '00011' }, { name: 'E', value: '00100' }, { name: 'F', value: '00101' }, { name: 'G', value: '00110' }, { name: 'H', value: '00111' }, { name: 'I', value: '01000' }],
+	[{ name: 'J', value: '01001' }, { name: 'K', value: '01010' }, { name: 'L', value: '01011' }, { name: 'M', value: '01100' }, { name: 'N', value: '01101' }, { name: 'O', value: '01110' }, { name: 'P', value: '01111' }, { name: 'Q', value: '10000' }, { name: 'R', value: '10001' }],
+	[{ name: 'S', value: '10010' }, { name: 'T', value: '10011' }, { name: 'U', value: '10100' }, { name: 'V', value: '10101' }, { name: 'W', value: '10110' }, { name: 'X', value: '10111' }, { name: 'Y', value: '11000' }, { name: 'Z', value: '11001' }],
+]);
+
+//打开FPDH
+const openFPDH = () => {
+	showKeyboard2.value = true;
+}
+
+const FPDHConfirm = (e) => {
+	tagsInfo.value.FPDH = e.name;
+	FPDH_transfer.value = e.value;
+}
+
+
+//CLLX
+const carTypeList = ref([{ label: '大型汽车', value: '0001' }, { label: '小型汽车', value: '0010' }, { label: '使馆汽车', value: '0011' }, { label: '领馆汽车', value: '0100' }, { label: '境外汽车', value: '0101' }, { label: '外籍汽车', value: '0110' }, { label: '低速车', value: '0111' }, { label: '教练汽车', value: '1000' }, { label: '摩托车', value: '1001' }, { label: '新能源汽车', value: '1010' }, { label: '警用汽车', value: '1011' }, { label: '港澳两地车', value: '1100' }, { label: '武警车辆', value: '1101' }, { label: '军队车辆', value: '1110' }, { label: '其他车辆', value: '0000' }]);
+function handleConfirm (value) {
+	console.log(value);
+	tagsInfo.value.CLLX = value.value;
+}
+
 
 
 
 const confirm = () => {
-	console.log('confirm');
-
 	console.log(JSON.stringify(tagsInfo.value));
+	if (tagsInfo.value.PlateLicense) {  //车牌号码
+		let PlateLicense = analysisCarNumber(tagsInfo.value.PlateLicense);
+		console.log('车牌号码' + PlateLicense);
+	}
+
+	if (tagsInfo.value.jlyID) {  //行驶记录仪行驶记录仪安全芯片ID
+		let jlyCID = parseInt(tagsInfo.value.jlyID, 10).toString(2);
+		console.log('安全芯片' + jlyCID);
+	}
+	if (tagsInfo.value.jlyCID) {  //行驶记录仪编号
+		let jlyCID = analysisJlyCID(tagsInfo.value.jlyCID);
+		console.log('行驶记录仪编号' + jlyCID);		
+	}
+
+	console.log('省份代码' + SFDM_transfer.value);
+	console.log('发牌代号' + FPDH_transfer.value);
+	console.log('车辆类型' + tagsInfo.value.CLLX);
 
 }
 
@@ -307,76 +348,16 @@ const confirm = () => {
 			}
 		}
 	}
-}
 
-.car-number-container {
-	position: fixed;
-	z-index: 999;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	height: 254px;
-	background-color: #E3E2E7;
-	-webkit-box-shadow: 0 0 30upx rgba(0, 0, 0, 0.1);
-	box-shadow: 0 0 30upx rgba(0, 0, 0, 0.1);
-	overflow: hidden;
-	text-align: center;
-
-	.plate-close {
-		height: 40px;
-		line-height: 40px;
-		text-align: right;
-		background-color: #FFF;
-
-		.plate-close-btn {
-			font-size: 13.5px;
-			color: #555;
-			margin-right: 15px;
+	:deep(.wd-picker) {
+		.wd-picker__value {
+			color: #333;
+			margin-right: 0;
 		}
-	}
 
-	//键盘主体内容-单行
-	.plate-popup-list {
-		margin: 0 auto;
-		overflow: hidden;
-		display: inline-block;
-		display: table;
-
-		&:last-child {
-			margin-bottom: 2px;
+		.wd-picker__placeholder {
+			color: #888;
 		}
-	}
-
-	//键盘主体内容-单个
-	.plate-popup-item {
-		float: left;
-		font-size: 16px;
-		width: 8vw;
-		margin: 0 1vw;
-		margin-top: 8px;
-		height: 40px;
-		line-height: 40px;
-		background: #FFFFFF;
-		border-radius: 5px;
-		color: #4A4A4A;
-
-		image {
-			width: 16px;
-			height: 16px;
-			margin: 12px auto;
-		}
-	}
-
-	.plate-popup-item:active {
-		background-color: #EAEAEA;
-	}
-
-	.province-item {
-		width: 8.8vw;
-	}
-
-	.lock-item {
-		color: #AAA;
 	}
 }
 </style>
