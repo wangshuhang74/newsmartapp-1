@@ -1,4 +1,4 @@
-<script  setup>
+<script setup>
 import { useUserStore } from '@/store'
 import newCar from '@/static/images/fns/newCar.png'
 import oldCar from '@/static/images/fns/oldCar.png'
@@ -56,7 +56,7 @@ const fnList = ref([
     name: '电子标识',
     icon: electronicsTag,
     msgNum: 0,
-    path: '/pagesFn/electronicsTag/index',
+    path: '/pagesFn/electronicsTag/form',
   },
 ])
 

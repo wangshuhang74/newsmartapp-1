@@ -108,7 +108,7 @@
 <script setup>
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
-import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus } from "../../utils/bluetooth";
+import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus, secRandom, safeSn } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
@@ -600,14 +600,31 @@ const goForm = () => {
 //激活电子标签
 const goActive = () => {
   console.log('http1');
-  auth({ step: 1, data: 22 }).then((res) => {
+  console.log(secRandom.value);
+  console.log(safeSn.value);
+
+  auth({ step: 1, data: secRandom.value, samsn: safeSn.value }).then((res) => {
     console.log(res);
+    if (res.code == 0) {
+      let byteArray = hexStringToByteArray(res.message);
+      getDeviceSecConfig(byteArray);
+    }
   })
+}
+//字符串转十六进制数组
+const hexStringToByteArray = (hexString) => {
+  let byteArray = [];
+  for (let i = 0; i < hexString.length; i += 2) {
+    let byte = parseInt(hexString.substr(i, 2), 16);
+    byteArray.push(byte);
+  }
+  var sdata = ab2hex(byteArray);
+  console.log('十六进制：' + sdata);
+  return byteArray;
 }
 
 //获取安全模块序列号
 const secSNQuery = ref([0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x69, 0x0c, 0x00, 0xef, 0x86, 0x7e]);
-
 
 //获取安全模块生成的随机数
 //获取设备配置(安全模块私有配置)
@@ -618,6 +635,8 @@ var SendFrame = new Uint8Array(1024)
 var SendLen = 0
 //获取安全模块私有配置
 const getDeviceSecConfig = (privateinfo) => {
+  SendLen = 0;
+  SendFrame = new Uint8Array(1024)
   var msgLenIndex = 11;
   var paramLenIndex = 23;
   var arrayLenIndex = 25;

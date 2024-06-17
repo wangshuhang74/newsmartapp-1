@@ -1,7 +1,11 @@
 import { ref } from 'vue'
+import { auth } from '../api'
 export const currentStatus = ref(0); //识读电子标识三步1
 export const ROStatus = ref(false);//RO状态
 export const tipsInfo = ref({});//电子标识解析后的内容
+export const secRandom = ref('');//安全模块随机数
+export const safeSn = ref('');//安全模块SN  安全模块序列号
+export const secRandomSign = ref(''); //安全模块对密管系统生成的随机数RNs的签名值s，128HEX
 
 const frameHead = 126
 var recvBuf = new Uint8Array(1024)
@@ -264,8 +268,25 @@ export const PrivateConfigAck = (finishData) => {
 				}
 				var secPrivateAck = ab2hex(configAckData);
 				console.log(secPrivateAck);
-				var secRandom = secPrivateAck.substr(2, 16);
-				console.log('接收到私有配置信息(随机数)：', secRandom)
+				if (secPrivateAck.startsWith('06')) {
+					secRandom.value = secPrivateAck.substr(2, 16);
+					console.log('接收到私有配置信息(安全模块随机数)：', secRandom.value)
+				} else if (secPrivateAck.startsWith('07')) {
+					console.log('接收到私有配置信息(step=1)：', secPrivateAck);
+					secRandomSign.value = secPrivateAck.substr(2, 128);
+					console.log('签名值s，128HEX', secRandomSign.value);
+					if (secRandomSign.value) {
+						auth({ step: 2, data: secRandomSign.value, samsn: safeSn.value }).then((res) => {
+							console.log(res);
+							if (res.code == 0) {
+								console.log(res.message);
+							}
+						})
+					}
+				} else {
+					console.log('接收到私有配置信息', secPrivateAck)
+				}
+
 				index += configAckLen;
 				break;
 			case SecSNAck:
@@ -295,7 +316,8 @@ export const PrivateConfigAck = (finishData) => {
 				} else {
 					var SMSNInfo = devinfo.toString();
 				}
-				console.log('接收到安全模块SN：', SMSNInfo)
+				safeSn.value = SMSNInfo;
+				console.log('接收到安全模块SN：', safeSn.value)
 				index += devInfoLen;
 				break;
 			case IdentificationAck:
