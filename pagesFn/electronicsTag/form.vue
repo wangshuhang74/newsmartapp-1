@@ -26,13 +26,13 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>行驶记录仪编号</text>
-							<input type="text" class="boxFlex" value="" placeholder="自识别" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.jlyCID" placeholder="自识别" />
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>行驶记录仪安全芯片ID</text>
-							<input type="text" class="boxFlex" value="" placeholder="自识别" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.jlyID" placeholder="自识别" />
 						</view>
 					</view>
 				</view>
@@ -47,20 +47,23 @@
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
+							<text>省份代码</text>
+							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.SFDM" placeholder="请选择" readonly
+								 /> -->
+							<view class="boxFlex" @tap="openProvince">{{ tagsInfo.SFDM ? tagsInfo.SFDM : '请选择' }}</view>
+						</view>
+					</view>
+					<view class="view_rows">
+						<view class="disBox">
 							<text>车牌号码</text>
 							<input type="text" class="boxFlex" v-model="tagsInfo.PlateLicense" placeholder="自识别/请输入" />
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
-							<text>省份代码</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.SFDM" placeholder="自识别/请输入" />
-						</view>
-					</view>
-					<view class="view_rows">
-						<view class="disBox">
 							<text>发牌代号</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.FPDH" placeholder="自识别/请输入" />
+							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.FPDH" placeholder="自识别/请输入" /> -->
+							<view class="boxFlex" @tap="openFPDH">{{ tagsInfo.FPDH ? tagsInfo.FPDH : '请选择' }}</view>
 						</view>
 					</view>
 					<view class="view_rows">
@@ -84,7 +87,9 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>车辆类型</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.CLLX" placeholder="自识别/请输入" />
+							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.CLLX" placeholder="自识别/请选择" /> -->
+							<wd-picker :columns="carTypeList" label="" v-model="tagsInfo.CLLX" @confirm="handleConfirm"
+								placeholder="自识别/请输入" />
 						</view>
 					</view>
 					<view class="view_rows">
@@ -132,21 +137,156 @@
 			</view>
 		</view>
 	</view>
+
+	<!--SFDM-->
+	<keyboard v-if="showKeyboard" :keyList="keyList" @keyClick="keyClick" @confirm="SFDMConfirm"></keyboard>
+
+	<!--FPDM-->
+	<keyboard v-if="showKeyboard2" :keyList="keyList2" @keyClick="keyClick" @confirm="FPDHConfirm"></keyboard>
+
 </template>
 
-<script  setup>
+<script setup>
 import navbar from '@/pages/components/navbar.vue'
-
+import keyboard from '@/pages/components/keyboard.vue'
+import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, samsn } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 console.log(tagsInfo.value);
+tagsInfo.value.jlyCID = 'CSU5B23001207';
+tagsInfo.value.jlyID = '8412345678';
+import { analysisCarNumber, analysisJlyCID, addZeroBefore, binaryToHexArray } from '@/utils/message'
+import { writeData } from '../../api/index'
+
+const showKeyboard = ref(false);
+const showKeyboard2 = ref(false);
+
+const keyClick = (e) => {
+	showKeyboard.value = e;
+	showKeyboard2.value = e;
+}
+
+//需要二进制编码的值
+const binary = ref({
+	'PlateLicense_binary': '',//车牌号码 33
+	'SFDM_binary': '', //省份代码  6
+	'FPDH_binary': '', //发牌代号  5
+	'CLLX_binary': '',//车辆类型', 4
+	'jlyID_binary': '',//记录仪安全芯片ID  33
+	'jlyCID_binary': '',//行驶记录仪编号 53
+});
+
+
+const keyList = ref([
+	[{ name: '京', value: '000001' }, { name: '津', value: '000010' }, { name: '冀', value: '000011' }, { name: '晋', value: '000100' }, { name: '蒙', value: '000101' }, { name: '辽', value: '000110' }, { name: '吉', value: '000111' }, { name: '黑', value: '001000' }, { name: '沪', value: '001001' }],
+	[{ name: '苏', value: '001010' }, { name: '浙', value: '001011' }, { name: '皖', value: '001100' }, { name: '闽', value: '001101' }, { name: '赣', value: '001110' }, { name: '鲁', value: '001111' }, { name: '豫', value: '010000' }, { name: '鄂', value: '010001' }, { name: '湘', value: '010010' }],
+	[{ name: '粤', value: '010011' }, { name: '桂', value: '010100' }, { name: '琼', value: '010101' }, { name: '渝', value: '010110' }, { name: '川', value: '010111' }, { name: '贵', value: '011000' }, { name: '云', value: '011001' }, { name: '藏', value: '011010' }],
+	[{ name: '陕', value: '011011' }, { name: '甘', value: '011100' }, { name: '青', value: '011101' }, { name: '宁', value: '011110' }, { name: '新', value: '011111' }, { name: '港', value: '100000' }, { name: '澳', value: '100001' }]
+]);
+//SFDM结果编码
+const keyListArr = [
+	{ name: '京', value: '000001' }, { name: '津', value: '000010' }, { name: '冀', value: '000011' }, { name: '晋', value: '000100' }, { name: '蒙', value: '000101' }, { name: '辽', value: '000110' }, { name: '吉', value: '000111' }, { name: '黑', value: '001000' }, { name: '沪', value: '001001' },
+	{ name: '苏', value: '001010' }, { name: '浙', value: '001011' }, { name: '皖', value: '001100' }, { name: '闽', value: '001101' }, { name: '赣', value: '001110' }, { name: '鲁', value: '001111' }, { name: '豫', value: '010000' }, { name: '鄂', value: '010001' }, { name: '湘', value: '010010' },
+	{ name: '粤', value: '010011' }, { name: '桂', value: '010100' }, { name: '琼', value: '010101' }, { name: '渝', value: '010110' }, { name: '川', value: '010111' }, { name: '贵', value: '011000' }, { name: '云', value: '011001' }, { name: '藏', value: '011010' },
+	{ name: '陕', value: '011011' }, { name: '甘', value: '011100' }, { name: '青', value: '011101' }, { name: '宁', value: '011110' }, { name: '新', value: '011111' }, { name: '港', value: '100000' }, { name: '澳', value: '100001' }
+];
+//打开SFDM
+const openProvince = () => {
+	showKeyboard.value = true;
+}
+const SFDMConfirm = (e) => {
+	console.log(e);
+	tagsInfo.value.SFDM = e.name;
+	binary.value.SFDM_binary = e.value;
+}
+
+const keyList2 = ref([
+	[{ name: 'A', value: '00000' }, { name: 'B', value: '00001' }, { name: 'C', value: '00010' }, { name: 'D', value: '00011' }, { name: 'E', value: '00100' }, { name: 'F', value: '00101' }, { name: 'G', value: '00110' }, { name: 'H', value: '00111' }, { name: 'I', value: '01000' }],
+	[{ name: 'J', value: '01001' }, { name: 'K', value: '01010' }, { name: 'L', value: '01011' }, { name: 'M', value: '01100' }, { name: 'N', value: '01101' }, { name: 'O', value: '01110' }, { name: 'P', value: '01111' }, { name: 'Q', value: '10000' }, { name: 'R', value: '10001' }],
+	[{ name: 'S', value: '10010' }, { name: 'T', value: '10011' }, { name: 'U', value: '10100' }, { name: 'V', value: '10101' }, { name: 'W', value: '10110' }, { name: 'X', value: '10111' }, { name: 'Y', value: '11000' }, { name: 'Z', value: '11001' }],
+]);
+//FPDH结果编码
+const keyListArr2 = [
+	{ name: 'A', value: '00000' }, { name: 'B', value: '00001' }, { name: 'C', value: '00010' }, { name: 'D', value: '00011' }, { name: 'E', value: '00100' }, { name: 'F', value: '00101' }, { name: 'G', value: '00110' }, { name: 'H', value: '00111' }, { name: 'I', value: '01000' },
+	{ name: 'J', value: '01001' }, { name: 'K', value: '01010' }, { name: 'L', value: '01011' }, { name: 'M', value: '01100' }, { name: 'N', value: '01101' }, { name: 'O', value: '01110' }, { name: 'P', value: '01111' }, { name: 'Q', value: '10000' }, { name: 'R', value: '10001' },
+	{ name: 'S', value: '10010' }, { name: 'T', value: '10011' }, { name: 'U', value: '10100' }, { name: 'V', value: '10101' }, { name: 'W', value: '10110' }, { name: 'X', value: '10111' }, { name: 'Y', value: '11000' }, { name: 'Z', value: '11001' },
+];
+//打开FPDH
+const openFPDH = () => {
+	showKeyboard2.value = true;
+}
+const FPDHConfirm = (e) => {
+	tagsInfo.value.FPDH = e.name;
+	binary.value.FPDH_binary = e.value;
+}
+
+
+//CLLX
+const carTypeList = ref([{ label: '大型汽车', value: '0001' }, { label: '小型汽车', value: '0010' }, { label: '使馆汽车', value: '0011' }, { label: '领馆汽车', value: '0100' }, { label: '境外汽车', value: '0101' }, { label: '外籍汽车', value: '0110' }, { label: '低速车', value: '0111' }, { label: '教练汽车', value: '1000' }, { label: '摩托车', value: '1001' }, { label: '新能源汽车', value: '1010' }, { label: '警用汽车', value: '1011' }, { label: '港澳两地车', value: '1100' }, { label: '武警车辆', value: '1101' }, { label: '军队车辆', value: '1110' }, { label: '其他车辆', value: '0000' }]);
+function handleConfirm (value) {
+	console.log(value);
+	tagsInfo.value.CLLX = value.value;
+	binary.value.CLLX_binary = value.value;
+}
 
 const confirm = () => {
-	console.log('confirm');
-
 	console.log(JSON.stringify(tagsInfo.value));
+	if (tagsInfo.value.PlateLicense) {  //车牌号码
+		binary.value.PlateLicense_binary = analysisCarNumber(tagsInfo.value.PlateLicense);
+		console.log('车牌号码' + binary.value.PlateLicense_binary);
+	}
 
+	if (tagsInfo.value.SFDM) {  //省份代码
+		keyListArr.find(item => {
+			if (item.name == tagsInfo.value.SFDM) {
+				binary.value.SFDM_binary = item.value;
+				return;
+			}
+		})
+		console.log('省份代码' + binary.value.SFDM_binary);
+	}
+
+	if (tagsInfo.value.FPDH) {  //发牌代号
+		keyListArr2.find(item => {
+			if (item.name == tagsInfo.value.FPDH) {
+				binary.value.FPDH_binary = item.value;
+				return;
+			}
+		})
+		console.log('发牌代号' + binary.value.FPDH_binary);
+	}
+
+	console.log('车辆类型' + binary.value.CLLX_binary);
+
+	if (tagsInfo.value.jlyID) {  //行驶记录仪行驶记录仪安全芯片ID 33位
+		console.log('行驶记录仪安全芯片ID' + tagsInfo.value.jlyID);
+		let jlyID = parseInt(tagsInfo.value.jlyID, 10).toString(2);
+		if (jlyID.length < 33) {
+			jlyID = addZeroBefore(jlyID, 33);
+		}
+		binary.value.jlyID_binary = jlyID;
+		console.log('安全芯片' + binary.value.jlyID_binary);
+	}
+
+	if (tagsInfo.value.jlyCID) {  //行驶记录仪编号53位
+		let jlyCID = analysisJlyCID(tagsInfo.value.jlyCID);
+		binary.value.jlyCID_binary = jlyCID
+		console.log('行驶记录仪编号' + binary.value.jlyCID_binary);
+	}
+
+
+	let binaryDataStr = binary.value.PlateLicense_binary + '' + binary.value.SFDM_binary + '' + binary.value.FPDH_binary + '' + binary.value.CLLX_binary + '' + binary.value.jlyID_binary + '' + binary.value.jlyCID_binary + '000';
+	console.log(binaryDataStr);
+
+	let hexStr = binaryToHexArray(binaryDataStr);
+	console.log(hexStr);
+	let tid = tagsInfo.value.TID.toUpperCase();
+	writeData({ tid: tid, data1: hexStr, data2: '', samsn: samsn.value }).then((res) => {
+		if (res.code == 0) {
+			console.log('接口请求成功', res.message);
+		}
+	})
 }
 
 </script>
@@ -235,6 +375,7 @@ const confirm = () => {
 
 					.boxFlex {
 						height: 76rpx;
+						line-height: 76rpx;
 						color: #000;
 						font-size: 24rpx;
 						text-align: right;
@@ -260,6 +401,17 @@ const confirm = () => {
 				background: linear-gradient(90deg, #1082FF 0%, #5FA9FF 100%);
 				border-radius: 14rpx;
 			}
+		}
+	}
+
+	:deep(.wd-picker) {
+		.wd-picker__value {
+			color: #333;
+			margin-right: 0;
+		}
+
+		.wd-picker__placeholder {
+			color: #888;
 		}
 	}
 }

@@ -1,7 +1,12 @@
 import { ref } from 'vue'
+import { auth } from '../api'
 export const currentStatus = ref(0); //识读电子标识三步1
 export const ROStatus = ref(false);//RO状态
 export const tipsInfo = ref({});//电子标识解析后的内容
+export const secRandom = ref('');//安全模块随机数
+export const safeSn = ref('');//安全模块SN  安全模块序列号
+export const secRandomSign = ref(''); //安全模块对密管系统生成的随机数RNs的签名值s，128HEX
+export const authStatus = ref(false); //双向认证状态
 
 const frameHead = 126
 var recvBuf = new Uint8Array(1024)
@@ -49,28 +54,28 @@ const P_CSYS = 1013;
 const P_DID = 1014;
 const P_SFDM = 1015;
 
-function TParamHead() {
+function TParamHead () {
 	var ParamType = 0;
 	var ParamLength = 0;
 }
 
-function TU8V() {
+function TU8V () {
 	var dataLen = 0;
 	var data = new Uint8Array(0);
 }
 
-function TParamInfo() {
+function TParamInfo () {
 	var paramHead = new TParamHead();
 	var data = new Uint8Array(0);
 }
 
-function TSelectSpecResult() {
+function TSelectSpecResult () {
 	var paramHead = new TParamHead();
 	var Result = 0;
 	var TagData = new TU8V();
 }
 
-function VehicleInfo() {
+function VehicleInfo () {
 	var TID = "";             //标签TID
 	//User0个性化数据，88xx和89xx都是在这里
 	var CID = "";                                 //标签CID/DID
@@ -263,7 +268,27 @@ export const PrivateConfigAck = (finishData) => {
 					configAckData[i] = finishData[index++]
 				}
 				var secPrivateAck = ab2hex(configAckData);
-				console.log('接收到私有配置信息：', secPrivateAck)
+				console.log(secPrivateAck);
+				if (secPrivateAck.startsWith('06')) {
+					secRandom.value = secPrivateAck.substr(2, 16);
+					console.log('接收到私有配置信息(安全模块随机数)：', secRandom.value)
+				} else if (secPrivateAck.startsWith('07')) {
+					console.log('接收到私有配置信息(step=1)：', secPrivateAck);
+					secRandomSign.value = secPrivateAck.substr(2, 128);
+					console.log('签名值s，128HEX', secRandomSign.value);
+					if (secRandomSign.value) {
+						auth({ step: 2, data: secRandomSign.value, samsn: safeSn.value }).then((res) => {
+							console.log(res);
+							if (res.code == 0) {
+								authStatus.value = true;
+								console.log(res.message);
+							}
+						})
+					}
+				} else {
+					console.log('接收到私有配置信息', secPrivateAck)
+				}
+
 				index += configAckLen;
 				break;
 			case SecSNAck:
@@ -293,7 +318,8 @@ export const PrivateConfigAck = (finishData) => {
 				} else {
 					var SMSNInfo = devinfo.toString();
 				}
-				console.log('接收到安全模块SN：', SMSNInfo)
+				safeSn.value = SMSNInfo;
+				console.log('接收到安全模块SN：', safeSn.value)
 				index += devInfoLen;
 				break;
 			case IdentificationAck:
@@ -1069,6 +1095,8 @@ export const analysisLlrpFrame = (finishData) => {
 			console.log('查询版本应答：', msgType)
 			VersionQueryAck(finishData);
 		}
+
+
 	}
 }
 
@@ -1107,7 +1135,7 @@ export const analysisFrame = (frame) => {
 		return
 	}
 
-	analysisLlrpFrame(finishData)
+	return analysisLlrpFrame(finishData)
 }
 
 //处理蓝牙接收数据
@@ -1141,7 +1169,7 @@ export const dealRecvData = (buffer, offset, len) => {
 				offset++
 				dealRecvData(buffer, offset, len)
 
-				analysisFrame(frame)
+				return analysisFrame(frame)
 				break
 			}
 			else if (buffer[i] == frameHead) {

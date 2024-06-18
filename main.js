@@ -8,7 +8,7 @@ import i18n from "@/utils/locales/index";
 const pinia = Pinia.createPinia();
 // pinia.use(piniaPluginPersistedstate)
 pinia.use(persist);
-export function createApp() {
+export function createApp () {
   const app = createSSRApp(App)
   app.use(pinia);
 

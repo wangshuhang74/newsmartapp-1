@@ -2,10 +2,11 @@
 	"easycom": {
 		"autoscan": true,
 		"custom": {
-		  "^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue"
+			"^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue"
 		}
 	},
-	"pages": [{
+	"pages": [
+		{
 			"path": "pages/home/index",
 			"type": "home",
 			"needLogin": true,
@@ -42,7 +43,8 @@
 		"fontSize": "10px",
 		"iconWidth": "24px",
 		"spacing": "3px",
-		"list": [{
+		"list": [
+			{
 				"iconPath": "static/tabbar/home.png",
 				"selectedIconPath": "static/tabbar/home_active.png",
 				"pagePath": "pages/home/index",
@@ -62,9 +64,11 @@
 			}
 		]
 	},
-	"subPackages": [{
+	"subPackages": [
+		{
 			"root": "pagesAccount",
-			"pages": [{
+			"pages": [
+				{
 					"path": "login/index",
 					"name": "login",
 					"needLogin": false,
@@ -96,7 +100,6 @@
 						"navigationStyle": "custom"
 					}
 				},
-
 				{
 					"path": "forgetPassword/index",
 					"name": "forgetPassword",
@@ -109,7 +112,8 @@
 		},
 		{
 			"root": "pagesMy",
-			"pages": [{
+			"pages": [
+				{
 					"path": "myInfo/index",
 					"name": "myInfo",
 					"needLogin": true,
@@ -158,7 +162,8 @@
 		},
 		{
 			"root": "pagesFn",
-			"pages": [{
+			"pages": [
+				{
 					"path": "newInstall/index",
 					"name": "newInstall",
 					"needLogin": true,
@@ -224,19 +229,24 @@
 			]
 		}
 	],
-
 	"preloadRule": {
 		"pages/home/index": {
 			"network": "all",
-			"packages": ["pagesAccount"]
+			"packages": [
+				"pagesAccount"
+			]
 		},
 		"pages/fn/index": {
 			"network": "all",
-			"packages": ["pagesFn"]
+			"packages": [
+				"pagesFn"
+			]
 		},
 		"pages/my/index": {
 			"network": "all",
-			"packages": ["pagesMy"]
+			"packages": [
+				"pagesMy"
+			]
 		}
 	},
 	"globalStyle": {

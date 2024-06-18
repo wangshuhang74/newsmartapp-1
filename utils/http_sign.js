@@ -7,13 +7,15 @@
  * DCloud: http://ext.dcloud.net.cn/plugin?id=392
  * HBuilderX: beat-3.0.4 alpha-3.0.4
  */
-
-import { useUserStore } from '@/store'
 import Request from "luch-request";
-// const { userInfo } = storeToRefs(useUserStore()); // 解构pinia的store
-// console.log("🚀 ~ userInfo123:", userInfo)
+// import { useUserStore } from "../store";  //访问pinia store需要异步延迟 否则会报错
+// setTimeout(function () {
+//   const useUser = useUserStore();
+//   console.log('http5');
+//   console.log('useUser', useUser.userInfo);
+// }, 100)
 
-export const baseURL = "http://92904u2h83.zicp.fun/api";
+export const baseURL = "https://fk-api.19056.cn:8443/api";
 const http = new Request();
 http.setConfig((config) => {
   /* 设置全局配置 */
@@ -39,21 +41,24 @@ http.interceptors.request.use(
   //     const { logout } = useAuthStore();
   //     logout();//store退出
 
-  //     // 未登录跳转登录
-  //     uni.navigateTo({
-  //       url: "/pages/login/login",
-  //     });
-  //     return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
-  // }
+    //   // 未登录跳转登录
+    //   uni.navigateTo({
+    //     url: "/pages/login/login",
+    //   });
+    //   return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
+    // }
+    console.log('http3');
     return config;
   },
-(config) => {
-  return Promise.reject(config);
-}
+  (config) => {
+    return Promise.reject(config);
+  }
 );
 
 http.interceptors.response.use(
   async (response) => {
+    console.log('http4');
+    console.log(response);
     /* 请求之后拦截器。可以使用async await 做异步操作  */
     if (response.statusCode == 200 && response.data.code == 0) {
       //console.log("请求成功", response);
@@ -82,6 +87,8 @@ http.interceptors.response.use(
 
   },
   (response) => {
+    console.log('http5');
+    console.log(response);
     // 请求错误做点什么。可以使用async await 做异步操作
     return Promise.reject(response);
   }

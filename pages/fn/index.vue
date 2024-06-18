@@ -1,4 +1,4 @@
-<script  setup>
+<script setup>
 import { useUserStore } from '@/store'
 import newCar from '@/static/images/fns/newCar.png'
 import oldCar from '@/static/images/fns/oldCar.png'
