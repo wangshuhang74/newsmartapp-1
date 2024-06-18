@@ -56,7 +56,7 @@ const fnList = ref([
     name: '电子标识',
     icon: electronicsTag,
     msgNum: 0,
-    path: '/pagesFn/electronicsTag/form',
+    path: '/pagesFn/electronicsTag/index',
   },
 ])
 

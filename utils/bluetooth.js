@@ -6,6 +6,7 @@ export const tipsInfo = ref({});//电子标识解析后的内容
 export const secRandom = ref('');//安全模块随机数
 export const safeSn = ref('');//安全模块SN  安全模块序列号
 export const secRandomSign = ref(''); //安全模块对密管系统生成的随机数RNs的签名值s，128HEX
+export const authStatus = ref(false); //双向认证状态
 
 const frameHead = 126
 var recvBuf = new Uint8Array(1024)
@@ -279,6 +280,7 @@ export const PrivateConfigAck = (finishData) => {
 						auth({ step: 2, data: secRandomSign.value, samsn: safeSn.value }).then((res) => {
 							console.log(res);
 							if (res.code == 0) {
+								authStatus.value = true;
 								console.log(res.message);
 							}
 						})
@@ -1093,6 +1095,8 @@ export const analysisLlrpFrame = (finishData) => {
 			console.log('查询版本应答：', msgType)
 			VersionQueryAck(finishData);
 		}
+
+
 	}
 }
 
@@ -1131,7 +1135,7 @@ export const analysisFrame = (frame) => {
 		return
 	}
 
-	analysisLlrpFrame(finishData)
+	return analysisLlrpFrame(finishData)
 }
 
 //处理蓝牙接收数据
@@ -1165,7 +1169,7 @@ export const dealRecvData = (buffer, offset, len) => {
 				offset++
 				dealRecvData(buffer, offset, len)
 
-				analysisFrame(frame)
+				return analysisFrame(frame)
 				break
 			}
 			else if (buffer[i] == frameHead) {

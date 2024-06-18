@@ -6,6 +6,7 @@ export const useTagsStore = defineStore(
   () => {
     const tagsInfo = ref({})
     const blueToothDevices = ref([])//蓝牙设备
+    const samsn = ref('') //安全模块序列号
 
     // const setPostForm = (val) => {
     //   postForm.value = val
@@ -14,7 +15,8 @@ export const useTagsStore = defineStore(
     return {
       // setPostForm,
       tagsInfo,
-      blueToothDevices
+      blueToothDevices,
+      samsn,
     }
   },
   {

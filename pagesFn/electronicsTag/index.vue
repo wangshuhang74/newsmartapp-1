@@ -78,10 +78,10 @@
         <image src="http://116.62.107.90:8673/images/tips/connect_blue3.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">请将电子车牌置于设备上方进行激活<br />正在激活电子车牌，请稍后…</view>
         <view class="open_blue">
-          <view class="btn search_btn" @tap="readRandom">安全模块随机数</view>
-          <view class="btn search_btn" @tap="sendCmd(secSNQuery)">安全模块序列号</view>
-          <view class="btn search_btn" @tap="goActive">立即激活</view>
-          <view class="btn" @tap="nextStep(4)">已激活，下一步</view>
+          <!-- <view class="btn search_btn" @tap="readRandom">安全模块随机数</view>
+          <view class="btn search_btn" @tap="sendCmd(secSNQuery)">安全模块序列号</view> -->
+          <view class="btn search_btn" v-if="!authStatus" @tap="goActive">立即激活</view>
+          <view class="btn" v-if="authStatus" @tap="nextStep(4)">已激活，下一步</view>
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main4" v-if="currentStep == 4">
@@ -108,11 +108,11 @@
 <script setup>
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
-import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus, secRandom, safeSn } from "../../utils/bluetooth";
+import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus, secRandom, safeSn, authStatus } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo, blueToothDevices } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, blueToothDevices, samsn } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -405,7 +405,8 @@ const readBlueOn = (params) => {
         console.log('蓝牙返回数据为：', receiveValue)
         var buffer = new Uint8Array(res.value)
 
-        dealRecvData(buffer, 0, buffer.length)
+        let result = dealRecvData(buffer, 0, buffer.length)
+        console.log('result:' + result);
       })
     },
     fail (res) {
@@ -462,7 +463,8 @@ watch(() => {
   if (newCurrentStatus != oldCurrentStatus) {
     if (newCurrentStatus == 1) { //oldVal == 0 && 
       console.log('--------添加RO应答Start-------', 'add');
-      sendCmd(addSelectSpec);// 添加RO应答
+      // sendCmd(addSelectSpec);// 添加RO应答
+      addUserSelectSpec(1, 4, 9);
     } else if (newCurrentStatus == 2) {  //oldVal == 1 && 
       console.log('--------启动RO应答Start-------', 'add');
       sendCmd(startSelectSpec); //启动RO应答
@@ -599,18 +601,51 @@ const goForm = () => {
 
 //激活电子标签
 const goActive = () => {
-  console.log('http1');
-  console.log(secRandom.value);
-  console.log(safeSn.value);
-
-  auth({ step: 1, data: secRandom.value, samsn: safeSn.value }).then((res) => {
-    console.log(res);
-    if (res.code == 0) {
-      let byteArray = hexStringToByteArray(res.message);
-      getDeviceSecConfig(byteArray);
-    }
+  uni.showLoading({
+    title: '正在激活电子标签~~~',
+    mask: true
   })
+  readRandom();//获取安全模块随机数
+
+  setTimeout(function () {
+    if (secRandom.value) {  //已获取到安全模块随机数
+      console.log('随机数0:' + secRandom.value);
+      sendCmd(secSNQuery.value);// 获取安全模块序列号
+
+      setTimeout(function () {
+        console.log('序列号1：' + safeSn.value);
+        if (safeSn.value) {  //已获取到安全模块序列号
+          samsn.value = safeSn.value; //缓存安全模块序列号
+
+          auth({ step: 1, data: secRandom.value, samsn: safeSn.value }).then((res) => {
+            console.log(res);
+            if (res.code == 0) {
+              let byteArray = hexStringToByteArray(res.message);
+              getDeviceSecConfig(byteArray);
+
+              setTimeout(function () {
+                if (!authStatus.value) {  ////双向认证状态 true 为成功
+                  closeLoad('双向认证失败-3');
+                } else {
+                  uni.hideLoading();
+                  setTimeout(function () {
+                    uni.showToast({ title: '双向认证成功', icon: 'success' });
+                  }, 100)
+                }
+              }, 10000)
+            }
+          })
+        } else {
+          closeLoad('双向认证失败-2');
+        }
+      }, 1000)
+
+    } else {
+      closeLoad('双向认证失败-1');
+    }
+  }, 1000)
 }
+
 //字符串转十六进制数组
 const hexStringToByteArray = (hexString) => {
   let byteArray = [];
@@ -665,11 +700,35 @@ const getDeviceSecConfig = (privateinfo) => {
   sendCmd(senddata);
 }
 
+//获取安全模块随机数
 const readRandom = () => {
   var privateinfo = new Uint8Array(2)
   privateinfo[0] = 0x62
   privateinfo[1] = 0x0
   getDeviceSecConfig(privateinfo)
+}
+
+//添加User区识读 0,4,10为user0  1,4,9为user1
+const addUserSelectSpec = (memback, offset, length) => {
+  var inventreadro = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0x90, 0x00, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0xcf,
+    0x01, 0x90, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x91, 0x00, 0x01, 0x00, 0x01, 0x94, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x01, 0x95, 0x00, 0x1d, 0x00, 0x01, 0x01, 0x01, 0x96, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x98, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x01,
+    0x01, 0x99, 0x00, 0x05, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x01, 0x9a, 0x00, 0x05, 0x02, 0x00, 0x00, 0xdf, 0x80];
+
+  var membackindex = 72;
+
+  inventreadro[membackindex] = memback;
+  inventreadro[membackindex + 2] = offset;
+  inventreadro[membackindex + 4] = length;
+
+  comm_llrp_encodeRS(inventreadro, inventreadro.length);
+
+  var sendDataUp = new Uint8Array(SendLen);
+  for (var i = 0; i < SendLen; i++) {
+    sendDataUp[i] = SendFrame[i]
+  }
+
+  sendCmd(sendDataUp);
 }
 
 //设置长度区域
@@ -732,6 +791,14 @@ const comm_llrp_encodeRS = (frame, len) => {
   SendFrame[SendLen++] = 0x7e;
 
   return SendLen;
+}
+
+//关闭加载loading
+const closeLoad = (title) => {
+  uni.hideLoading();
+  setTimeout(function () {
+    uni.showToast({ title: title, icon: 'error' });
+  }, 100)
 }
 
 </script>
