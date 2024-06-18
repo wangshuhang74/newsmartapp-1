@@ -39,6 +39,7 @@ export const useUserStore = defineStore(
       const { code, data, msg } = await login(postForm)
       if (code == 0) {
         userInfo.value = data
+        userInfo.value.phone = postForm.phone
         loginForm.value = postForm
         uni.switchTab({
           url: '/pages/home/index',

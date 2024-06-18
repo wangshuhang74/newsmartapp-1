@@ -310,7 +310,6 @@ const makePhoneCall = (phone) => {
   <wd-toast></wd-toast>
   <view class="home_box">
     <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
-      <!-- <view class="top_center"></view> -->
       <view class="title">首页</view>
       <view class="search_box">
         <view class="search">
@@ -430,7 +429,7 @@ const makePhoneCall = (phone) => {
         align-items: center;
         justify-content: center;
         width: 611rpx;
-        height: 62rpx;
+        height: 66rpx;
         background: #FBFBFB;
         border: 2rpx solid #F4F4F5;
         border-radius: 30rpx 30rpx 30rpx 30rpx;

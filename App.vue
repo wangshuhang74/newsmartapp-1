@@ -8,7 +8,7 @@ const { blueToothDevices } = storeToRefs(tagsStore) // 识读电子标识的具�
 onLaunch(() => {
   // console.log('App Launch')
   blueToothDevices.value = [];
-  console.log('清空blueToothDevices');
+  // console.log('清空blueToothDevices');
 
   // 禁止 横屏
   // #ifdef APP-PLUS	 

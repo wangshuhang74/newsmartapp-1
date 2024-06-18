@@ -18,6 +18,8 @@ const Message = useMessage()
 
 onShow(() => {
   userStore.isLoginFn()
+  console.log("userInfo", userInfo.value);
+
 })
 
 const fnList = [
@@ -60,7 +62,6 @@ const fnList = [
 ]
 
 const itemClick = (item) => {
-  console.log("token", userInfo.value.token);
   if (item.id == 6) {
     Message.confirm({
       title: "退出登录",
@@ -145,7 +146,7 @@ const itemClick = (item) => {
       display: flex;
       width: 88%;
       height: 250rpx;
-      margin-top: 100rpx;
+      margin-top: 130rpx;
 
       .active_info_left {
         width: 160rpx;
