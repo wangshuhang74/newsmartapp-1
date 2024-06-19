@@ -6,11 +6,6 @@ const tagsStore = useTagsStore()
 const { blueToothDevices, isReadRules, readRules, writeRules } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 onLaunch(() => {
-<<<<<<< HEAD
-  // console.log('App Launch')
-  blueToothDevices.value = [];
-  // console.log('清空blueToothDevices');
-=======
 	// console.log('App Launch')
 	blueToothDevices.value = [];
 	console.log('清空blueToothDevices');
@@ -18,7 +13,6 @@ onLaunch(() => {
 	isReadRules.value = true;
 	readRules.value = { deleteRO: false, addRO: false, startRO: false };
 	writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
->>>>>>> 4d4ebd69958d4d91a54265846f9f2d60bcee9824
 
 	// 禁止 横屏
 	// #ifdef APP-PLUS	 
