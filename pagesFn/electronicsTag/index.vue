@@ -80,8 +80,8 @@
         <view class="open_blue">
           <!-- <view class="btn search_btn" @tap="readRandom">安全模块随机数</view>
           <view class="btn search_btn" @tap="sendCmd(secSNQuery)">安全模块序列号</view> -->
-          <view class="btn search_btn" v-if="!authStatus" @tap="goActive">立即激活</view>
-          <view class="btn" v-if="authStatus" @tap="nextStep(4)">已激活，下一步</view>
+          <view class="btn search_btn" @tap="goActive">双向认证</view>
+          <view class="btn" @tap="nextStep(4)">已激活，下一步</view>
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main4" v-if="currentStep == 4">
@@ -108,7 +108,7 @@
 <script setup>
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
-import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, ROStatus, secRandom, safeSn, authStatus } from "../../utils/bluetooth";
+import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, secRandom, safeSn, authStatus } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
@@ -129,6 +129,11 @@ const notifyBLEChar = ref(false);//是否已开启监听
 
 console.log("blueToothDevices", JSON.stringify(blueToothDevices.value));
 
+const isReadRules = ref(true); //当前步骤是否读规则
+//读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405
+const readRules = ref({ deleteRO: false, addRO: false, startRO: false });
+//写规则步骤  1删除RO-403 2删除AO-453 3添加RO-401 4添加AO-451 5启动RO-405
+const writeRules = ref({ deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false });
 
 onUnload(() => {
   //监听页面卸载
@@ -376,8 +381,6 @@ const readBlueOn = (params) => {
   console.log('characteristicId_notify:' + characteristicId_notify.value);
 
 
-
-
   uni.notifyBLECharacteristicValueChange({
     state: true, // 启用 notify 功能
     // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
@@ -406,7 +409,49 @@ const readBlueOn = (params) => {
         var buffer = new Uint8Array(res.value)
 
         let result = dealRecvData(buffer, 0, buffer.length)
+        if (!result) return;
         console.log('result:' + result);
+        if (isReadRules.value) {//当前读取规则
+          //读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405
+          if (result == '403') {
+            console.log('--------添加RO应答Start-------', '403');
+            addUserSelectSpec(1, 4, 9);
+            readRules.value.deleteRO = true;
+            console.log("deleteRO:" + readRules.value.deleteRO);
+          } else if (result == '401') {
+            console.log('--------启动RO应答Start-------', '401');
+            sendCmd(startSelectSpec); //启动RO应答
+            readRules.value.addRO = true;
+            console.log("addRO:" + readRules.value.addRO);
+          } else if (result == '405') {
+            console.log('--------已启动RO应答End-------');
+            readRules.value.startRO = true;
+            console.log("startRO:" + readRules.value.startRO);
+          }
+        }
+
+        if (result == 500) {  //标签上报
+          tagsInfo.value = tipsInfo.value; //接收到RO结束事件
+          if (Object.keys(tagsInfo.value).length > 0) {
+            clearTimeout(_inventTime); //清除定时器读卡长时间未响应失败10000ms
+            uni.showToast({
+              title: '读卡成功',
+              icon: 'success'
+            });
+            uni.navigateTo({
+              url: '/pagesFn/electronicsTag/form'
+            })
+          } else {
+            clearTimeout(_inventTime);//清除定时器读卡长时间未响应失败10000ms
+            uni.showToast({
+              title: '读卡失败',
+              icon: 'error'
+            });
+          }
+        }
+
+
+
       })
     },
     fail (res) {
@@ -433,7 +478,27 @@ const nextStep = (obj) => {
     }
   }
   if (obj == 4) {
-    currentStep.value = 4;
+    sendCmd(secSNQuery.value);// 获取安全模块序列号
+    uni.showLoading({
+      title: '激活确认中~~~',
+      mask: true
+    })
+
+    setTimeout(function () {
+      console.log('序列号2：' + safeSn.value);
+      if (safeSn.value) {  //已获取到安全模块序列号
+        samsn.value = safeSn.value; //缓存安全模块序列号
+        uni.hideLoading();
+        setTimeout(function () {
+          uni.showToast({ title: '激活成功', icon: 'success' });
+          currentStep.value = 4;
+        }, 100)
+      } else {
+        closeLoad('激活失败！');
+      }
+    }, 500)
+
+
   }
 }
 
@@ -451,71 +516,80 @@ const addSelectSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x3
 const startSelectSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44,
   0x01, 0x01, 0x94, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xd0, 0x00, 0x00, 0x00, 0x01, 0xff, 0xb8, 0x7e];
 
-
 //监听
 //ROStatus  监听识读状态
 //currentStatus 监听三步识读电子标识
-watch(() => {
-  return [currentStatus.value, ROStatus.value];
-}, ([newCurrentStatus, newROStatus], [oldCurrentStatus, oldROStatus]) => {
+// watch(() => {
+//   return [currentStatus.value, ROStatus.value];
+// }, ([newCurrentStatus, newROStatus], [oldCurrentStatus, oldROStatus]) => {
 
-  //currentStatus 监听三步识读电子标识
-  if (newCurrentStatus != oldCurrentStatus) {
-    if (newCurrentStatus == 1) { //oldVal == 0 && 
-      console.log('--------添加RO应答Start-------', 'add');
-      // sendCmd(addSelectSpec);// 添加RO应答
-      addUserSelectSpec(1, 4, 9);
-    } else if (newCurrentStatus == 2) {  //oldVal == 1 && 
-      console.log('--------启动RO应答Start-------', 'add');
-      sendCmd(startSelectSpec); //启动RO应答
-    } else if (newCurrentStatus == 3) { //oldVal==2 && 
-      console.log('--------已启动RO应答End-------');
-      // currentStatus.value = 0;
-    }
-  }
+//currentStatus 监听三步识读电子标识
+// if (newCurrentStatus != oldCurrentStatus) {
+//   if (newCurrentStatus == 1) { //oldVal == 0 && 
+//     console.log('--------添加RO应答Start-------', 'add');
+//     // sendCmd(addSelectSpec);// 添加RO应答
+//     addUserSelectSpec(1, 4, 9);
+//   } else if (newCurrentStatus == 2) {  //oldVal == 1 && 
+//     console.log('--------启动RO应答Start-------', 'add');
+//     sendCmd(startSelectSpec); //启动RO应答
+//   } else if (newCurrentStatus == 3) { //oldVal==2 && 
+//     console.log('--------已启动RO应答End-------');
+//     // currentStatus.value = 0;
+//   }
+// }
 
 
-  //ROStatus  监听识读状态
-  if (newROStatus != oldROStatus) {
-    if (newROStatus) {
-      console.log('ROStatus222222');
-      tagsInfo.value = tipsInfo.value; //接收到RO结束事件
-      if (currentStatus.value == 3) {  //已启动RO应答
-        console.log('ROStatus333333');
-        //已启动RO应答  //并且接收到RO结束事件
-        if (Object.keys(tagsInfo.value).length > 0) {
-          clearTimeout(_inventTime); //清除定时器读卡长时间未响应失败10000ms
-          uni.showToast({
-            title: '读卡成功',
-            icon: 'success'
-          });
-          uni.navigateTo({
-            url: '/pagesFn/electronicsTag/form'
-          })
-        } else {
-          clearTimeout(_inventTime);//清除定时器读卡长时间未响应失败10000ms
-          uni.showToast({
-            title: '读卡失败',
-            icon: 'error'
-          });
-        }
-      }
-      uni.hideLoading();
-    }
-  }
+//ROStatus  监听识读状态
+// if (newROStatus != oldROStatus) {
+//   if (newROStatus) {
+//     console.log('ROStatus222222');
+//     tagsInfo.value = tipsInfo.value; //接收到RO结束事件
+//     if (currentStatus.value == 3) {  //已启动RO应答
+//       console.log('ROStatus333333');
+//       //已启动RO应答  //并且接收到RO结束事件
+//       if (Object.keys(tagsInfo.value).length > 0) {
+//         clearTimeout(_inventTime); //清除定时器读卡长时间未响应失败10000ms
+//         uni.showToast({
+//           title: '读卡成功',
+//           icon: 'success'
+//         });
+//         uni.navigateTo({
+//           url: '/pagesFn/electronicsTag/form'
+//         })
+//       } else {
+//         clearTimeout(_inventTime);//清除定时器读卡长时间未响应失败10000ms
+//         uni.showToast({
+//           title: '读卡失败',
+//           icon: 'error'
+//         });
+//       }
+//     }
+//     uni.hideLoading();
+//   }
+// }
 
-})
+// })
 
 //标签识读
 let _inventTime;
 const inventRead = () => {
-  currentStatus.value = 0; //当前状态 读取电子标签需要三步
+  // currentStatus.value = 0; //当前状态 读取电子标签需要三步
+  isReadRules.value = true;//当前状态 读取电子标签需要三步
   tipsInfo.value = {}; //清空ts响应
   tagsInfo.value = {}; //清空store 存储
-  ROStatus.value = false; //RO状态
-  sendCmd(deleteSelectSpec); //删除RO应答
+  console.log(readRules.value);
+  if (!readRules.value.deleteRO) {
+    sendCmd(deleteSelectSpec); //删除RO应答
+  } else if (readRules.value.deleteRO && !readRules.value.addRO) {
+    console.log('--------添加RO应答Start-------', 'add');
+    addUserSelectSpec(1, 4, 9);
+  } else {
+    console.log('--------启动RO应答Start-------', 'add');
+    sendCmd(startSelectSpec); //启动RO应答
+  }
+
   _inventTime = setTimeout(function () {
-    if (Object.keys(tagsInfo.value).length === 0 && !ROStatus.value) {
+    if (Object.keys(tagsInfo.value).length === 0) {
       uni.hideLoading();
       setTimeout(function () {
         uni.showToast({
@@ -524,7 +598,7 @@ const inventRead = () => {
         });
       })
     }
-  }, 10000)
+  }, 5000)
 }
 
 //写入蓝牙
@@ -602,7 +676,7 @@ const goForm = () => {
 //激活电子标签
 const goActive = () => {
   uni.showLoading({
-    title: '正在激活电子标签~~~',
+    title: '正在进行设备双向认证~~~',
     mask: true
   })
   readRandom();//获取安全模块随机数
@@ -615,7 +689,6 @@ const goActive = () => {
       setTimeout(function () {
         console.log('序列号1：' + safeSn.value);
         if (safeSn.value) {  //已获取到安全模块序列号
-          samsn.value = safeSn.value; //缓存安全模块序列号
 
           auth({ step: 1, data: secRandom.value, samsn: safeSn.value }).then((res) => {
             console.log(res);

@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { auth } from '../api'
 export const currentStatus = ref(0); //识读电子标识三步1
-export const ROStatus = ref(false);//RO状态
+// export const ROStatus = ref(false);//RO状态
 export const tipsInfo = ref({});//电子标识解析后的内容
 export const secRandom = ref('');//安全模块随机数
 export const safeSn = ref('');//安全模块SN  安全模块序列号
@@ -363,7 +363,7 @@ const DeviceEventNotification = (finishData) => {
 					// ROStatus.value = false;
 					console.log('接收到RO开始事件：', roEvent)
 				} else {
-					ROStatus.value = true;
+					// ROStatus.value = true;
 					console.log('接收到RO结束事件：', roEvent)
 				}
 
@@ -1072,15 +1072,15 @@ export const analysisLlrpFrame = (finishData) => {
 			//AOSpecOption.delAOAck = Success;
 		} else if (msgType == 403) {//删除RO应答  0193
 			console.log('删除RO应答：', msgType)
-			currentStatus.value = 1;
+			// currentStatus.value = 1;
 			//ROSpecOption.delROAck = Success;
 		} else if (msgType == 401) {//添加RO应答  0191
 			console.log('添加RO应答：', msgType)
-			currentStatus.value = 2;
+			// currentStatus.value = 2;
 			//ROSpecOption.addROAck = Success;
 		} else if (msgType == 405) {//启动RO应答  0195
 			console.log('启动RO应答：', msgType)
-			currentStatus.value = 3;
+			// currentStatus.value = 3;
 			//ROSpecOption.startROAck = Success;
 		} else if (msgType == 302) {//事件通知  012e
 			console.log('事件通知：', msgType)
@@ -1095,7 +1095,7 @@ export const analysisLlrpFrame = (finishData) => {
 			console.log('查询版本应答：', msgType)
 			VersionQueryAck(finishData);
 		}
-
+		return msgType; //返回消息类型
 
 	}
 }
