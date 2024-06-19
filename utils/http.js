@@ -33,7 +33,7 @@ http.interceptors.request.use(
 			userInfo
 		} = storeToRefs(useUserStore()); // 解构pinia的store
 		const token = userInfo.value.token;
-		console.log("🚀 ~ token:", token)
+		// console.log("🚀 ~ token:", token)
 		// /* 请求之前拦截器。可以使用async await 做异步操作 */
 		config.header = {
 			...config.header,
@@ -51,7 +51,7 @@ http.interceptors.request.use(
 			})
 			return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
 		}
-		console.log("🚀 ~ config:", config)
+		// console.log("🚀 ~ config:", config)
 		return config;
 	},
 	(config) => {

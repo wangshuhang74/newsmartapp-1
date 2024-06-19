@@ -14,10 +14,14 @@ page {
 
 .list_box {
   flex: 1;
-  overflow: hidden;
   box-sizing: border-box;
   padding: 30rpx;
+  width: 100%;
 
+  :deep(.wd-checkbox-group) {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
 
   .work_item {
     width: 100%;
@@ -124,6 +128,11 @@ page {
           margin-right: 6rpx;
         }
 
+        .isImg {
+          padding-right: 24rpx;
+          box-sizing: border-box;
+        }
+
         .value {
           flex: 1;
           font-size: 26rpx;
@@ -135,6 +144,15 @@ page {
           /* 溢出隐藏 */
           text-overflow: ellipsis;
           /* 超出部分显示省略号 */
+
+          text {
+            white-space: nowrap;
+            /* 不换行 */
+            overflow: hidden;
+            /* 溢出隐藏 */
+            text-overflow: ellipsis;
+            /* 超出部分显示省略号 */
+          }
 
           .position_img {
             position: absolute;
@@ -178,4 +196,16 @@ page {
 
   }
 
+}
+
+.requiredLabel {
+  position: relative;
+
+  &::before {
+    content: '*';
+    color: red;
+    position: absolute;
+    left: -16rpx;
+    top: -4rpx;
+  }
 }

@@ -83,7 +83,7 @@ const visibleBtn = () => {
 <template>
   <wd-toast></wd-toast>
   <view class="login_box">
-    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
+    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px', height: safeAreaInsets?.top + 250 + 'px' }">
       <image class="logo" src="http://116.62.107.90:8673/images/logins/logo.png" mode="scaleToFill" />
       <view class="title">智慧运维</view>
     </view>

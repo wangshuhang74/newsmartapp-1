@@ -5,6 +5,7 @@ import marker1 from '@/static/images/homeMap/marker1.png'
 import marker1_active from '@/static/images/homeMap/marker1_active.png'
 import marker2 from '@/static/images/homeMap/marker2.png'
 import marker2_active from '@/static/images/homeMap/marker2_active.png'
+import { toNavigation, makePhoneCall } from '@/utils'
 
 import { useUserStore } from '@/store'
 const userStore = useUserStore()
@@ -250,7 +251,6 @@ const getLocation = () => {
 
 // 获取屏幕边界到安全区域距离
 
-
 const setMyMarker = (val) => {
   console.log("markers", val);
   markers.value.splice(markers.value.length - 1, 1, {
@@ -260,56 +260,12 @@ const setMyMarker = (val) => {
   })
 }
 
-const toNavigation = (val) => {
-  console.log("打开导航", val);
-  if (!val.latitude || !val.longitude) {
-    uni.showToast({
-      title: '暂无坐标信息',
-      icon: 'none'
-    })
-    return
-  }
-  val.latitude = val.latitude * 1
-  val.longitude = val.longitude * 1
-  if (typeof val.latitude !== 'number' || typeof val.longitude !== 'number') {
-    uni.showToast({
-      title: '坐标信息错误',
-      icon: 'none'
-    })
-    return
-  }
-  uni.openLocation({
-    latitude: val.latitude,
-    longitude: val.longitude,
-    name: val.name,
-    address: val.address,
-    success: function () {
-      console.log('success');
-    },
-    fail: function (err) {
-      console.log('err', err);
-    },
-  });
-}
-
-const makePhoneCall = (phone) => {
-  uni.makePhoneCall({
-    phoneNumber: phone,
-    success() {
-      console.log('拨打电话成功');
-    },
-    fail(err) {
-      console.error('拨打电话失败', err);
-    }
-  });
-}
-
 </script>
 
 <template>
   <wd-toast></wd-toast>
   <view class="home_box">
-    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
+    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px', height: safeAreaInsets?.top + 120 + 'px' }">
       <view class="title">首页</view>
       <view class="search_box">
         <view class="search">
@@ -404,7 +360,6 @@ const makePhoneCall = (phone) => {
     position: relative;
     box-sizing: border-box;
     width: 100%;
-    height: 280rpx;
     padding-bottom: 20rpx;
     background: linear-gradient(90deg, #4557D1 0%, #75DBED 100%);
     box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);

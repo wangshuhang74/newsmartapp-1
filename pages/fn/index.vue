@@ -69,7 +69,7 @@ const toPages = (item) => {
 <template>
   <wd-toast></wd-toast>
   <view class="fn_box">
-    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
+    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px',height: safeAreaInsets?.top + 124 + 'px' }">
       <view class="title">我的任务</view>
     </view>
     <view class="picture_box">
@@ -168,7 +168,6 @@ const toPages = (item) => {
   .top_box {
     box-sizing: border-box;
     width: 100%;
-    height: 300rpx;
     padding-bottom: 20rpx;
     background: linear-gradient(90deg, #4557d1 0%, #75dbed 100%);
     box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);

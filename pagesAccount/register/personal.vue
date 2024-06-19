@@ -1,6 +1,6 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
-import qr_code from '../../static/images/logins/qr_code.png'
+import firmIdPopup from './firmIdPopup.vue'
 
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { addUser, sendCode } from '../../api'
@@ -86,35 +86,9 @@ const noFirmId = () => {
   console.log("noFirmId");
   firmIdShow.value = true
 }
-
-const handlePopupsClose = () => {
+const CloseClick = () => {
   firmIdShow.value = false
-};
-
-const toWeChatAccount = () => {
-  // qr_code
-  // uni.showLoading({
-  //   title: '加载中...'
-  // });
-  uni.downloadFile({ //下载文件资源到本地,返回文件的本地临时路径
-    url: qr_code, //网络二维码路径
-    success: (res) => {
-      var imageUrl = res.tempFilePath;//临时文件路径
-      // console.log("imageUrl", imageUrl);
-      uni.saveImageToPhotosAlbum({ //保存二维码到系统相册
-        filePath: qr_code,
-        success: (res) => {
-          Toast.success('二维码保存成功');
-          firmIdShow.value = false
-        },
-        fail: (err) => {
-          Toast.error('二维码保存失败');
-        }
-      })
-    }
-  })
 }
-
 
 
 </script>
@@ -168,24 +142,8 @@ const toWeChatAccount = () => {
 
       <button class="registerBtn" @tap="registerBtn">注册并登录</button>
     </view>
+    <firmIdPopup v-if="firmIdShow" :firmIdShow="firmIdShow" @CloseClick="CloseClick" />
   </view>
-  <wd-popup v-model="firmIdShow" :close-on-click-modal="false" @close="handlePopupsClose">
-    <view class="firmId_box">
-      <view class="centerr">
-        <image class="qr_code" :src="qr_code" mode="scaleToFill" />
-        <view class="tips">
-          <view class="tip">温馨提示</view>
-          <view class="text">可扫码进入公众号或致电4008-4-96520</view>
-        </view>
-      </view>
-      <!-- <button class="firmId_close_btn" @click="toWeChatAccount">进入公众号</button> -->
-      <button class="firmId_close_btn" @click="toWeChatAccount">保存二维码打开微信扫一扫</button>
-    </view>
-    <view class="firmId_close">
-      <image class="img_close" @tap="handlePopupsClose" src="http://116.62.107.90:8673/images/logins/close.png"
-        mode="scaleToFill" />
-    </view>
-  </wd-popup>
 </template>
 <style lang="scss" scoped>
 .register_personal {
@@ -334,85 +292,6 @@ const toWeChatAccount = () => {
       background: linear-gradient(90deg, #1082FF 0%, #5FA9FF 100%);
     }
 
-  }
-}
-
-:deep(.wd-popup) {
-  background-color: transparent !important;
-}
-
-.wd-popup {
-  background-color: transparent !important;
-
-  .firmId_box {
-    width: 527rpx;
-    height: 672rpx;
-    overflow: hidden;
-    background: url('http://116.62.107.90:8673/images/logins/firmId_box.png');
-    background-size: 100% 100%;
-    border-radius: 20rpx;
-
-    .centerr {
-      display: flex;
-      align-content: center;
-      width: 95%;
-      height: 45%;
-      margin: 45% auto 0 auto;
-
-      .qr_code {
-        width: 180rpx;
-        height: 180rpx;
-        margin: auto 20rpx;
-      }
-
-      .tips {
-        flex: 1;
-        height: 180rpx;
-        padding: 0 20rpx 0 0;
-        margin: auto 0;
-
-        .tip {
-          width: 100%;
-          margin-bottom: 10rpx;
-          font-size: 34rpx;
-          color: #000000;
-          text-align: center;
-        }
-
-        .text {
-          font-size: 26rpx;
-          color: #B3B3B3;
-        }
-
-      }
-    }
-
-    .firmId_close_btn {
-      width: 460rpx;
-      height: 76rpx;
-      margin: 0 auto;
-      font-size: 30rpx;
-      color: #FFFFFF;
-      background: #469DFF;
-      border-radius: 14rpx 14rpx 14rpx 14rpx;
-      box-shadow: 5rpx 5rpx 14rpx 2rpx rgba(29, 75, 159, 0.14);
-    }
-
-  }
-
-  .firmId_close {
-    display: flex;
-    align-content: center;
-    justify-content: center;
-    width: 527rpx;
-    height: 100rpx;
-    background-color: transparent !important;
-
-    .img_close {
-      width: 66rpx;
-      height: 66rpx;
-      margin-top: 30rpx;
-    }
   }
 }
 </style>

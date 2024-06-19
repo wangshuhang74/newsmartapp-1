@@ -7,7 +7,7 @@
 			<swiper-item v-for="(item, index) in urls" :key="index">
 				<movable-area class="movable-area" scale-area>
 					<movable-view class="movable-view" direction="all" :inertia="true" damping="100" scale="true" scale-min="1" scale-max="4" :scale-value="scale">
-						<scroll-view scroll-y="true" class="uni-scroll-view">
+						<scroll-view scroll-y="true" class="uni-scroll-view" :show-scrollbar="false">
 							<view class="scroll-view"><image :key="index" class="image" :src="item" mode="widthFix" @longpress="onLongpress(item)" /></view>
 						</scroll-view>
 					</movable-view>

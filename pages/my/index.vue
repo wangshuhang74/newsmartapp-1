@@ -85,14 +85,14 @@ const itemClick = (item) => {
   <wd-toast></wd-toast>
   <wd-message-box />
   <view class="my_box">
-    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
+    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px', height: safeAreaInsets?.top + 250 + 'px' }">
       <view class="active_info">
         <view class="active_info_left">
           <image v-if="userInfo.active" :src="userInfo.active" mode="scaleToFill" />
           <view v-else class="avatar_text">{{
             userInfo.nickName ? userInfo.nickName.charAt(0).toUpperCase() : userInfo.phone ?
               userInfo.phone.charAt(0).toUpperCase() : ""
-            }}</view>
+          }}</view>
         </view>
         <view class="active_info_right" v-if="userInfo.nickName || userInfo.phone">
           <view class="title_box">
