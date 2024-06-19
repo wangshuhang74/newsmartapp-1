@@ -108,20 +108,20 @@
 <script setup>
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
-import { dealRecvData, ab2hex, comm_llrp_calCrc, currentStatus, tipsInfo, secRandom, safeSn, authStatus } from "../../utils/bluetooth";
+import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safeSn, authStatus, getDeviceSecConfig, readRandom, addUserSelectSpec } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo, blueToothDevices, samsn } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, blueToothDevices, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const currentStep = ref(1); //当前步骤step
 const blueList = ref([]); //获取蓝牙列表
-const deviceId = ref('');//蓝牙设备id
-const serviceId = ref('0000FFE0-0000-1000-8000-00805F9B34FB')
-const characteristicId = ref('0000FFE9-0000-1000-8000-00805F9B34FB'); //蓝牙write
-const characteristicId_notify = ref('0000FFE4-0000-1000-8000-00805F9B34FB'); //蓝牙notify
+// const deviceId = ref('');//蓝牙设备id
+// const serviceId = ref('0000FFE0-0000-1000-8000-00805F9B34FB')
+// const characteristicId = ref('0000FFE9-0000-1000-8000-00805F9B34FB'); //蓝牙write
+// const characteristicId_notify = ref('0000FFE4-0000-1000-8000-00805F9B34FB'); //蓝牙notify
 const BluetoothAdapter = ref(false); //是否已完成初始化蓝牙成功
 const BluetoothDevicesDiscovery = ref(false);//是否已开始搜索
 const BLEConnection = ref(false); //是否已连接蓝牙
@@ -129,18 +129,12 @@ const notifyBLEChar = ref(false);//是否已开启监听
 
 console.log("blueToothDevices", JSON.stringify(blueToothDevices.value));
 
-const isReadRules = ref(true); //当前步骤是否读规则
-//读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405
-const readRules = ref({ deleteRO: false, addRO: false, startRO: false });
-//写规则步骤  1删除RO-403 2删除AO-453 3添加RO-401 4添加AO-451 5启动RO-405
-const writeRules = ref({ deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false });
-
 onUnload(() => {
   //监听页面卸载
   console.log('监听页面卸载');
   if (BLEConnection.value) {
     uni.closeBLEConnection({
-      deviceId: deviceId.value,
+      deviceId: blueToothInit.value.deviceId,
       success (res) {
         console.log('断开蓝牙成功', res)
         setTimeout(() => {
@@ -158,6 +152,11 @@ onUnload(() => {
         console.log('断开蓝牙失败', err)
       },
     })
+
+    //以下三步清空读写规则的步骤，清空后需要重新下发读写规则
+    isReadRules.value = true;
+    readRules.value = { deleteRO: false, addRO: false, startRO: false };
+    writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
   } else {
     if (BluetoothAdapter.value) {
       uni.closeBluetoothAdapter({
@@ -287,7 +286,7 @@ const connectBlue = (item) => {
         if (!blueToothDevices.value.includes(item.deviceId)) {//存储的已连接过的蓝牙设备id是否包含当前设备id是否一致，包含则不需要重复启动蓝牙监听(readBlueOn)
           notifyBLEChar.value = false; //连接新的蓝牙需要重新开启监听
         } else {
-          deviceId.value = item.deviceId;
+          blueToothInit.value.deviceId = item.deviceId;
           notifyBLEChar.value = true; //已连接过蓝牙不需要重新开启监听
         }
 
@@ -306,7 +305,7 @@ const connectBlue = (item) => {
               // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
               deviceId: item.deviceId,
               // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
-              serviceId: serviceId.value,
+              serviceId: blueToothInit.value.serviceId,
               success (res) {
                 readBlueOn(item.deviceId);//启动蓝牙监听
               },
@@ -356,9 +355,9 @@ const readBlueOn = (params) => {
       // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
       deviceId: params,
       // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
-      serviceId: serviceId.value ? serviceId.value : '0000FFE0-0000-1000-8000-00805F9B34FB',
+      serviceId: blueToothInit.value.serviceId ? blueToothInit.value.serviceId : '0000FFE0-0000-1000-8000-00805F9B34FB',
       // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
-      characteristicId: characteristicId_notify.value ? characteristicId_notify.value : '0000FFE4-0000-1000-8000-00805F9B34FB',
+      characteristicId: blueToothInit.value.characteristicId_notify ? blueToothInit.value.characteristicId_notify : '0000FFE4-0000-1000-8000-00805F9B34FB',
       success (res) {
         console.log('启用 notify 功能', res)
       },
@@ -377,8 +376,8 @@ const readBlueOn = (params) => {
   console.log(333333);
   console.log('params:' + params);
 
-  console.log('serviceId:', serviceId.value);
-  console.log('characteristicId_notify:' + characteristicId_notify.value);
+  console.log('serviceId:', blueToothInit.value.serviceId);
+  console.log('characteristicId_notify:' + blueToothInit.value.characteristicId_notify);
 
 
   uni.notifyBLECharacteristicValueChange({
@@ -386,13 +385,13 @@ const readBlueOn = (params) => {
     // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
     deviceId: params,
     // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
-    serviceId: serviceId.value ? serviceId.value : '0000FFE0-0000-1000-8000-00805F9B34FB',
+    serviceId: blueToothInit.value.serviceId ? blueToothInit.value.serviceId : '0000FFE0-0000-1000-8000-00805F9B34FB',
     // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
-    characteristicId: characteristicId_notify.value ? characteristicId_notify.value : '0000FFE4-0000-1000-8000-00805F9B34FB',
+    characteristicId: blueToothInit.value.characteristicId_notify ? blueToothInit.value.characteristicId_notify : '0000FFE4-0000-1000-8000-00805F9B34FB',
     success (res) {
       console.log('启用 notify 功能', res)
       notifyBLEChar.value = true;
-      deviceId.value = params;
+      blueToothInit.value.deviceId = params;
       blueToothDevices.value.push(params);
 
       uni.hideLoading();
@@ -417,16 +416,52 @@ const readBlueOn = (params) => {
             console.log('--------添加RO应答Start-------', '403');
             addUserSelectSpec(1, 4, 9);
             readRules.value.deleteRO = true;
+            writeRules.value.deleteRO = true;// 同时修改写写入删除RO为true,删除RO不需要重复执行
             console.log("deleteRO:" + readRules.value.deleteRO);
           } else if (result == '401') {
             console.log('--------启动RO应答Start-------', '401');
             sendCmd(startSelectSpec); //启动RO应答
             readRules.value.addRO = true;
+            writeRules.value.addRO = true;// 同时修改写写入添加RO为true,添加RO不需要重复执行
             console.log("addRO:" + readRules.value.addRO);
           } else if (result == '405') {
             console.log('--------已启动RO应答End-------');
             readRules.value.startRO = true;
             console.log("startRO:" + readRules.value.startRO);
+          }
+        } else { //isReadRules==false 当前为写入规则
+          //写规则步骤  1删除RO-403 2删除AO-453 3添加RO-401 4添加AO-451 5启动RO-405
+          //const writeRules = ref({ deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false });
+          if (result == '403') {
+            console.log('--------完成删除RO 开始删除AO-------', '403');
+            sendCmd(deleteAccessSpec); //删除AO
+            writeRules.value.deleteRO = true;
+            console.log("writeRules_deleteRO:" + writeRules.value.deleteRO);
+          } else if (result == '453') {
+            writeRules.value.deleteAO = true;
+            console.log('--------完成删除AO 开始添加RO或者添加AO------', '453');
+            if (writeRules.value.addRO) { //表示已添加过RO 可直接添加AO
+              console.log('--------已添加过RO 直接添加AO------');
+              startAddAO.value = true; //在form.vue中监听到startAddAO为true时，会调用addRO方法
+            } else {
+              console.log('--------未添加过RO 需要先添加RO------');
+              addUserSelectSpec(1, 4, 9); //添加RO
+            }
+          } else if (result == '401') {
+            console.log('--------完成添加RO 开始添加AO-------', '401');
+
+            startAddAO.value = true;//在form.vue中监听到startAddAO为true时，会调用addRO方法
+
+            writeRules.value.addRO = true;
+            console.log("writeRules_addRO:" + writeRules.value.addRO);
+          } else if (result == '451') {
+            console.log('--------完成添加AO 开始启动RO-------', '451');
+            sendCmd(startSelectSpec); //启动RO应答
+            writeRules.value.addAO = true;
+
+          } else if (result == '405') {
+            console.log('--------已启动写入RO应答End-------');
+            writeRules.value.startRO = true;
           }
         }
 
@@ -505,70 +540,16 @@ const nextStep = (obj) => {
 
 //删除RO规则
 const deleteSelectSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0x92, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xce, 0x00, 0x00, 0x00, 0x00, 0xab, 0x00, 0x7e];
-//添加默认RO规则
-const addSelectSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44,
-  0x01, 0x01, 0x90, 0x00, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0xcf, 0x01, 0x90, 0x00, 0x3f, 0x00,
-  0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x91, 0x00, 0x01, 0x00, 0x01, 0x94, 0x00, 0x05, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x01, 0x95, 0x00, 0x1d, 0x00, 0x01, 0x01, 0x01, 0x96, 0x00, 0x05, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x01, 0x98, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x01, 0x01, 0x99, 0x00, 0x05, 0x00, 0x00, 0x04,
-  0x00, 0x0a, 0x01, 0x9a, 0x00, 0x05, 0x02, 0x00, 0x00, 0xdf, 0x80, 0x46, 0x38, 0x7e];
 //启动RO规则
 const startSelectSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44,
   0x01, 0x01, 0x94, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xd0, 0x00, 0x00, 0x00, 0x01, 0xff, 0xb8, 0x7e];
 
-//监听
-//ROStatus  监听识读状态
-//currentStatus 监听三步识读电子标识
-// watch(() => {
-//   return [currentStatus.value, ROStatus.value];
-// }, ([newCurrentStatus, newROStatus], [oldCurrentStatus, oldROStatus]) => {
+//删除AO规则
+const deleteAccessSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44,
+  0x01, 0x01, 0xc4, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xcd, 0x00, 0x00, 0x00, 0x00, 0x86, 0xdd, 0x7e];
 
-//currentStatus 监听三步识读电子标识
-// if (newCurrentStatus != oldCurrentStatus) {
-//   if (newCurrentStatus == 1) { //oldVal == 0 && 
-//     console.log('--------添加RO应答Start-------', 'add');
-//     // sendCmd(addSelectSpec);// 添加RO应答
-//     addUserSelectSpec(1, 4, 9);
-//   } else if (newCurrentStatus == 2) {  //oldVal == 1 && 
-//     console.log('--------启动RO应答Start-------', 'add');
-//     sendCmd(startSelectSpec); //启动RO应答
-//   } else if (newCurrentStatus == 3) { //oldVal==2 && 
-//     console.log('--------已启动RO应答End-------');
-//     // currentStatus.value = 0;
-//   }
-// }
-
-
-//ROStatus  监听识读状态
-// if (newROStatus != oldROStatus) {
-//   if (newROStatus) {
-//     console.log('ROStatus222222');
-//     tagsInfo.value = tipsInfo.value; //接收到RO结束事件
-//     if (currentStatus.value == 3) {  //已启动RO应答
-//       console.log('ROStatus333333');
-//       //已启动RO应答  //并且接收到RO结束事件
-//       if (Object.keys(tagsInfo.value).length > 0) {
-//         clearTimeout(_inventTime); //清除定时器读卡长时间未响应失败10000ms
-//         uni.showToast({
-//           title: '读卡成功',
-//           icon: 'success'
-//         });
-//         uni.navigateTo({
-//           url: '/pagesFn/electronicsTag/form'
-//         })
-//       } else {
-//         clearTimeout(_inventTime);//清除定时器读卡长时间未响应失败10000ms
-//         uni.showToast({
-//           title: '读卡失败',
-//           icon: 'error'
-//         });
-//       }
-//     }
-//     uni.hideLoading();
-//   }
-// }
-
-// })
+//获取安全模块序列号
+const secSNQuery = ref([0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x69, 0x0c, 0x00, 0xef, 0x86, 0x7e]);
 
 //标签识读
 let _inventTime;
@@ -599,65 +580,6 @@ const inventRead = () => {
       })
     }
   }, 5000)
-}
-
-//写入蓝牙
-const sendCmd = (data) => {
-  const buffer = new ArrayBuffer(data.length)
-
-  const dataView = new DataView(buffer)
-  data.forEach((item, index) => {
-    dataView.setUint8(index, item)
-  })
-
-  writeFun(buffer);
-}
-
-//分包写入
-const writeFun = (buffer) => {
-  const packageSize = 20 //分包大小
-  if (buffer.byteLength <= packageSize) { //如果小于20直接发送，不再继续调用
-    console.log('~~执行发送指令Last~~');
-
-    uni.writeBLECharacteristicValue({
-      // 这里的 deviceId 需要在 getBluetoothDevices 或 onBluetoothDeviceFound 接口中获取
-      deviceId: deviceId.value,
-      // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
-      serviceId: serviceId.value ? serviceId.value : '0000FFE0-0000-1000-8000-00805F9B34FB',
-      // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
-      characteristicId: characteristicId.value ? characteristicId.value : '0000FFE9-0000-1000-8000-00805F9B34FB',
-      // 这里的value是ArrayBuffer类型
-      value: buffer,
-      success (res) {
-        console.log('writeBLECharacteristicValue success', res.errMsg)
-      },
-      fail (err) {
-        console.log(err);
-
-      }
-    })
-  } else {
-    console.log('~~执行发送指令~~');
-
-    const newData = buffer.slice(packageSize)
-    const writeBuffer = buffer.slice(0, packageSize)
-    uni.writeBLECharacteristicValue({
-      // 这里的 deviceId 需要在 getBluetoothDevices 或 onBluetoothDeviceFound 接口中获取
-      deviceId: deviceId.value,
-      // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
-      serviceId: serviceId.value ? serviceId.value : '0000FFE0-0000-1000-8000-00805F9B34FB',
-      // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
-      characteristicId: characteristicId.value ? characteristicId.value : '0000FFE9-0000-1000-8000-00805F9B34FB',
-      // 这里的value是ArrayBuffer类型
-      value: writeBuffer,
-      success (res) {
-        console.log('writeBLECharacteristicValue success', res.errMsg)
-        setTimeout(() => {
-          writeFun(newData);
-        }, 200)
-      },
-    })
-  }
 }
 
 //读写数据
@@ -729,141 +651,6 @@ const hexStringToByteArray = (hexString) => {
   var sdata = ab2hex(byteArray);
   console.log('十六进制：' + sdata);
   return byteArray;
-}
-
-//获取安全模块序列号
-const secSNQuery = ref([0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x69, 0x0c, 0x00, 0xef, 0x86, 0x7e]);
-
-//获取安全模块生成的随机数
-//获取设备配置(安全模块私有配置)
-const getDeviceConfig = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xee, 0x0b, 0x00, 0x02, 0xac, 0x00, 0x00, 0x00, 0x00];
-
-//发送指令缓存
-var SendFrame = new Uint8Array(1024)
-var SendLen = 0
-//获取安全模块私有配置
-const getDeviceSecConfig = (privateinfo) => {
-  SendLen = 0;
-  SendFrame = new Uint8Array(1024)
-  var msgLenIndex = 11;
-  var paramLenIndex = 23;
-  var arrayLenIndex = 25;
-  //zllrp帧
-  var frame = new Uint8Array(getDeviceConfig.length + privateinfo.length)
-  for (var i = 0; i < getDeviceConfig.length; i++) {
-    frame[i] = getDeviceConfig[i]
-  }
-  for (var i = 0; i < privateinfo.length; i++) {
-    frame[i + getDeviceConfig.length] = privateinfo[i]
-  }
-
-  setLenthRegion(frame, arrayLenIndex, privateinfo.length, 2)
-  setLenthRegion(frame, paramLenIndex, privateinfo.length + 2, 2)
-  setLenthRegion(frame, msgLenIndex, frame.length - 19, 4)
-
-  comm_llrp_encodeRS(frame, frame.length)
-  var senddata = new Uint8Array(SendLen);
-  for (var i = 0; i < SendLen; i++) {
-    senddata[i] = SendFrame[i]
-  }
-
-  var sdata = ab2hex(senddata)
-  console.log('发送数据帧：', sdata)
-
-  sendCmd(senddata);
-}
-
-//获取安全模块随机数
-const readRandom = () => {
-  var privateinfo = new Uint8Array(2)
-  privateinfo[0] = 0x62
-  privateinfo[1] = 0x0
-  getDeviceSecConfig(privateinfo)
-}
-
-//添加User区识读 0,4,10为user0  1,4,9为user1
-const addUserSelectSpec = (memback, offset, length) => {
-  var inventreadro = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0x90, 0x00, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0xcf,
-    0x01, 0x90, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x91, 0x00, 0x01, 0x00, 0x01, 0x94, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x01, 0x95, 0x00, 0x1d, 0x00, 0x01, 0x01, 0x01, 0x96, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x98, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x01,
-    0x01, 0x99, 0x00, 0x05, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x01, 0x9a, 0x00, 0x05, 0x02, 0x00, 0x00, 0xdf, 0x80];
-
-  var membackindex = 72;
-
-  inventreadro[membackindex] = memback;
-  inventreadro[membackindex + 2] = offset;
-  inventreadro[membackindex + 4] = length;
-
-  comm_llrp_encodeRS(inventreadro, inventreadro.length);
-
-  var sendDataUp = new Uint8Array(SendLen);
-  for (var i = 0; i < SendLen; i++) {
-    sendDataUp[i] = SendFrame[i]
-  }
-
-  sendCmd(sendDataUp);
-}
-
-//设置长度区域
-const setLenthRegion = (buff, index, len, size) => {
-  for (var i = 0; i < size; i++) {
-    buff[index++] = (len >> (size - i - 1) * 8) & 0xff;
-  }
-}
-
-//将llrp协议数据编码
-const comm_llrp_encodeRS = (frame, len) => {
-  SendLen = 0;
-  SendFrame[SendLen++] = 0x7e;
-  SendFrame[SendLen++] = 0x0;
-  SendFrame[SendLen++] = 0x0;
-  for (var i = 0; i < len; i++) {
-    switch (frame[i]) {
-      case 0x7d://125
-        SendFrame[SendLen++] = 0x7d;
-        SendFrame[SendLen++] = 0x5d;
-        break;
-      case 0x7e:
-        SendFrame[SendLen++] = 0x7d;
-        SendFrame[SendLen++] = 0x5e;
-        break;
-      default:
-        SendFrame[SendLen++] = frame[i];
-        break;
-    }
-  }
-
-  var crc = comm_llrp_calCrc(frame, len, 0);
-
-  var crcHigh = (crc >> 8) & 0xff;
-  if (crcHigh == 0x7d) {
-    SendFrame[SendLen++] = 0x7d;
-    SendFrame[SendLen++] = 0x5d;
-  }
-  else if (crcHigh == 0x7e) {
-    SendFrame[SendLen++] = 0x7d;
-    SendFrame[SendLen++] = 0x5e;
-  }
-  else {
-    SendFrame[SendLen++] = crcHigh;
-  }
-
-  var crcLow = crc & 0xff;
-  if (crcLow == 0x7d) {
-    SendFrame[SendLen++] = 0x7d;
-    SendFrame[SendLen++] = 0x5d;
-  }
-  else if (crcLow == 0x7e) {
-    SendFrame[SendLen++] = 0x7d;
-    SendFrame[SendLen++] = 0x5e;
-  }
-  else {
-    SendFrame[SendLen++] = crcLow;
-  }
-
-  SendFrame[SendLen++] = 0x7e;
-
-  return SendLen;
 }
 
 //关闭加载loading

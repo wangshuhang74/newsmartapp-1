@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { auth } from '../api'
+import { storeToRefs } from 'pinia'
+import { useTagsStore } from '@/store'
 export const currentStatus = ref(0); //识读电子标识三步1
 // export const ROStatus = ref(false);//RO状态
 export const tipsInfo = ref({});//电子标识解析后的内容
@@ -1014,6 +1016,7 @@ const AnalyzingOneTagReportData = (frame, index) => {
 				index = GetTParamInfo(frame, index, paramInfo);
 				break;
 			case P_HbPrivateWriteSpecResult:
+				console.log('私有写');
 				index = GetTParamInfo(frame, index, paramInfo);
 				vehicle.PrivateWriteAck = 1;
 				if (paramInfo.data.length >= 5) {
@@ -1030,6 +1033,7 @@ const AnalyzingOneTagReportData = (frame, index) => {
 						}
 					}
 				}
+				console.log('vehicle' + JSON.stringify(vehicle));
 				break;
 			case P_HbCustomizedReadSpecResult:
 				index = GetTParamInfo(frame, index, paramInfo);
@@ -1187,6 +1191,191 @@ export const dealRecvData = (buffer, offset, len) => {
 	}
 }
 
+//获取安全模块生成的随机数
+//获取设备配置(安全模块私有配置)
+const getDeviceConfig = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x02, 0x94, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xee, 0x0b, 0x00, 0x02, 0xac, 0x00, 0x00, 0x00, 0x00];
+
+//发送指令缓存
+var SendFrame = new Uint8Array(1024)
+var SendLen = 0
+//获取安全模块私有配置
+export const getDeviceSecConfig = (privateinfo) => {
+	SendLen = 0;
+	SendFrame = new Uint8Array(1024)
+	var msgLenIndex = 11;
+	var paramLenIndex = 23;
+	var arrayLenIndex = 25;
+	//zllrp帧
+	var frame = new Uint8Array(getDeviceConfig.length + privateinfo.length)
+	for (var i = 0; i < getDeviceConfig.length; i++) {
+		frame[i] = getDeviceConfig[i]
+	}
+	for (var i = 0; i < privateinfo.length; i++) {
+		frame[i + getDeviceConfig.length] = privateinfo[i]
+	}
+
+	setLenthRegion(frame, arrayLenIndex, privateinfo.length, 2)
+	setLenthRegion(frame, paramLenIndex, privateinfo.length + 2, 2)
+	setLenthRegion(frame, msgLenIndex, frame.length - 19, 4)
+
+	comm_llrp_encodeRS(frame, frame.length)
+	var senddata = new Uint8Array(SendLen);
+	for (var i = 0; i < SendLen; i++) {
+		senddata[i] = SendFrame[i]
+	}
+
+	var sdata = ab2hex(senddata)
+	console.log('发送数据帧：', sdata)
+
+	sendCmd(senddata);
+}
+
+//设置长度区域
+const setLenthRegion = (buff, index, len, size) => {
+	for (var i = 0; i < size; i++) {
+		buff[index++] = (len >> (size - i - 1) * 8) & 0xff;
+	}
+}
+
+//获取安全模块随机数
+export const readRandom = () => {
+	var privateinfo = new Uint8Array(2)
+	privateinfo[0] = 0x62
+	privateinfo[1] = 0x0
+	getDeviceSecConfig(privateinfo)
+}
+
+//添加User区识读 0,4,10为user0  1,4,9为user1
+export const addUserSelectSpec = (memback, offset, length) => {
+	var inventreadro = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0x90, 0x00, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0xcf,
+		0x01, 0x90, 0x00, 0x3f, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x91, 0x00, 0x01, 0x00, 0x01, 0x94, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x01, 0x95, 0x00, 0x1d, 0x00, 0x01, 0x01, 0x01, 0x96, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x98, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x01,
+		0x01, 0x99, 0x00, 0x05, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x01, 0x9a, 0x00, 0x05, 0x02, 0x00, 0x00, 0xdf, 0x80];
+
+	var membackindex = 72;
+
+	inventreadro[membackindex] = memback;
+	inventreadro[membackindex + 2] = offset;
+	inventreadro[membackindex + 4] = length;
+
+	comm_llrp_encodeRS(inventreadro, inventreadro.length);
+
+	var sendDataUp = new Uint8Array(SendLen);
+	for (var i = 0; i < SendLen; i++) {
+		sendDataUp[i] = SendFrame[i]
+	}
+
+	sendCmd(sendDataUp);
+}
+
+//将llrp协议数据编码
+export const comm_llrp_encodeRS = (frame, len) => {
+	SendLen = 0;
+	SendFrame[SendLen++] = 0x7e;
+	SendFrame[SendLen++] = 0x0;
+	SendFrame[SendLen++] = 0x0;
+	for (var i = 0; i < len; i++) {
+		switch (frame[i]) {
+			case 0x7d://125
+				SendFrame[SendLen++] = 0x7d;
+				SendFrame[SendLen++] = 0x5d;
+				break;
+			case 0x7e:
+				SendFrame[SendLen++] = 0x7d;
+				SendFrame[SendLen++] = 0x5e;
+				break;
+			default:
+				SendFrame[SendLen++] = frame[i];
+				break;
+		}
+	}
+
+	var crc = comm_llrp_calCrc(frame, len, 0);
+
+	var crcHigh = (crc >> 8) & 0xff;
+	if (crcHigh == 0x7d) {
+		SendFrame[SendLen++] = 0x7d;
+		SendFrame[SendLen++] = 0x5d;
+	}
+	else if (crcHigh == 0x7e) {
+		SendFrame[SendLen++] = 0x7d;
+		SendFrame[SendLen++] = 0x5e;
+	}
+	else {
+		SendFrame[SendLen++] = crcHigh;
+	}
+
+	var crcLow = crc & 0xff;
+	if (crcLow == 0x7d) {
+		SendFrame[SendLen++] = 0x7d;
+		SendFrame[SendLen++] = 0x5d;
+	}
+	else if (crcLow == 0x7e) {
+		SendFrame[SendLen++] = 0x7d;
+		SendFrame[SendLen++] = 0x5e;
+	}
+	else {
+		SendFrame[SendLen++] = crcLow;
+	}
+
+	SendFrame[SendLen++] = 0x7e;
+
+	return SendLen;
+}
+
+//添加私有写AO规则 tid写标签tid Uint8Array privateWriteData私有写数据 Uint8Array
+//写入--即writeRules 添加AO addAO 
+export const addPrivateWriteAOSpec = (tid, privateWriteData) => {
+	//私有写AO规则
+	var addPrivateWriteAO = [0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0xc2, 0x00, 0x00, 0x00, 0x6a, 0x00, 0x00, 0x00, 0xd0, 0x01,
+		0xc2, 0x00, 0x66, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x80, 0x01, 0xc3, 0x00, 0x03, 0x00, 0x00,
+		0x01, 0x01, 0xc4, 0x00, 0x4b, 0x01, 0xc5, 0x00, 0x1c, 0x01, 0xc6, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xff,
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x40, 0xe8, 0x99, 0x00, 0x05, 0x08, 0x2c, 0x78, 0x78, 0x01, 0xcb, 0x00,
+		0x27, 0x00, 0x04, 0x00, 0x00, 0x11, 0x01, 0xc9, 0x00, 0x01, 0x00];
+
+	var frame = new Uint8Array(addPrivateWriteAO.length + privateWriteData.length);
+	for (var i = 0; i < addPrivateWriteAO.length; i++) {
+		frame[i] = addPrivateWriteAO[i]
+	}
+
+	for (var i = 0; i < 5; i++) {
+		frame[i + frame.length - 5] = addPrivateWriteAO[i + addPrivateWriteAO.length - 5]
+	}
+
+	for (var i = 0; i < privateWriteData.length; i++) {
+		frame[i + addPrivateWriteAO.length - 5] = privateWriteData[i]
+	}
+
+	var msgLenIndex = 11;
+	var param450lenIndex = 21;
+	var param452lenIndex = 43;
+	var tidIndex = 69;
+	var param459lenIndex = 79;
+	var arraylenIndex = 84;
+	setLenthRegion(frame, arraylenIndex, privateWriteData.length / 2, 2);
+	setLenthRegion(frame, param459lenIndex, privateWriteData.length + arraylenIndex - param459lenIndex, 2);
+	setLenthRegion(frame, param452lenIndex, privateWriteData.length + arraylenIndex - param452lenIndex, 2);
+	setLenthRegion(frame, param450lenIndex, frame.length - 23, 2);
+	setLenthRegion(frame, msgLenIndex, frame.length - 19, 4);
+
+	for (var i = 0; i < 8; i++) {
+		frame[i + tidIndex] = tid[i]
+	}
+
+	comm_llrp_encodeRS(frame, frame.length);
+	if (SendLen > 0) {
+		var senddata = new Uint8Array(SendLen);
+		for (var i = 0; i < SendLen; i++) {
+			senddata[i] = SendFrame[i]
+		}
+
+		var sdata = ab2hex(senddata)
+		console.log('发送私有写数据帧：', sdata)
+
+		sendCmd(senddata);
+	}
+}
+
 
 
 // ArrayBuffer转16进度字符串示例
@@ -1196,3 +1385,77 @@ export const ab2hex = (buffer) => {
 	})
 	return hexArr.join('')
 }
+
+
+/**
+ * 
+ *发送蓝牙指令 指令分包发送  start
+ */
+
+let tagsStore = ''; //获取store里面的blueToothInit
+//写入蓝牙
+export const sendCmd = (data) => {
+	const buffer = new ArrayBuffer(data.length)
+
+	const dataView = new DataView(buffer)
+	data.forEach((item, index) => {
+		dataView.setUint8(index, item)
+	})
+
+	tagsStore = useTagsStore()
+	// const {blueToothInit } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+
+	writeFun(buffer);
+}
+
+//分包写入
+const writeFun = (buffer) => {
+	const packageSize = 20 //分包大小
+	if (buffer.byteLength <= packageSize) { //如果小于20直接发送，不再继续调用
+		console.log('~~执行发送指令Last~~');
+
+		uni.writeBLECharacteristicValue({
+			// 这里的 deviceId 需要在 getBluetoothDevices 或 onBluetoothDeviceFound 接口中获取
+			deviceId: tagsStore.blueToothInit.deviceId,
+			// 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
+			serviceId: tagsStore.blueToothInit.serviceId ? tagsStore.blueToothInit.serviceId : '0000FFE0-0000-1000-8000-00805F9B34FB',
+			// 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
+			characteristicId: tagsStore.blueToothInit.characteristicId ? tagsStore.blueToothInit.characteristicId : '0000FFE9-0000-1000-8000-00805F9B34FB',
+			// 这里的value是ArrayBuffer类型
+			value: buffer,
+			success (res) {
+				console.log('writeBLECharacteristicValue success', res.errMsg)
+			},
+			fail (err) {
+				console.log(err);
+
+			}
+		})
+	} else {
+		console.log('~~执行发送指令~~');
+
+		const newData = buffer.slice(packageSize)
+		const writeBuffer = buffer.slice(0, packageSize)
+		uni.writeBLECharacteristicValue({
+			// 这里的 deviceId 需要在 getBluetoothDevices 或 onBluetoothDeviceFound 接口中获取
+			deviceId: tagsStore.blueToothInit.deviceId,
+			// 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
+			serviceId: tagsStore.blueToothInit.serviceId ? tagsStore.blueToothInit.serviceId : '0000FFE0-0000-1000-8000-00805F9B34FB',
+			// 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
+			characteristicId: tagsStore.blueToothInit.characteristicId ? tagsStore.blueToothInit.characteristicId : '0000FFE9-0000-1000-8000-00805F9B34FB',
+			// 这里的value是ArrayBuffer类型
+			value: writeBuffer,
+			success (res) {
+				console.log('writeBLECharacteristicValue success', res.errMsg)
+				setTimeout(() => {
+					writeFun(newData);
+				}, 200)
+			},
+		})
+	}
+}
+
+/**
+ * 
+ *发送蓝牙指令 指令分包发送  end
+ */
