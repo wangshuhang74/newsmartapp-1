@@ -225,6 +225,15 @@
 						"navigationStyle": "custom",
 						"navigationBarTitleText": "汽车电子标识卡号"
 					}
+				},
+				{
+					"path": "workDetails/index",
+					"name": "workDetails",
+					"needLogin": true,
+					"style": {
+						"navigationStyle": "custom",
+						"navigationBarTitleText": "工单详情"
+					}
 				}
 			]
 		}

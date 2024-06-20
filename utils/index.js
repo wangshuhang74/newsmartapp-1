@@ -23,16 +23,16 @@ export function debounce(func, wait) {
 
 export const toNavigation = (val) => {
     console.log("打开导航", val);
-    if (!val.latitude || !val.longitude) {
+    if (!val.lat || !val.lng) {
         uni.showToast({
             title: '暂无坐标信息',
             icon: 'none'
         })
         return
     }
-    val.latitude = val.latitude * 1
-    val.longitude = val.longitude * 1
-    if (typeof val.latitude !== 'number' || typeof val.longitude !== 'number') {
+    val.lat = Number(val.lat)
+    val.lng = Number(val.lng)
+    if (typeof val.lat !== 'number' || typeof val.lng !== 'number') {
         uni.showToast({
             title: '坐标信息错误',
             icon: 'none'
@@ -40,9 +40,9 @@ export const toNavigation = (val) => {
         return
     }
     uni.openLocation({
-        latitude: val.latitude,
-        longitude: val.longitude,
-        name: val.name,
+        longitude: val.lng,//经度
+        latitude: val.lat, //纬度
+        name: val.clientName + '-' + val.carPlate,
         address: val.address,
         success: function () {
             console.log('success');

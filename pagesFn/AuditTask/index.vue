@@ -1,7 +1,7 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
 import { toNavigation, makePhoneCall } from '@/utils'
-import '@/uni.scss'
+import '../../style/work.scss'
 import AuditPopup from './AuditPopup.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 const Toast = useToast()
@@ -124,7 +124,8 @@ const CloseClick = () => {
   <wd-toast></wd-toast>
   <view class="AuditTask">
     <navbar :title="'审核任务'" />
-    <scroll-view class="list_box" :scroll-y="true" @scrolltolower="scrollBottom" :show-scrollbar="false">
+    <scroll-view class="list_box" style="padding-bottom: 150rpx;" :scroll-y="true" @scrolltolower="scrollBottom"
+      :show-scrollbar="false">
       <wd-checkbox-group v-model="getForm.checkWorks" @change="checkboxChange">
         <view class="work_item" v-for="(item, idx) in AuditTaskList" :key="idx">
           <view class="work_top">
@@ -182,7 +183,7 @@ const CloseClick = () => {
       </wd-checkbox-group>
     </scroll-view>
     <view class="oneKey">
-      <wd-checkbox v-model="allHandleValue" @change="allHandleChange">全选</wd-checkbox>
+      <wd-checkbox v-model="allHandleValue" @change="allHandleChange">{{ allHandleValue ? '取消全选' : "全选" }}</wd-checkbox>
       <button class="btn" :disabled="getForm.checkWorks.length == 0" @tap="oneKeyHandle">一键审核</button>
     </view>
   </view>
@@ -197,43 +198,5 @@ const CloseClick = () => {
   overflow: hidden;
   background-color: #f7f7fc;
 
-  .oneKey {
-    width: 100%;
-    height: 130rpx;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    background-color: #fff;
-    box-shadow: 5rpx 0rpx 11rpx 2rpx rgba(0, 0, 0, 0.16);
-    border-radius: 20rpx 20rpx 0rpx 0rpx;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20rpx;
-    box-sizing: border-box;
-
-    :deep(.wd-checkbox__shape) {
-      width: 42rpx;
-      height: 42rpx;
-    }
-
-    :deep(.wd-checkbox__txt) {
-      font-size: 28rpx;
-      color: #999999;
-    }
-
-    .btn {
-      width: 178rpx;
-      height: 66rpx;
-      margin: 0 !important;
-      background: linear-gradient(126deg, #4557D1 0%, #75DBED 100%);
-      border-radius: 36rpx 36rpx 36rpx 36rpx;
-      font-size: 30rpx;
-      text-align: center;
-      line-height: 66rpx;
-      color: #FFFFFF;
-    }
-
-  }
 }
 </style>

@@ -24,7 +24,7 @@ onMounted(() => {
 <template>
   <wd-toast></wd-toast>
   <!-- #ifdef APP-PLUS -->
-  <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 'px', height: `${safeAreaInsets.top + 50}px` }">
+  <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 10 + 'px', height: `${safeAreaInsets.top + 50}px` }">
     <view class="left" @tap="leftBtn">
       <!-- <wd-icon name="thin-arrow-left" class="left_icon" size="20px"></wd-icon> -->
       <image src="http://116.62.107.90:8673/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
@@ -58,7 +58,7 @@ onMounted(() => {
   // // #ifdef APP-PLUS-IOS
   // height: 200rpx;
   // // #endif
-  padding-bottom: 20rpx;
+  padding-bottom: 10rpx;
   background: linear-gradient(90deg, #4557d1 0%, #75dbed 100%);
   box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);
   box-sizing: border-box;

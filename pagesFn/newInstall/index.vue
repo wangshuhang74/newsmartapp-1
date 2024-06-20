@@ -1,22 +1,69 @@
 <script setup>
-import '@/uni.scss'
+import '../../style/work.scss'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
+import returnPopup from '../components/returnPopup.vue'
+import { useWorkStore, useUserStore } from '@/store'
+import { getList } from '@/api'
 
-import returnPopup from './returnPopup.vue'
+const { workDetail } = storeToRefs(useWorkStore())
+const { userInfo } = storeToRefs(useUserStore())
+
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()
-
+const workList = ref([])
 const getForm = ref({
-  search: null
+  search: null,
+  pageNum: 1,
+  pageSize: 10,
+  type: 3
 })
 
 const returnShow = ref(false)
-const returnInfo = ref({})
+const returnInfo = ref({}) // 返回
+
+const total = ref(0) // 总条数
+const isTriggered = ref(false) // 是否在下拉刷新中?
+
+onMounted(() => {
+  getListFn()
+})
+
+const getListFn = async () => {
+  const { code, data, msg } = await getList(getForm.value)
+  if (code != 0) return
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  Toast.close()
+  workList.value = [...workList.value, ...data.records]
+}
 
 const searchInput = debounce(() => {
-  console.log('searchInput', getForm.value.search);
-}, 1000); // 第二个参数是延迟时间，单位为毫秒
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
+}, 600); // 第二个参数是延迟时间，单位为毫秒
+
+
+const onRefresherrefresh = () => { // 下拉刷新
+  isTriggered.value = true
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
+  console.log("🚀 ~ onRefresherrefresh ~ onRefresherrefresh:",)
+}
+
+const scrollBottom = () => { // 上拉加载
+  Toast.loading('加载中...')
+  let lengths = workList.value.length
+  if (lengths < total.value) {
+    getForm.value.pageNum++
+    getListFn()
+  } else {
+    Toast.warning("没有更多了!")
+  }
+}
+
 
 const scanBtn = () => {
   uni.scanCode({
@@ -29,13 +76,6 @@ const scanBtn = () => {
   })
 }
 
-const scrollBottom = () => {
-  console.log('触底了')
-  Toast.loading('加载中...')
-  setTimeout(() => {
-    Toast.close()
-  }, 2000)
-}
 
 const leftBtn = () => {
   console.log('leftBtn')
@@ -52,6 +92,12 @@ const CloseClick = () => {
   returnInfo.value = {}
 }
 
+const clickItem = (item) => {
+  workDetail.value = item
+  uni.navigateTo({
+    url: "/pagesFn/workDetails/index",
+  })
+}
 
 
 </script>
@@ -79,66 +125,68 @@ const CloseClick = () => {
       </view>
     </view>
 
-    <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom">
-      <view class="work_item" v-for="(item, idx) in 10">
+    <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom"
+      @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
+      <view class="work_item" v-for="(item, idx) in workList" :key="idx" @tap="clickItem(item)">
         <view class="work_top">
           <image src="http://116.62.107.90:8673/images/fns/map.png" class="work_icon" mode="scaleToFill" />
           <view class="work_title">
-            <text class="tit">客户名称-车牌号码/VIN码</text>
-            <text class="tags tag1">待接单</text>
+            <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :
+              '--' }}</text>
+            <text class="tags tag1" v-if="item.orderStatus">{{ item.orderStatus }}</text>
             <!-- <text class="tags tag2">待新装</text> -->
             <!-- <text class="tags tag3">待运维</text> -->
           </view>
           <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
         </view>
-        <view class="work_center " :class="{ no: idx % 2 == 0 }">
+        <view class="work_center " :class="{ no: userInfo.userType != 1 && userInfo.userType != 2 }">
           <view class="work_it">
             <view class="label">联系人:</view>
-            <view class="value">张三</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">联系电话:</view>
             <view class="value isImg">
-              <text>13828282828</text>
+              <text>{{ item?.contactPhone ? item?.contactPhone : '--' }}</text>
               <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
-                @tap="makePhoneCall(19815103583)" mode="scaleToFill" />
+                @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
             </view>
           </view>
 
 
           <view class="work_it">
             <view class="label">新装设备:</view>
-            <view class="value">行车记录仪行车记录仪行车记录仪行车记录仪行车记录仪</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">地址:</view>
             <view class="value isImg">
-              <text>阳光大道238号阳光大道238号阳光大道238号</text>
-              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png" @tap="toNavigation"
-                mode="scaleToFill" />
+              <text>{{ item?.address ? item?.address : '--' }}</text>
+              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
+                @tap.stop="toNavigation(item)" mode="scaleToFill" />
             </view>
           </view>
 
           <view class="work_it">
             <view class="label">设备型号:</view>
-            <view class="value">XT001</view>
+            <view class="value">{{ item?.terminalModel ? item?.terminalModel : '--' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">设备序列号:</view>
-            <view class="value">XT001</view>
+            <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '--' }}</view>
           </view>
 
-
         </view>
-        <view class="btn_box" v-if="idx % 2 != 0">
-          <view class="btn" @tap="returnBtn(item)">返还</view>
-          <view class="btn">接单</view>
+        <view class="btn_box" v-if="userInfo.userType == 3">
+          <view class="btn" @tap.stop="returnBtn(item)">返还</view>
+          <!-- <view class="btn">接单</view> -->
           <view class="btn">处理</view>
         </view>
       </view>
+      <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />
     </scroll-view>
     <returnPopup v-if="returnShow" :returnShow="returnShow" :returnInfo="returnInfo" @CloseClick="CloseClick" />
   </view>
@@ -150,103 +198,8 @@ const CloseClick = () => {
   height: 100vh;
   overflow: hidden;
   background-color: #f7f7fc;
+  display: flex;
+  flex-direction: column;
 
-  .top_box {
-    position: relative;
-    box-sizing: border-box;
-    width: 100%;
-    padding-bottom: 20rpx;
-    background: linear-gradient(90deg, #4557D1 0%, #75DBED 100%);
-    box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);
-
-    .search_box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: calc(100% - 60rpx);
-      // height: 100%;
-      margin-top: 10rpx;
-
-      .search {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 680rpx;
-        height: 66rpx;
-        background: #FBFBFB;
-        border: 2rpx solid #F4F4F5;
-        border-radius: 30rpx 30rpx 30rpx 30rpx;
-
-
-        .search_img {
-          width: 32rpx;
-          height: 32rpx;
-          margin: 0 10rpx 0 30rpx;
-        }
-
-        .qr_img {
-          width: 38rpx;
-          height: 38rpx;
-          margin: 0 30rpx 0 10rpx;
-        }
-
-        input {
-          flex: 1;
-          height: 100%;
-          padding-left: 10rpx;
-          font-size: 24rpx;
-          color: #333333;
-        }
-      }
-
-    }
-
-    .title_box {
-      width: 100%;
-      height: 60rpx;
-      font-size: 33rpx;
-      line-height: 80rpx;
-      color: #FFFFFF;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 20rpx;
-
-
-      .left {
-        width: 80rpx;
-        margin-left: 20rpx;
-        // #ifdef MP-WEIXIN
-        // #endif
-
-
-        .left_img {
-          width: 40rpx;
-          height: 40rpx;
-        }
-
-
-        .left_icon {
-          margin-left: 20rpx;
-          color: #ffffff !important;
-
-
-        }
-      }
-
-      .title {
-        flex: 1;
-        font-size: 34rpx;
-        font-weight: bold;
-        color: #ffffff;
-        text-align: center;
-      }
-
-      .right {
-        width: 100rpx;
-      }
-    }
-  }
 }
 </style>

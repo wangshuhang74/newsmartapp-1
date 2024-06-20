@@ -1,48 +1,65 @@
 <script setup>
 import { useUserStore } from '@/store'
+import electronicsTag from '@/static/images/fns/electronicsTag.png'
+import { getAppTodoNum } from '@/api'
 import newCar from '@/static/images/fns/newCar.png'
 import oldCar from '@/static/images/fns/oldCar.png'
 import assign from '@/static/images/fns/assign.png'
 import audit from '@/static/images/fns/audit.png'
 import history from '@/static/images/fns/history.png'
-import electronicsTag from '@/static/images/fns/electronicsTag.png'
-import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 
 const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
+console.log("🚀 ~ userInfo:", userInfo.value) // userInfo.userType
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
+
 onShow(() => {
   userStore.isLoginFn()
+  getAppTodoNumFn()
 })
+const getAppTodoNumFn = async () => {
+  const { code, data, msg } = await getAppTodoNum()
+  // xzNum 新装  // whNum 维护  // zpNum 指派  // shNum 审核  // xcNum 行车记录仪
+  if (code != 0) return
+  fnList.value[0].msgNum = data.xzNum ? data.xzNum : 0
+  fnList.value[1].msgNum = data.whNum ? data.whNum : 0
+  fnList.value[2].msgNum = data.zpNum ? data.zpNum : 0
+  fnList.value[3].msgNum = data.xcNum ? data.xcNum : 0
+}
 
 const fnList = ref([
   {
     id: '1',
     name: '车辆新装',
     icon: newCar,
-    msgNum: 1,
+    msgNum: 0,
     path: '/pagesFn/newInstall/index',
+    permission: [1, 2, 3] // 1企业 2 主管 3 个人
   },
   {
     id: '2',
     name: '维护车辆',
     icon: oldCar,
-    msgNum: 2,
+    msgNum: 0,
     path: '/pagesFn/oldMaintain/index',
+    permission: [1, 2, 3]
   },
   {
     id: '3',
     name: '指派任务',
     icon: assign,
-    msgNum: 4,
+    msgNum: 0,
     path: '/pagesFn/assignTask/index',
+    permission: [1, 2,]
   },
   {
     id: '4',
     name: '审核任务',
     icon: audit,
-    msgNum: 5,
+    msgNum: 0,
     path: '/pagesFn/AuditTask/index',
+    permission: [1, 2,]
   },
   {
     id: '5',
@@ -50,6 +67,7 @@ const fnList = ref([
     icon: history,
     msgNum: 0,
     path: '/pagesFn/historyList/index',
+    permission: [1, 2, 3]
   },
   {
     id: '6',
@@ -57,8 +75,11 @@ const fnList = ref([
     icon: electronicsTag,
     msgNum: 0,
     path: '/pagesFn/electronicsTag/index',
+    permission: [1, 2, 3]
   },
 ])
+
+// onMounted(() => {})
 
 const toPages = (item) => {
   uni.navigateTo({
@@ -69,14 +90,15 @@ const toPages = (item) => {
 <template>
   <wd-toast></wd-toast>
   <view class="fn_box">
-    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px',height: safeAreaInsets?.top + 124 + 'px' }">
+    <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px', height: safeAreaInsets?.top + 124 + 'px' }">
       <view class="title">我的任务</view>
     </view>
     <view class="picture_box">
       <image class="image_bg" src="http://116.62.107.90:8673/images/fns/fn_bg.png" mode="scaleToFill" />
     </view>
     <view class="fn_list">
-      <view class="task_item" v-for="(item, index) in fnList" :key="index" @tap="toPages(item)">
+      <view class="task_item" v-for="(item, index) in fnList" :key="index" @tap="toPages(item)"
+        v-show="item?.permission && item?.permission.includes(userInfo.userType)">
         <image :src="item.icon" mode="scaleToFill" />
         <view class="name">
           {{ item.name }}
@@ -105,16 +127,17 @@ const toPages = (item) => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      width: 47.5%;
+      width: 47%;
       height: 200rpx;
       margin-bottom: 30rpx;
       background-color: #fff;
       border-radius: 7rpx 7rpx 7rpx 7rpx;
       box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(205, 205, 205, 0.31);
+      margin: 1.2%;
 
-      &:nth-child(2n - 1) {
-        margin-right: 3.5%;
-      }
+      // &:nth-child(2n - 1) {
+      //   margin: 3.5%;
+      // }
 
       image {
         width: 88rpx;

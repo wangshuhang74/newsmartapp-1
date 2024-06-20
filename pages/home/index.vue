@@ -139,6 +139,7 @@ const wordListMap = ref(new Map())
 const activeMarker = ref(null)
 onShow(() => {
   userStore.isLoginFn()
+  getLocation()
 })
 watch(() => {
   return [userMap.value];
@@ -158,7 +159,7 @@ onMounted(() => {
   mapCtx.value = uni.createMapContext('myMap', this)
   console.log("mapCtx", mapCtx.value);
 
-  getLocation()
+
   addMarkers(wordList.value)
 })
 
