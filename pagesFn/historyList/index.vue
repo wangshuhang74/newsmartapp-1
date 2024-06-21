@@ -226,6 +226,7 @@ function handleChange4({ value }) {
     height: 80rpx;
     background-color: #fff;
     box-sizing: border-box;
+    margin-bottom: 30rpx;
 
     .wd-drop-menu {
       box-sizing: border-box;

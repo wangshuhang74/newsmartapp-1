@@ -4,10 +4,11 @@ import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import returnPopup from '../components/returnPopup.vue'
 import { useWorkStore, useUserStore } from '@/store'
-import { getList } from '@/api'
+import { getList, acceptOrder } from '@/api'
 
 const { workDetail } = storeToRefs(useWorkStore())
 const { userInfo } = storeToRefs(useUserStore())
+console.log("🚀 ~ userInfo:", userInfo.value)
 const message = useMessage(); // 消息弹框
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -97,15 +98,27 @@ const takeOrders = (item) => {
     confirmButtonText: "确认接单",
     cancelButtonText: "暂不接单",
   })
-    .then(() => {
-      console.log("确认");
+    .then(async () => {
+      const { code, data, msg } = await acceptOrder(item.orderId)
+      console.log("🚀 ~ .then ~ data:", data)
+      if (code != 0) return Toast.error(msg)
+      Toast.success(msg)
+      resetBtn()
     })
     .catch(() => { });
 }
 
-const CloseClick = () => {
+const resetBtn = () => {
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
+}
+
+const CloseClick = (val) => {
   returnShow.value = false
   returnInfo.value = {}
+  if (val != 'refresh') return
+  resetBtn()
 }
 
 const clickItem = (item) => {
@@ -195,10 +208,10 @@ const clickItem = (item) => {
           </view>
 
         </view>
-        <view class="btn_box">
+        <view class="btn_box" v-if="item.isAccept == 0 || userInfo.userType == 3">
           <view class="btn" @tap.stop="returnBtn(item)" v-if="item.isAccept == 0">返还</view>
           <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0">接单</view>
-          <view class="btn" v-if="userInfo.userType == 3">处理</view>
+          <view class="btn" v-if="userInfo.userType == 3 && item.isAccept == 1">处理</view>
         </view>
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />

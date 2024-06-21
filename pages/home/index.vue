@@ -1,4 +1,3 @@
-<!-- 使用 type="home" 属性设置首页，其他页面不需要设置，默认为page；推荐使用json5，更强大，且允许注释 -->
 <script setup>
 import myLocation from '@/static/images/homeMap/location.png'
 import marker1 from '@/static/images/homeMap/marker1.png'

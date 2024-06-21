@@ -51,12 +51,12 @@ const loginBtn = async () => {
   }
   Toast.loading("登录中...")
   setTimeout(() => {
-    Toast.clear()
+    Toast.close()
   }, 10000)
   const { code, data, msg } = await userStore.loginInfo(postForm.value)
   console.log("🚀 ~ loginBtn ~ code:", code)
   if (code != 0) return Toast.warning(msg)
-  Toast.clear()
+  Toast.close()
 }
 
 const passwordChange = ({ value }) => {

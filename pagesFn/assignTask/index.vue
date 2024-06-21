@@ -1,13 +1,12 @@
 <script setup>
 import '../../style/work.scss'
-import assignPopup from './assignPopup.vue'
+import assignPopup from '../components/assignPopup.vue'
 import navbar from '@/pages/components/navbar.vue'
 import { toNavigation, makePhoneCall } from '@/utils'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
-import { useWorkStore, useUserStore } from '@/store'
+import { useWorkStore,  } from '@/store'
 import { getList } from '@/api'
 const { workDetail } = storeToRefs(useWorkStore())
-const { userInfo } = storeToRefs(useUserStore())
 const workList = ref([])
 const Toast = useToast()
 
@@ -22,10 +21,8 @@ const postForm = ref({
   checkWorks: [],
 })
 
-
 const assignShow = ref(false)
 const assignInfo = ref({})
-
 
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
@@ -33,7 +30,6 @@ const isTriggered = ref(false) // 是否在下拉刷新中?
 onMounted(() => {
   getListFn()
 })
-
 
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
@@ -68,9 +64,18 @@ const assignBtn = async (item) => {
   assignShow.value = true
 }
 
-const CloseClick = () => {
+const CloseClick = (val) => {
   assignShow.value = false
   assignInfo.value = {}
+  if (val != 'refresh') return
+  Toast.success("指派成功!")
+  resetBtn()
+}
+
+const resetBtn = () => {
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
 }
 
 const checkboxChange = (val) => {
@@ -80,17 +85,15 @@ const checkboxChange = (val) => {
 const allHandleValue = ref(false)
 const allHandleChange = (val) => {
   if (val.value) {
-    console.log("🚀 ~ allHandleChange ~ val:", val)
     postForm.value.checkWorks = workList.value.map(item => item.orderId)
   } else {
-    console.log("取消全选");
     postForm.value.checkWorks = []
   }
 }
 
 const oneKeyHandle = () => {
   console.log("一键指派");
-  assignInfo.value = postForm.value.checkWorks
+  assignInfo.value = workList.value.filter(item => postForm.value.checkWorks.includes(item.orderId))
   assignShow.value = true
 }
 
@@ -109,7 +112,7 @@ const clickItem = (item) => {
     <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom"
       @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
       <wd-checkbox-group v-model="postForm.checkWorks" @change="checkboxChange">
-        <view class="work_item" v-for="(item, idx) in workList" :key="idx" >
+        <view class="work_item" v-for="(item, idx) in workList" :key="idx">
           <view class="work_top">
             <wd-checkbox class="work_title" :modelValue="item.orderId">
               <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :

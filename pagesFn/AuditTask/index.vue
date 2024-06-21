@@ -1,92 +1,81 @@
 <script setup>
+import '../../style/work.scss'
+import AuditPopup from '../components/AuditPopup.vue'
 import navbar from '@/pages/components/navbar.vue'
 import { toNavigation, makePhoneCall } from '@/utils'
-import '../../style/work.scss'
-import AuditPopup from './AuditPopup.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+import { useWorkStore,  } from '@/store'
+import { getList } from '@/api'
+const { workDetail } = storeToRefs(useWorkStore())
+const workList = ref([])
 const Toast = useToast()
 
 const getForm = ref({
   search: null,
-  checkWorks: []
+  pageNum: 1,
+  pageSize: 10,
+  type: 2
 })
 
-const AuditTaskList = ref([
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 1
-  },
-
-  {
-    name: '张三',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 2
-  },
-
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 3
-  },
-
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 5
-  },
-
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 6
-  },
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 7
-  },
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 8
-  },
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 9
-  },
-  {
-    name: '王小虎',
-    carNum: '浙E12345',
-    vinCode: '12423532523',
-    id: 10
-  },
-])
+const postForm = ref({
+  checkWorks: [],
+})
 
 const auditShow = ref(false)
 const auditInfo = ref({})
 
+const total = ref(0) // 总条数
+const isTriggered = ref(false) // 是否在下拉刷新中?
+
 onMounted(() => {
-  AuditTaskList.value.forEach(item => {
-    item.title = `${item.name}-${item.carNum}/${item.vinCode}`
-  });
+  getListFn()
 })
 
-const scrollBottom = () => {
-  console.log('触底了')
+const getListFn = async () => {
+  const { code, data, msg } = await getList(getForm.value)
+  if (code != 0) return
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  Toast.close()
+  workList.value = [...workList.value, ...data.records]
+}
+
+const onRefresherrefresh = () => { // 下拉刷新
+  isTriggered.value = true
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
+  console.log("🚀 ~ onRefresherrefresh ~ onRefresherrefresh:",)
+}
+
+const scrollBottom = () => { // 上拉加载
   Toast.loading('加载中...')
-  setTimeout(() => {
-    Toast.close()
-  }, 2000)
+  let lengths = workList.value.length
+  if (lengths < total.value) {
+    getForm.value.pageNum++
+    getListFn()
+  } else {
+    Toast.warning("没有更多了!")
+  }
+}
+
+const auditBtn = (item) => {
+  auditInfo.value = item
+  auditShow.value = true
+}
+
+const CloseClick = (val) => {
+  auditShow.value = false
+  auditInfo.value = {}
+  if (val != 'refresh') return
+  Toast.success("审核成功!")
+  resetBtn()
+}
+
+const resetBtn = () => {
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
 }
 
 const checkboxChange = (val) => {
@@ -96,95 +85,104 @@ const checkboxChange = (val) => {
 const allHandleValue = ref(false)
 const allHandleChange = (val) => {
   if (val.value) {
-    getForm.value.checkWorks = AuditTaskList.value.map(item => item.id)
+    postForm.value.checkWorks = workList.value.map(item => item.orderId)
   } else {
-    getForm.value.checkWorks = []
+    postForm.value.checkWorks = []
   }
 }
 
-const auditBtn = (item) => {
-  console.log("🚀 ~ auditBtn ~ item:", item)
-  auditInfo.value = item
-  auditShow.value = true
-}
 
 const oneKeyHandle = () => {
   console.log("一键审核");
+  auditInfo.value = workList.value.filter(item => postForm.value.checkWorks.includes(item.orderId))
   auditShow.value = true
 }
 
-const CloseClick = () => {
-  auditShow.value = false
-  auditInfo.value = {}
+const clickItem = (item) => {
+  workDetail.value = item
+  uni.navigateTo({
+    url: "/pagesFn/workDetails/index",
+  })
 }
-
 </script>
 
 <template>
   <wd-toast></wd-toast>
   <view class="AuditTask">
     <navbar :title="'审核任务'" />
-    <scroll-view class="list_box" style="padding-bottom: 150rpx;" :scroll-y="true" @scrolltolower="scrollBottom"
-      :show-scrollbar="false">
-      <wd-checkbox-group v-model="getForm.checkWorks" @change="checkboxChange">
-        <view class="work_item" v-for="(item, idx) in AuditTaskList" :key="idx">
+    <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom"
+      @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
+      <wd-checkbox-group v-model="postForm.checkWorks" @change="checkboxChange">
+        <view class="work_item" v-for="(item, idx) in workList" :key="idx">
           <view class="work_top">
-            <wd-checkbox class="work_title" :modelValue="item.id">
-              <text class="tit">{{ item.title }}</text>
-              <text class="tags tag1">待接单</text>
+            <wd-checkbox class="work_title" :modelValue="item.orderId">
+              <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :
+                '--' }}</text>
+              <text class="tags tag1" v-if="item.orderTypeDetail">{{ item.orderTypeDetail }}</text>
+              <text class="tags tag2" v-if="item.orderStatus">{{ item.orderStatus }}</text>
             </wd-checkbox>
             <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
           </view>
-          <view class="work_center " :class="{ no: idx % 2 == 0 }">
+          <view class="work_center" @tap.stop="clickItem(item)">
             <view class="work_it">
               <view class="label">联系人:</view>
-              <view class="value">张三</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
             </view>
 
             <view class="work_it">
               <view class="label">联系电话:</view>
               <view class="value isImg">
-                <text>13828282828</text>
+                <text>{{ item?.contactPhone ? item?.contactPhone : '--' }}</text>
                 <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
-                  @tap="makePhoneCall(19815103583)" mode="scaleToFill" />
+                  @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
               </view>
             </view>
 
-
-            <view class="work_it">
+            <view class="work_it" v-if="item.orderType == 3">
               <view class="label">新装设备:</view>
-              <view class="value">行车记录仪行车记录仪行车记录仪行车记录仪行车记录仪</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            </view>
+            <view class="work_it" v-else-if="item.orderType == 2">
+              <view class="label">运维内容:</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
             </view>
 
             <view class="work_it">
               <view class="label">地址:</view>
               <view class="value isImg">
-                <text>阳光大道238号阳光大道238号阳光大道238号</text>
+                <text>{{ item?.address ? item?.address : '--' }}</text>
                 <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
-                  @tap="toNavigation" mode="scaleToFill" />
+                  @tap.stop="toNavigation(item)" mode="scaleToFill" />
               </view>
             </view>
 
-            <view class="work_it">
+            <view class="work_it" v-if="item.orderType == 3">
               <view class="label">设备型号:</view>
-              <view class="value">XT001</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            </view>
+
+            <view class="work_it" v-else-if="item.orderType == 2">
+              <view class="label">故障概述:</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
             </view>
 
             <view class="work_it">
               <view class="label">设备序列号:</view>
-              <view class="value">XT001</view>
+              <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '--' }}</view>
             </view>
 
+
           </view>
-          <view class="btn_box" v-if="idx % 2 != 0">
+          <view class="btn_box">
             <view class="btn" @tap="auditBtn(item)">审核</view>
           </view>
         </view>
       </wd-checkbox-group>
+      <wd-status-tip v-if="workList && workList.length == 0" image="content" tip="暂无工单" />
     </scroll-view>
-    <view class="oneKey">
+    <view class="oneKey" v-if="workList && workList.length != 0">
       <wd-checkbox v-model="allHandleValue" @change="allHandleChange">{{ allHandleValue ? '取消全选' : "全选" }}</wd-checkbox>
-      <button class="btn" :disabled="getForm.checkWorks.length == 0" @tap="oneKeyHandle">一键审核</button>
+      <button class="btn" :disabled="postForm.checkWorks.length == 0" @tap="oneKeyHandle">一键审核</button>
     </view>
   </view>
   <AuditPopup v-if="auditShow" :auditShow="auditShow" :auditInfo="auditInfo" @CloseClick="CloseClick" />

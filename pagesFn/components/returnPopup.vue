@@ -1,5 +1,12 @@
 <script setup>
+import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
+import { getAppOrderManager, backOrder, complete } from '@/api'
+import { useUserStore } from '@/store'
+
+const Toast = useToast()
+const { userInfo } = storeToRefs(useUserStore())
+
 const returnPopup = ref(null)
 const emits = defineEmits(['CloseClick'])
 const { returnShow, returnInfo } = defineProps({
@@ -16,25 +23,71 @@ const { returnShow, returnInfo } = defineProps({
 })
 
 const postForm = ref({
-  returnStatus: null,
-  personnel: '王树杭-13333333333'
+  comment: 0,
+  procInsId: null,
+  instanceId: null,
+  deployId: null,
+  taskId: null,
+  variables: {
+    comment: 0,
+    approval: null,
+    remark: null
+  },
+  executionId: null
 })
 
+// orderId: null,
+// remark: null,
+
+const personnel = ref('未获取到账号信息!')
+const superior = ref({
+  personnel: null,
+  userName: null,
+  phone: null
+})
 
 onMounted(() => {
   returnPopup.value.open("bottom")
+  console.log("returnInfo", returnInfo);
+  postForm.value.procInsId = returnInfo.procInsId
+  postForm.value.instanceId = returnInfo.procInsId
+  postForm.value.deployId = returnInfo.deployId
+  postForm.value.taskId = returnInfo.taskId
+  postForm.value.executionId = returnInfo.executionId
+  if (returnInfo.orderId) {
+    getAppOrderManagerFn(returnInfo.orderId)
+  } else {
+    Toast.warning('未获取到工单Id')
+  }
+  personnel.value = userInfo.value.nickName + "-" + userInfo.value.phone
 })
 
-const isOkBtn = async () => { }
-const handlePopupsClose = () => {
-  console.log("🚀 ~ handlePopupsClose ~ CloseClick:",)
-  emits('CloseClick', false)
-};
 
+const getAppOrderManagerFn = async (id) => {
+  const { code, data, msg } = await getAppOrderManager(id)
+  console.log("🚀 ~ getAppOrderManagerFn ~ data:", data)
+  if (code != 0) return
+  superior.value.personnel = data.userName + "-" + data.phone
+  superior.value.userName = data.userName
+  superior.value.phone = data.phone
+}
+
+const isOkBtn = async () => {
+  if (!postForm.value.variables.remark) return Toast.warning('请输入理由!')
+  console.log("postForm.value", postForm.value);
+  const { code, data, msg } = await complete(postForm.value)
+  if (code != 0) return Toast.error(msg)
+  Toast.success(msg)
+  handlePopupsClose('refresh')
+}
+const handlePopupsClose = (val) => {
+  emits('CloseClick', val)
+};
 
 </script>
 
 <template>
+  <wd-toast></wd-toast>
   <uni-popup ref="returnPopup" type="dialog" :is-mask-click="false">
     <view class="popupContent">
 
@@ -46,23 +99,24 @@ const handlePopupsClose = () => {
 
       <view class="input_box">
         <view class="input_phone">
-          <text>上级【上级主管】姓名+电话</text>
+          <text>上级主管: {{ superior.personnel ? superior.personnel : '未获取到上级信息!' }}</text>
           <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
-            @tap="makePhoneCall(19815103583)" mode="scaleToFill" />
+            @tap="makePhoneCall(superior.phone)" mode="scaleToFill" v-if="superior.personnel" />
         </view>
 
 
         <view class="input_item">
           <view class="label">返还人:</view>
           <view class="inp_value">
-            <input class="inp" type="text" v-model="postForm.personnel" disabled placeholder="系统自识别">
+            <input class="inp" type="text" v-model="personnel" disabled placeholder="系统自识别">
           </view>
         </view>
 
         <view class="input_item">
           <view class="label requiredLabel">理由:</view>
           <view class="inp_value remark">
-            <textarea class="textarea_inp" autosize maxlength="200" show-confirm-bar placeholder="请输入理由"></textarea>
+            <textarea class="textarea_inp" autosize maxlength="200" v-model="postForm.variables.remark" show-confirm-bar
+              placeholder="请输入理由"></textarea>
           </view>
         </view>
       </view>
@@ -77,7 +131,7 @@ const handlePopupsClose = () => {
 <style lang="scss" scoped>
 .popupContent {
   width: 100%;
-  height: 550rpx;
+  height: 620rpx;
   background-color: #fff;
   border-radius: 30rpx 30rpx 0 0;
   box-sizing: border-box;
@@ -125,7 +179,7 @@ const handlePopupsClose = () => {
 
     .input_item {
       width: 100%;
-      min-height: 100rpx;
+      min-height: 140rpx;
       display: flex;
       align-items: center;
 

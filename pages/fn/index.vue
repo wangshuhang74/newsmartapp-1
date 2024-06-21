@@ -25,7 +25,7 @@ const getAppTodoNumFn = async () => {
   fnList.value[0].msgNum = data.xzNum ? data.xzNum : 0
   fnList.value[1].msgNum = data.whNum ? data.whNum : 0
   fnList.value[2].msgNum = data.zpNum ? data.zpNum : 0
-  fnList.value[3].msgNum = data.xcNum ? data.xcNum : 0
+  fnList.value[3].msgNum = data.shNum ? data.shNum : 0
 }
 
 const fnList = ref([
