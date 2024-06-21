@@ -49,15 +49,9 @@ const loginBtn = async () => {
   } else {
     loginForm.value = {}
   }
-  // const { code, data, msg } = await userStore.loginInfo(postForm.value)
-  // console.log("🚀 ~ loginBtn ~ code:", code)
-  // if (code != 0) return Toast.warning(msg)
-  userInfo.value = {
-    token: '123', username: '123', phone: '1233'
-  }
-  uni.switchTab({
-    url: '/pages/home/index',
-  })
+  const { code, data, msg } = await userStore.loginInfo(postForm.value)
+  console.log("🚀 ~ loginBtn ~ code:", code)
+  if (code != 0) return Toast.warning(msg)
 
 }
 

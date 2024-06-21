@@ -9,7 +9,7 @@ export const useTagsStore = defineStore(
     const samsn = ref('') //安全模块序列号
 
     const isReadRules = ref(true); //当前步骤是否读规则
-    const readRules = ref({ deleteRO: false, addRO: false, startRO: false });//读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405
+    const readRules = ref({ deleteRO: false, addRO: false, startRO: false, addAO: false });//读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405 4-是否已经addAO,如果是需要删除
     const writeRules = ref({ deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false });//写规则步骤  1删除RO-403 2删除AO-453 3添加RO-401 4添加AO-451 5启动RO-405
 
     const startAddAO = ref(false); //是否可以开始添加AO

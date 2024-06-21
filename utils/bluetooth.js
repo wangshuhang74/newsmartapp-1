@@ -955,7 +955,9 @@ const AnalyzingOneTagReportData = (frame, index) => {
 	var tid = new TU8V();
 	index = GetUIntV(frame, index, tid);
 	vehicle.TID = ab2hex(tid.data);
+	console.log('vehicle:', vehicle);
 	console.log('解析标签TID：', vehicle.TID)
+	tipsInfo.value = vehicle;
 
 	while (index < resIndex) {
 		var paramType = frame[index];

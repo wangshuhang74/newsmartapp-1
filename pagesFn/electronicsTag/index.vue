@@ -155,7 +155,7 @@ onUnload(() => {
 
     //以下三步清空读写规则的步骤，清空后需要重新下发读写规则
     isReadRules.value = true;
-    readRules.value = { deleteRO: false, addRO: false, startRO: false };
+    readRules.value = { deleteRO: false, addRO: false, startRO: false, addAO: false };
     writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
   } else {
     if (BluetoothAdapter.value) {
@@ -413,11 +413,27 @@ const readBlueOn = (params) => {
         if (isReadRules.value) {//当前读取规则
           //读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405
           if (result == '403') {
-            console.log('--------添加RO应答Start-------', '403');
-            addUserSelectSpec(1, 4, 9);
+            console.log('--------read 已完成删除RO 开始删除AO或添加RO-------', '403');
+            if (readRules.value.addAO) {  //在写的时后已addAO，读时需要先删除AO，不然设备会滴两声
+              console.log('--------read 已添加过AO 需要先执行删除AO-------', '403');
+              sendCmd(deleteAccessSpec); //删除AO
+            } else {
+              console.log('--------read 未添加过AO 直接执行添加RO-------', '403');
+              addUserSelectSpec(1, 4, 9); //没有执行过addAO 直接添加RO
+            }
             readRules.value.deleteRO = true;
             writeRules.value.deleteRO = true;// 同时修改写写入删除RO为true,删除RO不需要重复执行
             console.log("deleteRO:" + readRules.value.deleteRO);
+          } else if (result == '453') {
+            console.log('--------read 已完成删除AO 开始执行添加RO或者启动RO-------', '453');
+            if (readRules.value.addRO) {
+              console.log('--------read 已添加过RO 直接执行启动RO-------', '453');
+              sendCmd(startSelectSpec); //启动RO应答
+            } else {
+              console.log('--------read 未添加过RO 先执行启动RO-------', '453');
+              addUserSelectSpec(1, 4, 9); //删除AO后执行添加RO
+            }
+            readRules.value.addAO = false;
           } else if (result == '401') {
             console.log('--------启动RO应答Start-------', '401');
             sendCmd(startSelectSpec); //启动RO应答
@@ -458,6 +474,7 @@ const readBlueOn = (params) => {
             console.log('--------完成添加AO 开始启动RO-------', '451');
             sendCmd(startSelectSpec); //启动RO应答
             writeRules.value.addAO = true;
+            readRules.value.addAO = true; //此处需要打开read 的addAO，因为再次执行读时，需要先执行删除AO
 
           } else if (result == '405') {
             console.log('--------已启动写入RO应答End-------');
@@ -466,6 +483,10 @@ const readBlueOn = (params) => {
         }
 
         if (result == 500) {  //标签上报
+          if (!isReadRules.value) {
+            console.log('-------执行write后500-------');
+            return;
+          }
           tagsInfo.value = tipsInfo.value; //接收到RO结束事件
           if (Object.keys(tagsInfo.value).length > 0) {
             clearTimeout(_inventTime); //清除定时器读卡长时间未响应失败10000ms
@@ -561,6 +582,10 @@ const inventRead = () => {
   console.log(readRules.value);
   if (!readRules.value.deleteRO) {
     sendCmd(deleteSelectSpec); //删除RO应答
+  } else if (readRules.value.deleteRO && readRules.value.addAO) {
+    //因为执行write写时，添加过AO，需要先删除
+    console.log('-------执行write写时,添加过AO,需要先删除AO--------', 'deleteAO');
+    sendCmd(deleteAccessSpec); //删除AO
   } else if (readRules.value.deleteRO && !readRules.value.addRO) {
     console.log('--------添加RO应答Start-------', 'add');
     addUserSelectSpec(1, 4, 9);
