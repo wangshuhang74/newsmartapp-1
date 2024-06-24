@@ -44,7 +44,7 @@ onMounted(() => {
 
 const getListFn = async () => {
   const { code, data, msg } = await finishedList(getForm.value)
-  if (code != 0) return
+  if (code != 0) return Toast.error(msg)
   total.value = data.total
   if (isTriggered.value) isTriggered.value = false
   Toast.close()
@@ -68,8 +68,10 @@ const getClientOptionFn = async () => {
 }
 
 const searchInput = debounce(() => {
-  console.log('searchInput', getForm.value.search);
-}, 1000); // 第二个参数是延迟时间，单位为毫秒
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
+}, 600); // 第二个参数是延迟时间，单位为毫秒
 
 const scanBtn = () => {
   uni.scanCode({
@@ -87,7 +89,6 @@ const onRefresherrefresh = () => { // 下拉刷新
   getForm.value.pageNum = 1
   workList.value = []
   getListFn()
-  console.log("🚀 ~ onRefresherrefresh ~ onRefresherrefresh:",)
 }
 
 const scrollBottom = () => { // 上拉加载
@@ -106,34 +107,42 @@ const leftBtn = () => {
   uni.navigateBack()
 }
 
-
 const { closeOutside } = useQueue()
 const sliderValue = ref(Date.now())
 
 const dropMenu = ref(null) // 
 
 function handleConfirm() { //自定义时间下拉 确定按钮
+  getForm.value.startTime = dayjs(sliderValue.value).format("YYYY-MM-DD")
+  getForm.value.endTime = dayjs(sliderValue.value).add(1, 'days').format("YYYY-MM-DD")
+  console.log("handleConfirm-getForm.value ", getForm.value);
   dropMenu.value.close()
+  getListFn()
 }
 
 function handleClose() { //自定义时间下拉 关闭按钮
   sliderValue.value = new Date()
+  getForm.value.startTime = null
+  getForm.value.endTime = null
   dropMenu.value.close()
-}
-
-function handleOpened() { //自定义时间下拉 打开时触发
-  // if (!sliderValue.value) sliderValue.value = new Date()
-  console.log("handleOpened()");
+  console.log("getForm.value", getForm.value);
+  getListFn()
 }
 
 function handleChange2({ value }) {
-  console.log(value)
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
 }
 function handleChange3({ value }) {
-  console.log("getF")
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
 }
 function handleChange4({ value }) {
-  console.log(value)
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
 }
 
 </script>
@@ -162,7 +171,7 @@ function handleChange4({ value }) {
     </view>
     <view class="top_choose" @click="closeOutside">
       <wd-drop-menu :close-on-click-modal="false">
-        <wd-drop-menu-item ref="dropMenu" title="时间段" @opened="handleOpened" icon-name="history" close-on-click-modal>
+        <wd-drop-menu-item ref="dropMenu" title="时间段" close-on-click-modal>
           <view>
             <wd-datetime-picker-view type="year-month" v-model="sliderValue" :maxDate="new Date()" />
             <view class="btns">

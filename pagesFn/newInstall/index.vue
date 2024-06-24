@@ -38,7 +38,7 @@ onMounted(() => {
 
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
-  if (code != 0) return
+  if (code != 0) return Toast.error(msg)
   total.value = data.total
   if (isTriggered.value) isTriggered.value = false
   Toast.close()
