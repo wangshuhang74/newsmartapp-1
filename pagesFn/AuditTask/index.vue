@@ -100,7 +100,7 @@ const oneKeyHandle = () => {
 const clickItem = (item) => {
   workDetail.value = item
   uni.navigateTo({
-    url: "/pagesFn/workDetails/index",
+    url: "/pagesFn/work/workDetails",
   })
 }
 </script>
@@ -115,8 +115,8 @@ const clickItem = (item) => {
         <view class="work_item" v-for="(item, idx) in workList" :key="idx">
           <view class="work_top">
             <wd-checkbox class="work_title" :modelValue="item.orderId">
-              <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :
-                '--' }}</text>
+              <text class="tit">{{ item?.clientName ? item?.clientName : '-' }}-{{ item?.carPlate ? item?.carPlate :
+                '-' }}</text>
               <text class="tags tag1" v-if="item.orderTypeDetail">{{ item.orderTypeDetail }}</text>
               <text class="tags tag2" v-if="item.orderStatus">{{ item.orderStatus }}</text>
             </wd-checkbox>
@@ -125,13 +125,13 @@ const clickItem = (item) => {
           <view class="work_center" @tap.stop="clickItem(item)">
             <view class="work_it">
               <view class="label">联系人:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
             </view>
 
             <view class="work_it">
               <view class="label">联系电话:</view>
               <view class="value isImg">
-                <text>{{ item?.contactPhone ? item?.contactPhone : '--' }}</text>
+                <text>{{ item?.contactPhone ? item?.contactPhone : '-' }}</text>
                 <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
                   @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
               </view>
@@ -139,17 +139,17 @@ const clickItem = (item) => {
 
             <view class="work_it" v-if="item.orderType == 3">
               <view class="label">新装设备:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
             </view>
             <view class="work_it" v-else-if="item.orderType == 2">
               <view class="label">运维内容:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
             </view>
 
             <view class="work_it">
               <view class="label">地址:</view>
               <view class="value isImg">
-                <text>{{ item?.address ? item?.address : '--' }}</text>
+                <text>{{ item?.address ? item?.address : '-' }}</text>
                 <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
                   @tap.stop="toNavigation(item)" mode="scaleToFill" />
               </view>
@@ -157,17 +157,17 @@ const clickItem = (item) => {
 
             <view class="work_it" v-if="item.orderType == 3">
               <view class="label">设备型号:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
             </view>
 
             <view class="work_it" v-else-if="item.orderType == 2">
               <view class="label">故障概述:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
             </view>
 
             <view class="work_it">
               <view class="label">设备序列号:</view>
-              <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '--' }}</view>
+              <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</view>
             </view>
 
 

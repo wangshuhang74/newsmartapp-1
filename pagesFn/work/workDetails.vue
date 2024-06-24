@@ -6,9 +6,8 @@ import { useWorkStore } from '@/store'
 const { workDetail } = storeToRefs(useWorkStore())
 const Toast = useToast()
 const workInfo = ref({})
-
 onMounted(() => {
-  if (!workDetail.value) {
+  if (workDetail.value) {
     workInfo.value = workDetail.value
     console.log("🚀 ~ onLoad ~ workDetail.value:", workDetail.value)
   } else {
@@ -27,7 +26,7 @@ onMounted(() => {
   <view class="workDetails">
     <navbar :title="'详情'" />
     <view class="details_center">
-
+      {{ JSON.stringify(workDetail) }}
     </view>
   </view>
 </template>

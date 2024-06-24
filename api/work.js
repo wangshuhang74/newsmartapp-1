@@ -6,7 +6,7 @@ export const getAppTodoNum = () => {
 }
 
 // /flowable/task/todoList?pageNum=1&pageSize=10&type=5
-export const getList = (params) => {
+export const getList = (params) => { // 获取工单列表
     return http.post("/flowable/task/todoList", params, {});
 }
 // /order/acceptOrder?orderId=
@@ -30,11 +30,21 @@ export const complete = (params) => {
 }
 
 // /user/getWorkUser
-export const getWorkUser = () => {
+export const getWorkUser = () => { // 获取联系人选项
     return http.post("/user/getWorkUser",);
 }
 
 ///flowable/task/finishedList // 历史记录
 export const finishedList = (params) => {
     return http.post("/flowable/task/finishedList", params, {});
+}
+
+// /client/getClientOption //获取客户选项
+export const getClientOption = () => {
+    return http.post("/client/getClientOption",);
+}
+
+// /order/appDisposeOrder //处理工单
+export const appDisposeOrder = (params) => {
+    return http.post("/order/appDisposeOrder", params, {});
 }

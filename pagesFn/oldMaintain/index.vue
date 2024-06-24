@@ -5,7 +5,7 @@ import returnPopup from '../components/returnPopup.vue'
 import { useWorkStore, useUserStore } from '@/store'
 import { getList, acceptOrder } from '@/api'
 
-const { workDetail } = storeToRefs(useWorkStore())
+const { workDetail, workHandle } = storeToRefs(useWorkStore())
 const { userInfo } = storeToRefs(useUserStore())
 console.log("🚀 ~ userInfo:", userInfo.value)
 const message = useMessage(); // 消息弹框
@@ -26,6 +26,10 @@ const returnInfo = ref({})
 
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
+
+onShow(() => {
+  if (workList.value.length) resetBtn()
+})
 
 onMounted(() => {
   getListFn()
@@ -123,9 +127,17 @@ const CloseClick = (val) => {
 const clickItem = (item) => {
   workDetail.value = item
   uni.navigateTo({
-    url: "/pagesFn/workDetails/index",
+    url: "/pagesFn/work/workDetails",
   })
 }
+
+const handleWork = (item) => {
+  workHandle.value = item
+  uni.navigateTo({
+    url: "/pagesFn/work/handleWork",
+  })
+}
+
 </script>
 
 <template>
@@ -158,8 +170,8 @@ const clickItem = (item) => {
         <view class="work_top">
           <image src="http://116.62.107.90:8673/images/fns/map.png" class="work_icon" mode="scaleToFill" />
           <view class="work_title">
-            <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :
-              '--' }}</text>
+            <text class="tit">{{ item?.clientName ? item?.clientName : '-' }}-{{ item?.carPlate ? item?.carPlate :
+              '-' }}</text>
             <text class="tags tag1" v-if="item.orderStatus">{{ item.orderStatus }}</text>
             <!-- <text class="tags tag1">待接单</text> -->
             <!-- <text class="tags tag2">待新装</text> -->
@@ -170,13 +182,13 @@ const clickItem = (item) => {
         <view class="work_center " :class="{ no: userInfo.userType != 1 && userInfo.userType != 2 }">
           <view class="work_it">
             <view class="label">联系人:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">联系电话:</view>
             <view class="value isImg">
-              <text>{{ item?.contactPhone ? item?.contactPhone : '--' }}</text>
+              <text>{{ item?.contactPhone ? item?.contactPhone : '-' }}</text>
               <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
                 @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
             </view>
@@ -184,13 +196,13 @@ const clickItem = (item) => {
 
           <view class="work_it">
             <view class="label">运维内容:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">地址:</view>
             <view class="value isImg">
-              <text>{{ item?.address ? item?.address : '--' }}</text>
+              <text>{{ item?.address ? item?.address : '-' }}</text>
               <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
                 @tap.stop="toNavigation(item)" mode="scaleToFill" />
             </view>
@@ -198,19 +210,26 @@ const clickItem = (item) => {
 
           <view class="work_it">
             <view class="label">故障概述:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">设备序列号:</view>
-            <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '--' }}</view>
+            <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</view>
           </view>
 
         </view>
-        <view class="btn_box" v-if="userInfo.userType == 3">
-          <view class="btn" @tap.stop="returnBtn(item)" v-if="item.isAccept == 0">返还</view>
-          <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0">接单</view>
-          <view class="btn" v-if="userInfo.userType == 3 && item.isAccept == 1">处理</view>
+        <view class="btn_box">
+          <view class="btn" @tap.stop="returnBtn(item)" v-if="item.isAccept == 0 && userInfo.rules.includes(6)">返还
+          </view>
+          <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0 && userInfo.rules.includes(6)">接单
+          </view>
+          <!-- <view class="btn" v-if="[5, 6].some(rule => userInfo.rules.includes(rule))">处理 assigneeId -->
+          <view class="btn"
+            v-if="item.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (item.assigneeId == userInfo.userId || item.groupId == userInfo.userId)"
+            @tap.stop="handleWork(item)">
+            处理
+          </view>
         </view>
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />

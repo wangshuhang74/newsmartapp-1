@@ -5,9 +5,11 @@ export const useWorkStore = defineStore(
     'work',
     () => {
         const workDetail = ref(null)
+        const workHandle = ref(null)
 
         return {
-            workDetail
+            workDetail,
+            workHandle
         }
     },
     {

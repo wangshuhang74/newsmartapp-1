@@ -227,12 +227,21 @@
 					}
 				},
 				{
-					"path": "workDetails/index",
+					"path": "work/workDetails",
 					"name": "workDetails",
 					"needLogin": true,
 					"style": {
 						"navigationStyle": "custom",
 						"navigationBarTitleText": "工单详情"
+					}
+				},
+				{
+					"path": "work/handleWork",
+					"name": "handleWork",
+					"needLogin": true,
+					"style": {
+						"navigationStyle": "custom",
+						"navigationBarTitleText": "处理工单"
 					}
 				}
 			]

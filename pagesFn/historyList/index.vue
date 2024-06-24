@@ -2,7 +2,7 @@
 import { useNotify, useToast, useMessage, useQueue } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import dayjs from 'dayjs';
-import { finishedList } from '@/api'
+import { finishedList, getClientOption } from '@/api'
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -11,16 +11,29 @@ const getForm = ref({
   search: null,
   pageNum: 1,
   pageSize: 10,
-  time:null,
+  startTime: null,
+  endTime: null,
   orderType: null, //
   engiee: null, // 1:工程师 
-  clientName: null // 客户名称
+  clientId: null // 客户名称
 })
+
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
 
+const orderTypeList = ref([ // 工单类型
+  { label: '全部', value: null },
+  { label: '维护车辆', value: 2 },
+  { label: '车辆新装', value: 3 },
+  { label: '行车记录仪新装', value: 4 }
+])
+
+const engieeList = ref([]) // 工程师选项
+const ClientOptionList = ref([]) //客户选项
+
 onMounted(() => {
   getListFn()
+  getClientOptionFn()
 })
 
 const getListFn = async () => {
@@ -30,6 +43,22 @@ const getListFn = async () => {
   if (isTriggered.value) isTriggered.value = false
   Toast.close()
   workList.value = [...workList.value, ...data.records]
+}
+
+const getClientOptionFn = async () => {
+  const { code, data, msg } = await getClientOption()
+  if (code != 0) return Toast.error(msg)
+  ClientOptionList.value = data.map(item => {
+    return {
+      label: item.clientName,
+      value: item.clientId
+    }
+  })
+  ClientOptionList.value.unshift({
+    label: "全部",
+    value: null
+  })
+
 }
 
 const searchInput = debounce(() => {
@@ -72,26 +101,17 @@ const leftBtn = () => {
 }
 
 
-
 const { closeOutside } = useQueue()
 const sliderValue = ref(Date.now())
-const sliderShow = ref("时间段")
-const value2 = ref(1)
-const value3 = ref(1)
-const value4 = ref(1)
 
 const dropMenu = ref(null) // 
 
 function handleConfirm() { //自定义时间下拉 确定按钮
-  console.log("🚀 ~ handleConfirm ~ handleConfirm:",)
-  sliderShow.value = dayjs(sliderValue.value).format("YY-MM-DD")
   dropMenu.value.close()
 }
 
 function handleClose() { //自定义时间下拉 关闭按钮
-  console.log("🚀 ~ handleClose ~ handleClose:",)
-  sliderShow.value = '时间段'
-  sliderValue.value = null
+  sliderValue.value = new Date()
   dropMenu.value.close()
 }
 
@@ -100,41 +120,11 @@ function handleOpened() { //自定义时间下拉 打开时触发
   console.log("handleOpened()");
 }
 
-const option2 = ref([
-  { label: '工单类型', value: 1 },
-  { label: '工单类型2', value: 2 },
-  { label: '工单类型3', value: 3 }
-])
-const option3 = ref([
-  { label: '工程师', value: 1 },
-  { label: '工程师2', value: 2 },
-  { label: '工程师3', value: 3 }
-])
-
-const option4 = ref([
-  { label: '客户企业', value: 1 },
-  { label: '客户企业2', value: 2 },
-  { label: '客户企业3', value: 3 },
-  { label: '客户企业4', value: 4 },
-  { label: '客户企业5', value: 5 },
-  { label: '客户企业6', value: 6 },
-  { label: '客户企业7', value: 7 },
-  { label: '客户企业8', value: 8 },
-  { label: '客户企业9', value: 9 },
-  { label: '客户企业10', value: 10 },
-  { label: '客户企业11', value: 11 },
-  { label: '客户企业12', value: 12 },
-  { label: '客户企业13', value: 13 },
-  { label: '客户企业14', value: 14 },
-  { label: '客户企业15', value: 15 },
-
-])
-
 function handleChange2({ value }) {
   console.log(value)
 }
 function handleChange3({ value }) {
-  console.log(value)
+  console.log("getF")
 }
 function handleChange4({ value }) {
   console.log(value)
@@ -166,10 +156,9 @@ function handleChange4({ value }) {
     </view>
     <view class="top_choose" @click="closeOutside">
       <wd-drop-menu :close-on-click-modal="false">
-        <wd-drop-menu-item :title="sliderShow" ref="dropMenu" @opened="handleOpened" icon-name="history"
-          close-on-click-modal>
+        <wd-drop-menu-item ref="dropMenu" title="时间段" @opened="handleOpened" icon-name="history" close-on-click-modal>
           <view>
-            <wd-datetime-picker-view type="date" v-model="sliderValue" :maxDate="new Date()" />
+            <wd-datetime-picker-view type="year-month" v-model="sliderValue" :maxDate="new Date()" />
             <view class="btns">
               <wd-button type="info" @tap="handleClose">取消</wd-button>
               <wd-button @tap="handleConfirm">确定</wd-button>
@@ -177,9 +166,11 @@ function handleChange4({ value }) {
           </view>
         </wd-drop-menu-item>
         <!-- <wd-drop-menu-item v-model="value1" :options="option1" @change="handleChange1" /> -->
-        <wd-drop-menu-item v-model="value2" :options="option2" @change="handleChange2" />
-        <wd-drop-menu-item v-model="value3" disabled :options="option3" @change="handleChange3" />
-        <wd-drop-menu-item v-model="value4" :options="option4" @change="handleChange4" />
+        <wd-drop-menu-item v-model="getForm.orderType" title="工单类型" :options="orderTypeList" @change="handleChange2" />
+        <wd-drop-menu-item v-model="getForm.engiee" title="工程师" disabled :options="engieeList"
+          @change="handleChange3" />
+        <wd-drop-menu-item v-model="getForm.clientId" title="客户企业" :options="ClientOptionList"
+          @change="handleChange4" />
       </wd-drop-menu>
     </view>
 
@@ -189,8 +180,8 @@ function handleChange4({ value }) {
         <view class="work_top">
           <image src="http://116.62.107.90:8673/images/fns/map.png" class="work_icon" mode="scaleToFill" />
           <view class="work_title">
-            <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :
-              '--' }}</text>
+            <text class="tit">{{ item?.clientName ? item?.clientName : '-' }}-{{ item?.carPlate ? item?.carPlate :
+              '-' }}</text>
             <text class="tags tag1" v-if="item.orderStatus">{{ item.orderStatus }}</text>
             <!-- <text class="tags tag2">待新装</text> -->
             <!-- <text class="tags tag3">待运维</text> -->
@@ -200,13 +191,13 @@ function handleChange4({ value }) {
         <view class="work_center" @tap.stop="clickItem(item)">
           <view class="work_it">
             <view class="label">联系人:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">联系电话:</view>
             <view class="value isImg">
-              <text>{{ item?.contactPhone ? item?.contactPhone : '--' }}</text>
+              <text>{{ item?.contactPhone ? item?.contactPhone : '-' }}</text>
               <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
                 @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
             </view>
@@ -214,17 +205,17 @@ function handleChange4({ value }) {
 
           <view class="work_it" v-if="item.orderType == 3">
             <view class="label">新装设备:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
           <view class="work_it" v-else-if="item.orderType == 2">
             <view class="label">运维内容:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">地址:</view>
             <view class="value isImg">
-              <text>{{ item?.address ? item?.address : '--' }}</text>
+              <text>{{ item?.address ? item?.address : '-' }}</text>
               <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
                 @tap.stop="toNavigation(item)" mode="scaleToFill" />
             </view>
@@ -232,17 +223,17 @@ function handleChange4({ value }) {
 
           <view class="work_it" v-if="item.orderType == 3">
             <view class="label">设备型号:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it" v-else-if="item.orderType == 2">
             <view class="label">故障概述:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">设备序列号:</view>
-            <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '--' }}</view>
+            <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</view>
           </view>
         </view>
       </view>
