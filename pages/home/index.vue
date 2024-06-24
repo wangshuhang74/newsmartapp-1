@@ -165,7 +165,7 @@ onMounted(() => {
 const addMarkers = (list) => {
   markers.value = list.map((item) => {
     return {
-      id: item.id,
+      id: Number(item.id),
       latitude: item.latitude,
       longitude: item.longitude,
       width: 48,
@@ -249,14 +249,14 @@ const getLocation = () => {
   });
 };
 
-// 获取屏幕边界到安全区域距离
-
 const setMyMarker = (val) => {
   console.log("markers", val);
   markers.value.splice(markers.value.length - 1, 1, {
     latitude: val.latitude,
     longitude: val.longitude,
     iconPath: myLocation, //视图显示图标 
+    width: 48,
+    height: 48,
   })
 }
 

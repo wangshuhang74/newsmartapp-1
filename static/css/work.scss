@@ -283,6 +283,10 @@
 
     }
 
+    :deep(.uni-scroll-view-refresher) {
+        background: transparent !important;
+        background-color: transparent !important;
+    }
 }
 
 .oneKey {

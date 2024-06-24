@@ -66,7 +66,7 @@ http.interceptors.response.use(
 			if (response.data.code == 401) {
 				// 未登录跳转登录
 				uni.navigateTo({
-					url: "/pages/login/login",
+					url: "/pagesAccount/login/index",
 				});
 			}
 		}

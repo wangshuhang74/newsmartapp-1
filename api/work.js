@@ -33,3 +33,8 @@ export const complete = (params) => {
 export const getWorkUser = () => {
     return http.post("/user/getWorkUser",);
 }
+
+///flowable/task/finishedList // 历史记录
+export const finishedList = (params) => {
+    return http.post("/flowable/task/finishedList", params, {});
+}

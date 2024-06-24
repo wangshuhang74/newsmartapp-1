@@ -98,7 +98,7 @@ const toPages = (item) => {
     </view>
     <view class="fn_list">
       <view class="task_item" v-for="(item, index) in fnList" :key="index" @tap="toPages(item)"
-        v-show="item?.permission && item?.permission.includes(userInfo.userType)">
+        :class="{ isHide: item?.permission && !item?.permission.includes(userInfo.userType) }">
         <image :src="item.icon" mode="scaleToFill" />
         <view class="name">
           {{ item.name }}
@@ -134,6 +134,10 @@ const toPages = (item) => {
       border-radius: 7rpx 7rpx 7rpx 7rpx;
       box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(205, 205, 205, 0.31);
       margin: 1.2%;
+
+      &.isHide {
+        display: none !important;
+      }
 
       // &:nth-child(2n - 1) {
       //   margin: 3.5%;

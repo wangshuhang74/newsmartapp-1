@@ -1,5 +1,4 @@
 <script setup>
-import '../../style/work.scss'
 import assignPopup from '../components/assignPopup.vue'
 import navbar from '@/pages/components/navbar.vue'
 import { toNavigation, makePhoneCall } from '@/utils'
@@ -187,6 +186,7 @@ const clickItem = (item) => {
   </view>
 </template>
 <style lang="scss" scoped>
+@import '../../static/css/work.scss';
 .assignTask {
   display: flex;
   flex-direction: column;

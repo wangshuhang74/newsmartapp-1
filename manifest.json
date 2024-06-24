@@ -129,7 +129,7 @@
         "usingComponents" : true,
         "permission" : {
             "scope.userLocation" : {
-                "desc" : "需要您的同意，才能在使用时获取位置信息，以便于定位为您提供附近的工单信息。"
+                "desc" : "需要您的同意，以便于使用时定位获取附近的工单信息。"
             }
         }
     },

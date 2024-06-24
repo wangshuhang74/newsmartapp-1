@@ -1,5 +1,5 @@
 <script setup>
-import '../../style/work.scss'
+
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import returnPopup from '../components/returnPopup.vue'
@@ -165,7 +165,7 @@ const clickItem = (item) => {
           </view>
           <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
         </view>
-        <view class="work_center " :class="{ no: userInfo.userType != 1 && userInfo.userType != 2 }">
+        <view class="work_center " :class="{ no: !userInfo.userType == 3 }">
           <view class="work_it">
             <view class="label">联系人:</view>
             <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
@@ -206,7 +206,7 @@ const clickItem = (item) => {
           </view>
 
         </view>
-        <view class="btn_box" v-if="item.isAccept == 0 && userInfo.userType == 3">
+        <view class="btn_box" v-if="userInfo.userType == 3">
           <view class="btn" @tap.stop="returnBtn(item)" v-if="item.isAccept == 0 && userInfo.userType == 3">返还</view>
           <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0 && userInfo.userType == 3">接单</view>
           <view class="btn" v-if="userInfo.userType == 3 && item.isAccept == 1">处理</view>
@@ -219,6 +219,8 @@ const clickItem = (item) => {
 </template>
 
 <style lang="scss" scoped>
+@import '../../static/css/work.scss';
+
 .newInstall {
   width: 100%;
   height: 100vh;

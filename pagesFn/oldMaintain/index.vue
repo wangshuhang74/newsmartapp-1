@@ -1,5 +1,4 @@
 <script setup>
-import '../../style/work.scss'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import returnPopup from '../components/returnPopup.vue'
@@ -208,7 +207,7 @@ const clickItem = (item) => {
           </view>
 
         </view>
-        <view class="btn_box" v-if="item.isAccept == 0 || userInfo.userType == 3">
+        <view class="btn_box" v-if="userInfo.userType == 3">
           <view class="btn" @tap.stop="returnBtn(item)" v-if="item.isAccept == 0">返还</view>
           <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0">接单</view>
           <view class="btn" v-if="userInfo.userType == 3 && item.isAccept == 1">处理</view>
@@ -223,6 +222,8 @@ const clickItem = (item) => {
 </template>
 
 <style lang="scss" scoped>
+@import '../../static/css/work.scss';
+
 .oldMaintain {
   width: 100%;
   height: 100vh;
@@ -230,7 +231,5 @@ const clickItem = (item) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-
-
 }
 </style>

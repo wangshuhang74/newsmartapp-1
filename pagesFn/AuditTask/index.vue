@@ -1,5 +1,4 @@
 <script setup>
-import '../../style/work.scss'
 import AuditPopup from '../components/AuditPopup.vue'
 import navbar from '@/pages/components/navbar.vue'
 import { toNavigation, makePhoneCall } from '@/utils'
@@ -188,6 +187,8 @@ const clickItem = (item) => {
   <AuditPopup v-if="auditShow" :auditShow="auditShow" :auditInfo="auditInfo" @CloseClick="CloseClick" />
 </template>
 <style lang="scss" scoped>
+@import '../../static/css/work.scss';
+
 .AuditTask {
   display: flex;
   flex-direction: column;

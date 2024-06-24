@@ -26,7 +26,6 @@ const postForm = ref({
   taskId: null,
   variables: {
     comment: 1,
-    approval: null,
     remark: null
   },
   executionId: null

@@ -1,15 +1,36 @@
 <script setup>
-import '../../style/work.scss'
 import { useNotify, useToast, useMessage, useQueue } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import dayjs from 'dayjs';
-
+import { finishedList } from '@/api'
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
+const workList = ref([])
 const getForm = ref({
-  search: null
+  search: null,
+  pageNum: 1,
+  pageSize: 10,
+  time:null,
+  orderType: null, //
+  engiee: null, // 1:工程师 
+  clientName: null // 客户名称
 })
+const total = ref(0) // 总条数
+const isTriggered = ref(false) // 是否在下拉刷新中?
+
+onMounted(() => {
+  getListFn()
+})
+
+const getListFn = async () => {
+  const { code, data, msg } = await finishedList(getForm.value)
+  if (code != 0) return
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  Toast.close()
+  workList.value = [...workList.value, ...data.records]
+}
 
 const searchInput = debounce(() => {
   console.log('searchInput', getForm.value.search);
@@ -26,12 +47,23 @@ const scanBtn = () => {
   })
 }
 
-const scrollBottom = () => {
-  console.log('触底了')
+const onRefresherrefresh = () => { // 下拉刷新
+  isTriggered.value = true
+  getForm.value.pageNum = 1
+  workList.value = []
+  getListFn()
+  console.log("🚀 ~ onRefresherrefresh ~ onRefresherrefresh:",)
+}
+
+const scrollBottom = () => { // 上拉加载
   Toast.loading('加载中...')
-  setTimeout(() => {
-    Toast.close()
-  }, 1000)
+  let lengths = workList.value.length
+  if (lengths < total.value) {
+    getForm.value.pageNum++
+    getListFn()
+  } else {
+    Toast.warning("没有更多了!")
+  }
 }
 
 const leftBtn = () => {
@@ -151,68 +183,77 @@ function handleChange4({ value }) {
       </wd-drop-menu>
     </view>
 
-    <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom">
-      <view class="work_item" v-for="(item, idx) in 10">
+    <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom"
+      @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
+      <view class="work_item" v-for="(item, idx) in workList" :key="idx">
         <view class="work_top">
           <image src="http://116.62.107.90:8673/images/fns/map.png" class="work_icon" mode="scaleToFill" />
           <view class="work_title">
-            <text class="tit">客户名称-车牌号码/VIN码</text>
-            <text class="tags tag1">待接单</text>
+            <text class="tit">{{ item?.clientName ? item?.clientName : '--' }}-{{ item?.carPlate ? item?.carPlate :
+              '--' }}</text>
+            <text class="tags tag1" v-if="item.orderStatus">{{ item.orderStatus }}</text>
             <!-- <text class="tags tag2">待新装</text> -->
             <!-- <text class="tags tag3">待运维</text> -->
           </view>
           <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
         </view>
-        <view class="work_center " :class="{ no: idx % 2 == 0 }">
+        <view class="work_center" @tap.stop="clickItem(item)">
           <view class="work_it">
             <view class="label">联系人:</view>
-            <view class="value">张三</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">联系电话:</view>
             <view class="value isImg">
-              <text>13828282828</text>
+              <text>{{ item?.contactPhone ? item?.contactPhone : '--' }}</text>
               <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
-                @tap="makePhoneCall(19815103583)" mode="scaleToFill" />
+                @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
             </view>
           </view>
 
-
-          <view class="work_it">
+          <view class="work_it" v-if="item.orderType == 3">
             <view class="label">新装设备:</view>
-            <view class="value">行车记录仪行车记录仪行车记录仪行车记录仪行车记录仪</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+          </view>
+          <view class="work_it" v-else-if="item.orderType == 2">
+            <view class="label">运维内容:</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">地址:</view>
             <view class="value isImg">
-              <text>阳光大道238号阳光大道238号阳光大道238号</text>
-              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png" @tap="toNavigation"
-                mode="scaleToFill" />
+              <text>{{ item?.address ? item?.address : '--' }}</text>
+              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
+                @tap.stop="toNavigation(item)" mode="scaleToFill" />
             </view>
           </view>
 
-          <view class="work_it">
+          <view class="work_it" v-if="item.orderType == 3">
             <view class="label">设备型号:</view>
-            <view class="value">XT001</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
+          </view>
+
+          <view class="work_it" v-else-if="item.orderType == 2">
+            <view class="label">故障概述:</view>
+            <view class="value">{{ item?.contactName ? item?.contactName : '--' }}</view>
           </view>
 
           <view class="work_it">
             <view class="label">设备序列号:</view>
-            <view class="value">XT001</view>
+            <view class="value">{{ item?.terminalSerial ? item?.terminalSerial : '--' }}</view>
           </view>
         </view>
-        <!-- <view class="btn_box" v-if="idx % 2 != 0">
-          <view class="btn" @tap="returnBtn(item)">返还</view>
-          <view class="btn">处理</view>
-        </view> -->
       </view>
+      <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />
     </scroll-view>
   </view>
 </template>
 
 <style lang="scss" scoped>
+@import '../../static/css/work.scss';
+
 .historyList {
   width: 100%;
   height: 100vh;

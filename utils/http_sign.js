@@ -43,7 +43,7 @@ http.interceptors.request.use(
 
     //   // 未登录跳转登录
     //   uni.navigateTo({
-    //     url: "/pages/login/login",
+    //     url: "/pagesAccount/login/index",
     //   });
     //   return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
     // }
@@ -76,7 +76,7 @@ http.interceptors.response.use(
         const { logout } = useAuthStore();
         logout();
         uni.navigateTo({
-          url: "/pages/login/login",
+          url: "/pagesAccount/login/index",
         });
       }
     }
