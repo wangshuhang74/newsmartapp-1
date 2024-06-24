@@ -226,7 +226,7 @@ const handleWork = (item) => {
           </view>
           <!-- <view class="btn" v-if="[5, 6].some(rule => userInfo.rules.includes(rule))">处理 assigneeId -->
           <view class="btn"
-            v-if="item.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (item.assigneeId == userInfo.userId || item.groupId == userInfo.userId)"
+            v-if="item.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (item.assigneeId == userInfo.userId || userInfo.rules.includes(item.groupId))"
             @tap.stop="handleWork(item)">
             处理
           </view>

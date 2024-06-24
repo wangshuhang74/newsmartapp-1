@@ -3,8 +3,11 @@ import { useNotify, useToast, useMessage, useQueue } from 'wot-design-uni' // ui
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import dayjs from 'dayjs';
 import { finishedList, getClientOption } from '@/api'
+import { useUserStore } from '@/store'
+
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()
+const { userInfo } = storeToRefs(useUserStore())
 
 const workList = ref([])
 const getForm = ref({
@@ -28,12 +31,15 @@ const orderTypeList = ref([ // 工单类型
   { label: '行车记录仪新装', value: 4 }
 ])
 
-const engieeList = ref([]) // 工程师选项
-const ClientOptionList = ref([]) //客户选项
+const engieeList = ref([{ label: '全部', value: null }]) // 工程师选项
+const ClientOptionList = ref([{ label: '全部', value: null }]) //客户选项
 
 onMounted(() => {
   getListFn()
   getClientOptionFn()
+  if (userInfo.value.userType == 3) {
+    getForm.value.engiee = userInfo.value.userId
+  }
 })
 
 const getListFn = async () => {
@@ -167,7 +173,7 @@ function handleChange4({ value }) {
         </wd-drop-menu-item>
         <!-- <wd-drop-menu-item v-model="value1" :options="option1" @change="handleChange1" /> -->
         <wd-drop-menu-item v-model="getForm.orderType" title="工单类型" :options="orderTypeList" @change="handleChange2" />
-        <wd-drop-menu-item v-model="getForm.engiee" title="工程师" disabled :options="engieeList"
+        <wd-drop-menu-item v-model="getForm.engiee" title="工程师" :disabled="userInfo.userType == 3" :options="engieeList"
           @change="handleChange3" />
         <wd-drop-menu-item v-model="getForm.clientId" title="客户企业" :options="ClientOptionList"
           @change="handleChange4" />
