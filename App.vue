@@ -3,15 +3,19 @@ import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { blueToothDevices, isReadRules, readRules, writeRules } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { blueToothDevices, isOpenOnBlue, isReadRules, readRules, writeRules } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 onLaunch(() => {
 	// console.log('App Launch')
-	blueToothDevices.value = [];
-	console.log('清空blueToothDevices');
+	// blueToothDevices.value = [];
+	// console.log('清空blueToothDevices');
+
+	isOpenOnBlue.value = false;
+	console.log('重置已开启蓝牙监听状态 false');
+
 	//以下三步清空读写规则的步骤，清空后需要重新下发读写规则
 	isReadRules.value = true;
-	readRules.value = { deleteRO: false, addRO: false, startRO: false };
+	readRules.value = { deleteRO: false, addRO: false, startRO: false, addAO: true };
 	writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
 
 	// 禁止 横屏

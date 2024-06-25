@@ -70,7 +70,7 @@
           </view> -->
         </view>
         <view class="open_blue">
-          <view class="btn search_btn" v-if="!BluetoothDevicesDiscovery" @tap="searchBlue">搜索设备</view>
+          <view class="btn search_btn" v-if="!BluetoothDevicesDiscovery && !BLEConnection" @tap="searchBlue">搜索设备</view>
           <view class="btn" @tap="nextStep(3)" v-if="BLEConnection && notifyBLEChar">连接成功，下一步</view>
         </view>
       </view>
@@ -112,7 +112,7 @@ import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safe
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo, blueToothDevices, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, blueToothDevices, isOpenOnBlue, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -127,7 +127,13 @@ const BluetoothDevicesDiscovery = ref(false);//是否已开始搜索
 const BLEConnection = ref(false); //是否已连接蓝牙
 const notifyBLEChar = ref(false);//是否已开启监听
 
-console.log("blueToothDevices", JSON.stringify(blueToothDevices.value));
+//页面初始化
+onLoad((opt) => {
+  tipsInfo.value = {};
+  secRandom.value = '';
+  safeSn.value = '';
+  authStatus.value = false;
+})
 
 onUnload(() => {
   //监听页面卸载
@@ -155,7 +161,7 @@ onUnload(() => {
 
     //以下三步清空读写规则的步骤，清空后需要重新下发读写规则
     isReadRules.value = true;
-    readRules.value = { deleteRO: false, addRO: false, startRO: false };
+    readRules.value = { deleteRO: false, addRO: false, startRO: false, addAO: true };
     writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
   } else {
     if (BluetoothAdapter.value) {
@@ -250,6 +256,13 @@ const searchBlue = () => {
 
 // 连接蓝牙
 const connectBlue = (item) => {
+  if (BLEConnection.value) {
+    uni.showToast({
+      title: '当前已连接~~~',
+      icon: 'error'
+    });
+    return;
+  }
   uni.showLoading({
     title: '设备连接中~~~',
     mask: true
@@ -283,8 +296,9 @@ const connectBlue = (item) => {
         item.active = true; //设置连接成功样式
         BLEConnection.value = true;//设置连接成功状态
 
-        if (!blueToothDevices.value.includes(item.deviceId)) {//存储的已连接过的蓝牙设备id是否包含当前设备id是否一致，包含则不需要重复启动蓝牙监听(readBlueOn)
-          notifyBLEChar.value = false; //连接新的蓝牙需要重新开启监听
+        //if (!blueToothDevices.value.includes(item.deviceId)) {//存储的已连接过的蓝牙设备id是否包含当前设备id是否一致，包含则不需要重复启动蓝牙监听(readBlueOn)
+        if (!isOpenOnBlue.value) { //本次打开应用还没有开启监听 uni.onBLECharacteristicValueChange还没有开启
+          notifyBLEChar.value = false; //未连接过蓝牙需要开启监听 
         } else {
           blueToothInit.value.deviceId = item.deviceId;
           notifyBLEChar.value = true; //已连接过蓝牙不需要重新开启监听
@@ -392,7 +406,8 @@ const readBlueOn = (params) => {
       console.log('启用 notify 功能', res)
       notifyBLEChar.value = true;
       blueToothInit.value.deviceId = params;
-      blueToothDevices.value.push(params);
+      // blueToothDevices.value.push(params);
+      isOpenOnBlue.value = true;//已开启蓝牙监听，不需要重复开启
 
       uni.hideLoading();
       setTimeout(function () {
@@ -413,11 +428,27 @@ const readBlueOn = (params) => {
         if (isReadRules.value) {//当前读取规则
           //读规则步骤  1删除RO-403 2添加RO-401 3启动RO-405
           if (result == '403') {
-            console.log('--------添加RO应答Start-------', '403');
-            addUserSelectSpec(1, 4, 9);
+            console.log('--------read 已完成删除RO 开始删除AO或添加RO-------', '403');
+            if (readRules.value.addAO) {  //在写的时后已addAO，读时需要先删除AO，不然设备会滴两声
+              console.log('--------read 已添加过AO 需要先执行删除AO-------', '403');
+              sendCmd(deleteAccessSpec); //删除AO
+            } else {
+              console.log('--------read 未添加过AO 直接执行添加RO-------', '403');
+              addUserSelectSpec(1, 4, 9); //没有执行过addAO 直接添加RO
+            }
             readRules.value.deleteRO = true;
             writeRules.value.deleteRO = true;// 同时修改写写入删除RO为true,删除RO不需要重复执行
             console.log("deleteRO:" + readRules.value.deleteRO);
+          } else if (result == '453') {
+            console.log('--------read 已完成删除AO 开始执行添加RO或者启动RO-------', '453');
+            if (readRules.value.addRO) {
+              console.log('--------read 已添加过RO 直接执行启动RO-------', '453');
+              sendCmd(startSelectSpec); //启动RO应答
+            } else {
+              console.log('--------read 未添加过RO 先执行启动RO-------', '453');
+              addUserSelectSpec(1, 4, 9); //删除AO后执行添加RO
+            }
+            readRules.value.addAO = false;
           } else if (result == '401') {
             console.log('--------启动RO应答Start-------', '401');
             sendCmd(startSelectSpec); //启动RO应答
@@ -458,6 +489,7 @@ const readBlueOn = (params) => {
             console.log('--------完成添加AO 开始启动RO-------', '451');
             sendCmd(startSelectSpec); //启动RO应答
             writeRules.value.addAO = true;
+            readRules.value.addAO = true; //此处需要打开read 的addAO，因为再次执行读时，需要先执行删除AO
 
           } else if (result == '405') {
             console.log('--------已启动写入RO应答End-------');
@@ -466,6 +498,10 @@ const readBlueOn = (params) => {
         }
 
         if (result == 500) {  //标签上报
+          if (!isReadRules.value) {
+            console.log('-------执行write后500-------');
+            return;
+          }
           tagsInfo.value = tipsInfo.value; //接收到RO结束事件
           if (Object.keys(tagsInfo.value).length > 0) {
             clearTimeout(_inventTime); //清除定时器读卡长时间未响应失败10000ms
@@ -561,6 +597,10 @@ const inventRead = () => {
   console.log(readRules.value);
   if (!readRules.value.deleteRO) {
     sendCmd(deleteSelectSpec); //删除RO应答
+  } else if (readRules.value.deleteRO && readRules.value.addAO) {
+    //因为执行write写时，添加过AO，需要先删除
+    console.log('-------执行write写时,添加过AO,需要先删除AO--------', 'deleteAO');
+    sendCmd(deleteAccessSpec); //删除AO
   } else if (readRules.value.deleteRO && !readRules.value.addRO) {
     console.log('--------添加RO应答Start-------', 'add');
     addUserSelectSpec(1, 4, 9);
@@ -597,6 +637,7 @@ const goForm = () => {
 
 //激活电子标签
 const goActive = () => {
+  console.log('随机数secRandom' + secRandom.value);
   uni.showLoading({
     title: '正在进行设备双向认证~~~',
     mask: true
@@ -628,6 +669,10 @@ const goActive = () => {
                   }, 100)
                 }
               }, 10000)
+            } else if (res.code == '-93') {
+              closeLoad('安全模块未备案');
+            } else {
+              closeLoad('双向认证失败-4');
             }
           })
         } else {
