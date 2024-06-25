@@ -3,53 +3,52 @@ import navbar from '@/pages/components/navbar.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { useUserStore } from '@/store'
 import QreviewImage from '../../pages/components/q-previewImage.vue'
+import { getUserArchive,removeUserTag } from '@/api'
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
-console.log("🚀 ~ userInfo.value:", userInfo.value)
+const Toast = useToast()
+const message = useMessage(); // 消息弹框
 
-const territoryList = ref([
-  {
-    name: '湖州',
-    id: 1,
-  },
-  {
-    name: '上海',
-    id: 2,
-  },
-  {
-    name: '杭州',
-    id: 3,
-  },
-]);
-
-const territoryClick = (idx) => {
-  territoryList.value.splice(idx, 1)
-}
-
-const projectList = ref([
-  {
-    name: '定位',
-    id: 1,
-  },
-  {
-    name: '测试',
-    id: 2,
-  },
-  {
-    name: '视频',
-    id: 3,
-  },
-])
-
-const projectClick = (idx) => {
-  projectList.value.splice(idx, 1)
-}
+const userInfoApi = ref({})
 const previewImage = ref(null);
 
-const lookover = (idx) => {
-  preview('https://web-assets.dcloud.net.cn/unidoc/zh/multiport-20210812.png')
+onMounted(() => {
+  getUserArchiveFn()
+})
+
+const getUserArchiveFn = async () => {
+  const {code,data,msg} = await getUserArchive()
+  if(code != 0) return 
+  console.log('data',data)
+  userInfoApi.value = data
+  userInfoApi.value.areaList = data.area //负责区域
+  userInfoApi.value.engieeTypeList = data.engieeType //工程类型
 }
-const imgs = ['https://web-assets.dcloud.net.cn/unidoc/zh/multiport-20210812.png', 'https://web-assets.dcloud.net.cn/unidoc/zh/uni-function-diagram.png'] //设置图片数组
+
+
+const cancelTag = (item) => {
+  message.confirm({
+    title: "取消",
+    msg: "您确定要取消吗?",
+    confirmButtonText: "确认取消",
+    cancelButtonText: "暂不取消",
+  })
+    .then(async () => {
+      const { code, data, msg } = await removeUserTag(item.tagId)
+      if (code != 0) return Toast.error(msg)
+      Toast.success(msg)
+      getUserArchiveFn()
+
+    })
+    .catch(() => { });
+}
+
+
+const lookover = (urls) => {
+  imgs.value = urls.split(',')
+  preview(imgs.value[0])
+}
+const imgs =ref([]) //设置图片数组
 const preview = (url) => {
   setTimeout(() => {
     previewImage.value.open(url); // 传入当前选中的图片地址(小程序必须添加$nextTick，解决组件首次加载无图)
@@ -97,6 +96,7 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
 
 <template>
   <wd-toast></wd-toast>
+  <wd-message-box />
   <view class="info_box">
     <navbar :title="'个人档案'" />
     <view class="info_flow">
@@ -109,14 +109,14 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
       <view class="item_box">
         <text class="label">所属企业</text>
         <view class="right_text">
-          <text class="text">浙江中导</text>
+          <text class="text">{{userInfoApi?.orgName ? userInfoApi?.orgName : ''}}</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">姓名</text>
         <view class="right_text">
-          <text class="text">张三</text>
+          <text class="text">{{userInfoApi?.userName ? userInfoApi?.userName : ''}}</text>
         </view>
       </view>
 
@@ -124,7 +124,7 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
       <view class="item_box">
         <text class="label">性别</text>
         <view class="right_text">
-          <text class="text">男</text>
+          <text class="text">{{userInfoApi?.gender ? userInfoApi?.gender : ''}}</text>
         </view>
       </view>
 
@@ -132,37 +132,37 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
       <view class="item_box">
         <text class="label">联系电话</text>
         <view class="right_text">
-          <text class="text">19210964479</text>
+          <text class="text">{{userInfoApi?.phone ? userInfoApi?.phone : ''}}</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">身份证号</text>
         <view class="right_text">
-          <text class="text">330522155897445</text>
+          <text class="text">{{userInfoApi?.idCard ? userInfoApi?.idCard : ''}}</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">负责区域</text>
         <view class="right_text">
-          <view class="border_box" v-for="(item, idx) in territoryList" :key="idx">
-            <text class="border_text">{{ item.name }}</text>
-            <image class="cancel" @tap="territoryClick(idx)" src="../../static/images/my/cancel.png"
+          <view class="border_box" v-for="(item, idx) in userInfoApi?.areaList" :key="idx">
+            <text class="border_text">{{ item.tagName }}</text>
+            <image class="cancel" @tap="cancelTag(item)" src="../../static/images/my/cancel.png"
               mode="scaleToFill" />
           </view>
-          <view v-if="territoryList && territoryList.length == 0" class="no_data">暂无负责区域</view>
+          <view v-if="userInfoApi?.areaList && userInfoApi?.areaList.length == 0" class="no_data">暂无负责区域</view>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">工程类型</text>
         <view class="right_text">
-          <view class="border_box" v-for="(item, idx) in projectList" :key="idx">
-            <text class="border_text">{{ item.name }}</text>
-            <image class="cancel" @tap="projectClick(idx)" src="../../static/images/my/cancel.png" mode="scaleToFill" />
+          <view class="border_box" v-for="(item, idx) in userInfoApi?.engieeTypeList" :key="idx">
+            <text class="border_text">{{ item.tagName }}</text>
+            <image class="cancel" @tap="cancelTag(item)" src="../../static/images/my/cancel.png" mode="scaleToFill" />
           </view>
-          <view v-if="territoryList && projectList.length == 0" class="no_data">暂无工程类型</view>
+          <view v-if="userInfoApi?.engieeTypeList && userInfoApi?.engieeTypeList.length == 0" class="no_data">暂无工程类型</view>
         </view>
       </view>
 
@@ -174,7 +174,7 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
       <view class="item_box">
         <text class="label">资格证发证日期</text>
         <view class="right_text">
-          <text class="text">2020-05-15</text>
+          <text class="text">{{userInfoApi?.licenseDate ? userInfoApi?.licenseDate : ''}}</text>
         </view>
       </view>
 
@@ -182,7 +182,7 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
       <view class="item_box">
         <text class="label">证书编号</text>
         <view class="right_text">
-          <text class="text">330522155897445</text>
+          <text class="text">{{userInfoApi?.licenseId ? userInfoApi?.licenseId : ''}}</text>
         </view>
       </view>
 
@@ -190,42 +190,42 @@ const close = () => { //监听组件隐藏 （显示TabBar和NavigationBar，显
       <view class="item_box">
         <text class="label">技能等级</text>
         <view class="right_text">
-          <text class="text">三级/高级技能</text>
+          <text class="text">{{userInfoApi?.skillLevel ? userInfoApi?.skillLevel : ''}}</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">工种名称</text>
         <view class="right_text">
-          <text class="text">电工</text>
+          <text class="text">{{userInfoApi?.workType ? userInfoApi?.workType : ''}}</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">资格证附件</text>
         <view class="right_text">
-          <text class="lookover" @tap="lookover(1)">查看</text>
+          <text class="lookover" @tap="lookover(userInfoApi.qaLicenseFile)">查看</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">高压电工证附件</text>
         <view class="right_text">
-          <text class="lookover" @tap="lookover(2)">查看</text>
+          <text class="lookover" @tap="lookover(userInfoApi.hvLicenseFile)">查看</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">低压电工证附件</text>
         <view class="right_text">
-          <text class="lookover" @tap="lookover(3)">查看</text>
+          <text class="lookover" @tap="lookover(userInfoApi.lvLicenseFile)">查看</text>
         </view>
       </view>
 
       <view class="item_box">
         <text class="label">高处作业证附件</text>
         <view class="right_text">
-          <text class="lookover" @tap="lookover(4)">查看</text>
+          <text class="lookover" @tap="lookover(userInfoApi.wahLicenseFile)">查看</text>
         </view>
       </view>
 

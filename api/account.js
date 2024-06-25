@@ -38,3 +38,13 @@ export const updPassword = (params) => {
 export const forgetPassword = (params) => {
     return http.post("/account/forgetPassword", params, { custom: { noAuth: true } });
 };
+
+// /account/getUserArchive // 获取用户档案
+export const getUserArchive = () => {
+    return http.post("/account/getUserArchive",);
+};
+
+// /account/removeUserTag?tagId=1
+export const removeUserTag = (tagId) => {
+    return http.post(`/account/removeUserTag${tagId ? '?tagId=' + tagId : ''}`,);
+};

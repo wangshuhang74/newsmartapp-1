@@ -16,7 +16,7 @@ import {
 import Request from "luch-request";
 
 
-export const baseURL = "http://192.168.2.120:8650/";
+export const baseURL = "http://192.168.2.125:8650/";
 const http = new Request();
 http.setConfig((config) => {
 	/* 设置全局配置 */

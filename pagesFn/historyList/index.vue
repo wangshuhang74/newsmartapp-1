@@ -2,7 +2,7 @@
 import { useNotify, useToast, useMessage, useQueue } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import dayjs from 'dayjs';
-import { finishedList, getClientOption } from '@/api'
+import { finishedList, getClientOption,getWorkerList } from '@/api'
 import { useUserStore } from '@/store'
 
 const Toast = useToast()
@@ -37,6 +37,7 @@ const ClientOptionList = ref([{ label: '全部', value: null }]) //客户选项
 onMounted(() => {
   getListFn()
   getClientOptionFn()
+  getWorkerListFn()
   if (userInfo.value.userType == 3) {
     getForm.value.engiee = userInfo.value.userId
   }
@@ -64,7 +65,21 @@ const getClientOptionFn = async () => {
     label: "全部",
     value: null
   })
+}
 
+const getWorkerListFn = async () => {
+  const { code, data, msg } = await getWorkerList()
+  if (code != 0) return Toast.error(msg)
+  engieeList.value = data.map(item => {
+    return {
+      label: item.userName,
+      value: item.userId
+    }
+  })
+  engieeList.value.unshift({
+    label: "全部",
+    value: null
+  })
 }
 
 const searchInput = debounce(() => {

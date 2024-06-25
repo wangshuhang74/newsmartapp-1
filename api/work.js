@@ -48,3 +48,8 @@ export const getClientOption = () => {
 export const appDisposeOrder = (params) => {
     return http.post("/order/appDisposeOrder", params, {});
 }
+
+// /account/getWorkerList // 运维工程师
+export const getWorkerList = () => { // 获取运维工程师
+    return http.post("/account/getWorkerList",);
+}
