@@ -92,7 +92,7 @@ export const binaryToHexArray = (binaryDataStr) => {
 
 	let crc8Str = crc_high_first(hexArray, 17);
 
-	hexStr = hexStr + '' + parseInt(crc8Str).toString(16).toUpperCase();//添加crc校验
+	hexStr = hexStr + '' + parseInt(crc8Str).toString(16).padStart(2, '0').toUpperCase();//添加crc校验
 	return hexStr;
 }
 

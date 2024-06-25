@@ -70,7 +70,7 @@
           </view> -->
         </view>
         <view class="open_blue">
-          <view class="btn search_btn" v-if="!BluetoothDevicesDiscovery" @tap="searchBlue">搜索设备</view>
+          <view class="btn search_btn" v-if="!BluetoothDevicesDiscovery && !BLEConnection" @tap="searchBlue">搜索设备</view>
           <view class="btn" @tap="nextStep(3)" v-if="BLEConnection && notifyBLEChar">连接成功，下一步</view>
         </view>
       </view>
@@ -112,7 +112,7 @@ import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safe
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo, blueToothDevices, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, blueToothDevices, isOpenOnBlue, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -127,7 +127,13 @@ const BluetoothDevicesDiscovery = ref(false);//是否已开始搜索
 const BLEConnection = ref(false); //是否已连接蓝牙
 const notifyBLEChar = ref(false);//是否已开启监听
 
-console.log("blueToothDevices", JSON.stringify(blueToothDevices.value));
+//页面初始化
+onLoad((opt) => {
+  tipsInfo.value = {};
+  secRandom.value = '';
+  safeSn.value = '';
+  authStatus.value = false;
+})
 
 onUnload(() => {
   //监听页面卸载
@@ -155,7 +161,7 @@ onUnload(() => {
 
     //以下三步清空读写规则的步骤，清空后需要重新下发读写规则
     isReadRules.value = true;
-    readRules.value = { deleteRO: false, addRO: false, startRO: false, addAO: false };
+    readRules.value = { deleteRO: false, addRO: false, startRO: false, addAO: true };
     writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
   } else {
     if (BluetoothAdapter.value) {
@@ -250,6 +256,13 @@ const searchBlue = () => {
 
 // 连接蓝牙
 const connectBlue = (item) => {
+  if (BLEConnection.value) {
+    uni.showToast({
+      title: '当前已连接~~~',
+      icon: 'error'
+    });
+    return;
+  }
   uni.showLoading({
     title: '设备连接中~~~',
     mask: true
@@ -283,8 +296,9 @@ const connectBlue = (item) => {
         item.active = true; //设置连接成功样式
         BLEConnection.value = true;//设置连接成功状态
 
-        if (!blueToothDevices.value.includes(item.deviceId)) {//存储的已连接过的蓝牙设备id是否包含当前设备id是否一致，包含则不需要重复启动蓝牙监听(readBlueOn)
-          notifyBLEChar.value = false; //连接新的蓝牙需要重新开启监听
+        //if (!blueToothDevices.value.includes(item.deviceId)) {//存储的已连接过的蓝牙设备id是否包含当前设备id是否一致，包含则不需要重复启动蓝牙监听(readBlueOn)
+        if (!isOpenOnBlue.value) { //本次打开应用还没有开启监听 uni.onBLECharacteristicValueChange还没有开启
+          notifyBLEChar.value = false; //未连接过蓝牙需要开启监听 
         } else {
           blueToothInit.value.deviceId = item.deviceId;
           notifyBLEChar.value = true; //已连接过蓝牙不需要重新开启监听
@@ -392,7 +406,8 @@ const readBlueOn = (params) => {
       console.log('启用 notify 功能', res)
       notifyBLEChar.value = true;
       blueToothInit.value.deviceId = params;
-      blueToothDevices.value.push(params);
+      // blueToothDevices.value.push(params);
+      isOpenOnBlue.value = true;//已开启蓝牙监听，不需要重复开启
 
       uni.hideLoading();
       setTimeout(function () {
@@ -622,6 +637,7 @@ const goForm = () => {
 
 //激活电子标签
 const goActive = () => {
+  console.log('随机数secRandom' + secRandom.value);
   uni.showLoading({
     title: '正在进行设备双向认证~~~',
     mask: true
@@ -653,6 +669,10 @@ const goActive = () => {
                   }, 100)
                 }
               }, 10000)
+            } else if (res.code == '-93') {
+              closeLoad('安全模块未备案');
+            } else {
+              closeLoad('双向认证失败-4');
             }
           })
         } else {
