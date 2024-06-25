@@ -149,14 +149,16 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
 import keyboard from '@/pages/components/keyboard.vue'
+import { sendCmd, addPrivateWriteAOSpec, ab2hex } from "../../utils/bluetooth";
+import { analysisCarNumber, analysisJlyCID, addZeroBefore, binaryToHexArray } from '@/utils/message'
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo, samsn } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, samsn, isReadRules, readRules, writeRules, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 console.log(tagsInfo.value);
 tagsInfo.value.jlyCID = 'CSU5B23001207';
 tagsInfo.value.jlyID = '8412345678';
-import { analysisCarNumber, analysisJlyCID, addZeroBefore, binaryToHexArray } from '@/utils/message'
+tagsInfo.value.PlateLicense = 'A23B';
 import { writeData } from '../../api/index'
 
 const showKeyboard = ref(false);
@@ -177,6 +179,7 @@ const binary = ref({
 	'jlyCID_binary': '',//行驶记录仪编号 53
 });
 
+let writeDataArr = []; //需要写入设备的十六进制数组
 
 const keyList = ref([
 	[{ name: '京', value: '000001' }, { name: '津', value: '000010' }, { name: '冀', value: '000011' }, { name: '晋', value: '000100' }, { name: '蒙', value: '000101' }, { name: '辽', value: '000110' }, { name: '吉', value: '000111' }, { name: '黑', value: '001000' }, { name: '沪', value: '001001' }],
@@ -285,8 +288,91 @@ const confirm = () => {
 	writeData({ tid: tid, data1: hexStr, data2: '', samsn: samsn.value }).then((res) => {
 		if (res.code == 0) {
 			console.log('接口请求成功', res.message);
+			writeDataArr = hexStringToByteArray(res.message);
+			console.log(writeDataArr);
+			uni.showLoading({
+				title: '正在写入电子标签~~~',
+				mask: true
+			})
+			inventRead();
 		}
 	})
+}
+
+//监听
+
+//startAddAO 监听是否可以添加AO
+watch(() => {
+	return [startAddAO.value];
+}, ([newStartAddAO], [oldStartAddAO]) => {
+	if (newStartAddAO != oldStartAddAO && newStartAddAO == true) { //监听是否可以添加AO true可以添加AO 
+		let tid = tagsInfo.value.TID.toUpperCase();
+		console.log('tid', tid);
+		tid = hexStringToByteArray(tid);
+		console.log('tid2：', tid);
+		addPrivateWriteAOSpec(tid, writeDataArr);//开始添加AO
+	}
+
+})
+
+
+//删除RO规则
+const deleteSelectSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0x92, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xce, 0x00, 0x00, 0x00, 0x00, 0xab, 0x00, 0x7e];
+//删除AO规则
+const deleteAccessSpec = [0x7e, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x11, 0x22, 0x33, 0x44, 0x01, 0x01, 0xc4, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xcd, 0x00, 0x00, 0x00, 0x00, 0x86, 0xdd, 0x7e];
+
+//标签写入
+// let _inventTime;
+const inventRead = () => {
+	console.log(23333);
+	isReadRules.value = false;//当前状态 写入电子标签需要五步
+	startAddAO.value = false;//是否可以添加AO 使用监听
+	// tipsInfo.value = {}; //清空ts响应
+	// tagsInfo.value = {}; //清空store 存储
+	console.log("readRules:" + JSON.stringify(readRules.value));
+	console.log("writeRules:" + JSON.stringify(writeRules.value));
+	if (writeRules.value.deleteRO) {  //已经删除RO
+		//已经删除RO，可直接删除AO
+		console.log('已经删除RO，可直接删除AO');
+		sendCmd(deleteAccessSpec); //删除AO
+	} else {
+		console.log('未删除RO，先删除RO');
+		sendCmd(deleteSelectSpec); //删除RO应答
+	}
+
+	// if (!readRules.value.deleteRO) {
+	// 	sendCmd(deleteSelectSpec); //删除RO应答
+	// } else if (readRules.value.deleteRO && !readRules.value.addRO) {
+	// 	console.log('--------添加RO应答Start-------', 'add');
+	// 	addUserSelectSpec(1, 4, 9);
+	// } else {
+	// 	console.log('--------启动RO应答Start-------', 'add');
+	// 	sendCmd(startSelectSpec); //启动RO应答
+	// }
+
+	// _inventTime = setTimeout(function () {
+	// 	if (Object.keys(tagsInfo.value).length === 0) {
+	// 		uni.hideLoading();
+	// 		setTimeout(function () {
+	// 			uni.showToast({
+	// 				title: '读卡失败',
+	// 				icon: 'error'
+	// 			});
+	// 		})
+	// 	}
+	// }, 5000)
+}
+
+//字符串转十六进制数组
+const hexStringToByteArray = (hexString) => {
+	let byteArray = [];
+	for (let i = 0; i < hexString.length; i += 2) {
+		let byte = parseInt(hexString.substr(i, 2), 16);
+		byteArray.push(byte);
+	}
+	var sdata = ab2hex(byteArray);
+	console.log('十六进制：' + sdata);
+	return byteArray;
 }
 
 </script>
