@@ -1,44 +1,57 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
 import { useUserStore } from '@/store'
+import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+import { getPhoneLoginHistory } from '@/api'
+
+
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
-console.log("🚀 ~ userInfo.value:", userInfo.value)
-import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+const { deviceId, } = storeToRefs(userStore)
+
 const Toast = useToast()
 
-const accountList = ref([
-  {
-    phone: '13320134803',
-    userName: '客服主管',
-    userType: 2,
-    userTypeStr: '【主管账号】'
-  },
-  {
-    phone: '19815103583',
-    userName: '测试企业',
-    userType: 1,
-    userTypeStr: '【企业账号】'
-  },
-  {
-    phone: '19210964479',
-    userName: '管理员',
-    userType: 0,
-    userTypeStr: '【管理员账号】'
-  },
-  {
-    phone: '13333333333',
-    userName: '王树杭',
-    userType: 3,
-    userTypeStr: '【个人账号】'
-  },
-])
+const accountList = ref([])
+onLoad(() => {
+  if (deviceId.value) {
+    console.log("有设备id");
+    getLoginHistoryFn()
+  } else {
+    console.log("没有设备id，获取设备id");
+    uni.getSystemInfo({
+      success: (res) => {
+        deviceId.value = res.deviceId
+        getLoginHistoryFn()
+      },
+      fail: (err) => {
+        console.log("获取系统信息失败", err);
+      },
+    });
+  }
+})
+
+
+const getLoginHistoryFn = async () => {
+  const { code, data, msg } = await getPhoneLoginHistory(deviceId.value)
+  if (code != 0) return Toast.warning(msg)
+  accountList.value = data
+}
 
 const handleChangeAccout = (param) => {
-  if (param.phone === userInfo.value.phone) return;
-  param["isLastingCookie"] = false;
-  param["platform"] = 1;
+  if (param.phone === userInfo.value.phone) return Toast.warning("当前账号已登录");
+  userStore.loginInfo({
+    phone: param.phone,
+    password: param.password,
+    isLastingCookie: false,
+    phoneId: deviceId.value,
+    platform: 1
+  })
+}
 
+const userTypeList = {
+  1: "企业",
+  2: "主管",
+  3: "工程师"
 }
 
 </script>
@@ -51,9 +64,11 @@ const handleChangeAccout = (param) => {
       <view class="accountList">
         <view v-for="(item, key, index) in accountList" :index="index" class="account_item"
           @tap="handleChangeAccout(item)" :key="index" :class="item.phone === userInfo.phone ? 'active' : ''">
-          <text class="userName">{{ item.userTypeStr }} {{ item.userName ? item.userName : "" }} {{ item.phone }}</text>
+          <text class="userName">【{{ userTypeList[item.userType] }}】 {{ item.userName ? item.userName : "" }} {{
+            item.phone }}</text>
           <text class="logining" v-if="item.phone === userInfo.phone">当前登录账号</text>
         </view>
+        <wd-status-tip v-if="accountList.length == 0" image="content" tip="暂无账号" />
       </view>
     </view>
   </view>

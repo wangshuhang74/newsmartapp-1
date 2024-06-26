@@ -3,39 +3,78 @@ import navbar from '@/pages/components/navbar.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import Alipay from "../../static/images/my/Alipay.png"
 import WeChatPay from "../../static/images/my/WeChatPay.png"
+import { getPayClient, getList, userPayment } from '@/api'
 
 const Toast = useToast()
-
-const columnsOrg = ref(['企业1', '企业2', '企业3', '企业4', '企业5', '企业6', '企业7'])
-const columnsWork = ref(['工单1', '工单2', '工单3', '工单4', '工单5', '工单6', '工单7'])
-const postForm = ref({
-  orgValue: null,
-  workValue: null,
-  timeValue: null,
-  price: null,
-  payment: 3
-
+const columnsOrg = ref([])
+const columnsWork = ref([])
+const payInfo = ref({
 })
-const payBtn = async () => {
 
+const payForm = ref({
+  orderId: 0, //工单id
+  payAmount: "00.00", //支付金额
+  payWay: "现金", //支付方式
+})
+
+const getWorkForm = ref({
+  pageNum: 1,
+  pageSize: 999,
+  type: 10,
+  clientId: null
+})
+const workList = ref([])
+
+
+onMounted(() => {
+  getPayClientFn()
+})
+
+const payBtn = async () => {
+  const { code, data, msg } = await userPayment(payForm.value)
+  if (code != 0) return Toast.error(msg)
+  Toast.success("支付完成")
+}
+
+const getPayClientFn = async () => {
+  const { code, data, msg } = await getPayClient()
+  if (code != 0) return Toast.warning(msg)
+  columnsOrg.value = data.map(item => {
+    return {
+      label: item.clientName,
+      value: item.clientId
+    }
+  })
+}
+
+const getWorkListFn = async () => {
+  console.log("getWorkListFn");
+  const { code, data, msg } = await getList(getWorkForm.value)
+  if (code != 0) return Toast.error(msg)
+  workList.value = data.records
+  columnsWork.value = data.records.map(item => {
+    return {
+      label: item.orderId,
+      value: item.orderId
+    }
+  })
 }
 
 function handleConfirmOrg({ value }) {
-  postForm.value.orgValue = value
+  getWorkForm.value.clientId = value
+  getWorkListFn()
 }
 
-function handleConfirmWork({ value }) {
-  postForm.value.workValue = value
+function handleConfirmWork(res) {
+  workList.value.forEach(item => {
+    if (item.orderId == res.value) {
+      payInfo.value = item
+    }
+  })
 }
 
-function radioChange(e) {
-  console.log("🚀 ~ radioChange ~ e:", e)
-}
-
-function priceBlur() {
-  console.log("🚀 ~ priceBlur ~ postForm.value.price:", postForm.value.price)
-  postForm.value.price = parseFloat(postForm.value.price).toFixed(2);
-}
+function radioChange(e) { }
+function payAmountBlur() { }
 
 </script>
 <template>
@@ -44,50 +83,45 @@ function priceBlur() {
     <navbar :title="'用户收款'" />
     <view class="receive_flow">
       <view class="select_org_box">
-        <wd-picker :columns="columnsOrg" custom-class="selects" label="选择付款企业:" v-model="postForm.orgValue"
-          @confirm="handleConfirmOrg" />
+        <wd-picker :columns="columnsOrg" custom-class="selects" label="选择付款企业:" @confirm="handleConfirmOrg" />
       </view>
-
       <view class="select_work_box">
-        <wd-picker :columns="columnsWork" custom-class="selects " label="工单:" v-model="postForm.workValue"
+        <wd-picker :columns="columnsWork" custom-class="selects" :readonly="!getWorkForm.clientId" label="工单编号:"
           @confirm="handleConfirmWork" />
         <view class="times">
           <view class="label">完成时间:</view>
-          <view class="time_val">{{ postForm.timeValue ? postForm.timeValue : '系统自识别' }}</view>
+          <view class="time_val">{{ payInfo.createTime ? payInfo.createTime : '系统自识别' }}</view>
         </view>
-        <view class="price_box">
-          <view class="price_label">金额</view>
-          <input class="price_val" type="number" placeholder="请输入金额" v-model.number="postForm.price"
-            @blur="priceBlur" />
+        <view class="payAmount_box">
+          <view class="payAmount_label">金额</view>
+          <input class="payAmount_val" type="number" disabled placeholder="0.00" v-model.number="payForm.payAmount"
+            @blur="payAmountBlur" />
         </view>
       </view>
 
       <view class="tps">请选择支付方式</view>
 
       <view class="pay_box">
-        <!-- dot 点状单选 -->
-        <wd-radio-group v-model="postForm.payment" shape="dot" @change="radioChange">
-          <wd-radio :value="1">
+        <wd-radio-group v-model="payForm.payWay" shape="dot" @change="radioChange">
+          <wd-radio value="支付宝">
             <image class="zfb_img" src="../../static/images/my/zfb.png" mode="scaleToFill" />
             <text class="pay_text">支付宝支付</text>
           </wd-radio>
 
-
-          <wd-radio :value="2">
+          <wd-radio value="微信">
             <image class="wx_img" src="../../static/images/my/wx.png" mode="scaleToFill" />
             <text class="pay_text">微信支付</text>
           </wd-radio>
 
-          <wd-radio :value="3">
+          <wd-radio value="现金">
             <image class="xj_img" src="../../static/images/my/xj.png" mode="scaleToFill" />
             <text class="pay_text">现金支付</text>
           </wd-radio>
         </wd-radio-group>
 
-        <view class="qr_code_box" v-if="postForm.payment == 1 || postForm.payment == 2">
-          <image :src="postForm.payment == 1 ? Alipay : WeChatPay" class="qr_img" mode="scaleToFill" />
+        <view class="qr_code_box" v-if="payForm.payWay == '支付宝' || payForm.payWay == '微信'">
+          <image :src="payForm.payWay == '支付宝' ? Alipay : WeChatPay" class="qr_img" mode="scaleToFill" />
         </view>
-
       </view>
 
       <button class="payBtn" @tap="payBtn">请扫码支付/已完成付款</button>
@@ -150,6 +184,10 @@ function priceBlur() {
         border-bottom: 6rpx dashed #B2B2B2;
         padding-bottom: 10rpx;
 
+        .label {
+          margin-left: 8rpx;
+        }
+
         .time_val {
           text-align: right;
           font-size: 28rpx;
@@ -158,7 +196,7 @@ function priceBlur() {
         }
       }
 
-      .price_box {
+      .payAmount_box {
         width: 95%;
         height: 120rpx;
         margin: 0 auto;
@@ -166,13 +204,13 @@ function priceBlur() {
         justify-content: space-between;
         align-items: center;
 
-        .price_label {
+        .payAmount_label {
           font-weight: bold;
           font-size: 30rpx;
           color: #000000;
         }
 
-        :deep(.price_val) {
+        :deep(.payAmount_val) {
           font-weight: bold;
           flex: 1;
           text-align: right;
@@ -209,7 +247,7 @@ function priceBlur() {
       box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);
       border-radius: 14rpx 14rpx 14rpx 14rpx;
       overflow: hidden;
-      margin-bottom: 120rpx;
+      margin-bottom: 60rpx;
 
       :deep(.wd-radio-group) {
         width: 92%;

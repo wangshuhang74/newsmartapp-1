@@ -44,15 +44,15 @@ const registerBtn = async () => {
 let timer;
 const SendCodeFlag = ref(false)
 const SendSecond = ref(60) // 倒计时
-const SendCodeFn = async () => {
+const SendCodeFn = async () => { // 发送验证码
   if (!postForm.value.phone) return Toast.warning('请输入手机号')
   if (!/^1[3456789]\d{9}$/.test(postForm.value.phone)) return Toast.warning('请输入正确的手机号')
-  if (SendSecond.value !== 60) return
+  // if (SendSecond.value !== 60) return
   if (SendCodeFlag.value) return
-  SendCodeFlag.value = true
   const { code, data, msg } = await sendCode(postForm.value.phone)
   if (code != 0) return Toast.warning(msg)
   Toast.success('验证码发送成功')
+  SendCodeFlag.value = true
   timer = setInterval(() => {
     if (SendSecond.value > 0) {
       SendSecond.value--

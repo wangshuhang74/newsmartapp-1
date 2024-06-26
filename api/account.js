@@ -48,3 +48,19 @@ export const getUserArchive = () => {
 export const removeUserTag = (tagId) => {
     return http.post(`/account/removeUserTag${tagId ? '?tagId=' + tagId : ''}`,);
 };
+
+// /app/getPayClient // 获取付款企业
+export const getPayClient = () => {
+    return http.post("/app/getPayClient",);
+};
+
+// /app/userPayment // 确认用户付款
+export const userPayment = (params) => {
+    return http.post("/app/userPayment", params);
+};
+
+// /account/getPhoneLoginHistory // 获取手机登录历史
+// phoneId
+export const getPhoneLoginHistory = (phoneId) => {
+    return http.post(`/account/getPhoneLoginHistory${phoneId ? '?phoneId=' + phoneId : ''}`);
+};

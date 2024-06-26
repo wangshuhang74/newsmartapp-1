@@ -2,12 +2,13 @@
 import { useNotify, useToast, useMessage, useQueue } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import dayjs from 'dayjs';
-import { finishedList, getClientOption,getWorkerList } from '@/api'
-import { useUserStore } from '@/store'
+import { finishedList, getClientOption, getWorkerList } from '@/api'
+import { useUserStore, useWorkStore } from '@/store'
 
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const { userInfo } = storeToRefs(useUserStore())
+const { workDetail } = storeToRefs(useWorkStore())
 
 const workList = ref([])
 const getForm = ref({
@@ -158,6 +159,13 @@ function handleChange4({ value }) {
   getForm.value.pageNum = 1
   workList.value = []
   getListFn()
+}
+
+const clickItem = (item) => {
+  workDetail.value = item
+  uni.navigateTo({
+    url: "/pagesFn/work/workDetails",
+  })
 }
 
 </script>

@@ -70,7 +70,6 @@ http.interceptors.response.use(
 				});
 			}
 		}
-		console.log("🚀 ~ response ~ response.data:", response.data)
 		return response.data;
 
 

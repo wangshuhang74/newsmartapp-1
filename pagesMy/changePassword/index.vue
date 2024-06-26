@@ -53,11 +53,11 @@ const SendCodeFn = async () => {
   if (!postForm.value.repeatPwd) return Toast.warning('请确认新密码')
   if (!postForm.value.phone) return Toast.warning('请输入手机号')
   if (!/^1[3456789]\d{9}$/.test(postForm.value.phone)) return Toast.warning('请输入正确的手机号')
-  if (SendSecond.value !== 60) return
+  // if (SendSecond.value !== 60) return
   if (SendCodeFlag.value) return
-  SendCodeFlag.value = true
   const { code, data, msg } = await sendCode(postForm.value.phone)
   if (code != 0) return Toast.warning(msg)
+  SendCodeFlag.value = true
   Toast.success('验证码发送成功')
   timer = setInterval(() => {
     if (SendSecond.value > 0) {

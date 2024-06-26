@@ -5,8 +5,11 @@ import marker1_active from '@/static/images/homeMap/marker1_active.png'
 import marker2 from '@/static/images/homeMap/marker2.png'
 import marker2_active from '@/static/images/homeMap/marker2_active.png'
 import { toNavigation, makePhoneCall } from '@/utils'
+import { getList } from '@/api'
 
-import { useUserStore } from '@/store'
+import { useUserStore, useWorkStore } from '@/store'
+const { workDetail } = storeToRefs(useWorkStore())
+
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
 // defineOptions({
@@ -20,126 +23,19 @@ const userMap = ref({
   latitude: 39.90923
 })
 
-
 const mapCtx = ref(null)
 const markers = ref([])
 const mapScale = ref(14)
 const cardFlag = ref(false)
 const wordcard = ref({})
+const newEquip = ref({})
+const oldMaintain = ref({})
 
-const wordList = ref([
-  {
-    id: '1',
-    engineerName: '张1',
-    engineerPhone: '12345678901',
-    equipmentName: '行车记录仪1',
-    name: '测试地址',
-    address: '北京市东城区东直门',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '119.969352',
-    latitude: '30.530828',
-    workType: 1,
-  },
-  {
-    id: '2',
-    engineerName: '李2',
-    engineerPhone: '12345678901',
-    equipmentName: '行车记录仪2',
-    name: '测试地址',
-    address: '北京市东城区东直门',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '119.974166',
-    latitude: '30.532901',
-    workType: 2,
-  },
-  {
-    id: '3',
-    engineerName: '张三',
-    engineerPhone: '12345678901',
-    equipmentName: '行车记录仪3',
-    name: '测试地址',
-    address: '人民医院',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '119.962743',
-    latitude: '30.536422',
-    workType: 1,
 
-  },
-  {
-    id: '4',
-    engineerName: '李四',
-    engineerPhone: '12345678901',
-    equipmentName: '行车记录仪4',
-    name: '测试地址',
-    address: '北京市东城区东直门',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '119.968168',
-    latitude: '30.539877',
-    workType: 1,
-  },
-  {
-    id: '5',
-    engineerName: '李5',
-    engineerPhone: '12345678901',
-    equipmentName: '行车记录仪5',
-    name: '测试地址',
-    address: '中医药',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '119.970842',
-    latitude: '30.530335',
-    workType: 2,
-  },
-  {
-    id: '6',
-    engineerName: '李6',
-    engineerPhone: '12345678901',
-    equipmentName: '行车记录仪6',
-    name: '测试地址',
-    address: '实验学校',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '119.971624',
-    latitude: '30.523604',
-    workType: 2,
-  },
-  {
-    id: '7',
-    engineerName: '张7',
-    engineerPhone: '546734576547',
-    equipmentName: '行车记录仪7',
-    name: '测试地址',
-    address: '东城时代',
-    equipmentType: 'X001',
-    equipmentCode: '23432234',
-    longitude: '120.001324',
-    latitude: '30.538259',
-    workType: 1,
-  },
-  {
-    id: '8',
-    engineerName: '张8',
-    engineerPhone: '7565745',
-    equipmentName: '行车记录仪8',
-    name: '测试地址',
-    address: '沃尔玛',
-    equipmentType: 'X001',
-    equipmentCode: '124',
-    longitude: '119.968017',
-    latitude: '30.535847',
-    workType: 1,
-  },
-])
+const wordList = ref([])
 const wordListMap = ref(new Map())
 const activeMarker = ref(null)
-onShow(() => {
-  userStore.isLoginFn()
-  getLocation()
-})
+
 watch(() => {
   return [userMap.value];
 }, ([newUserMap], [oldUserMap]) => {
@@ -152,42 +48,72 @@ watch(() => {
   }
 )
 
-
-
+onShow(() => {
+  userStore.isLoginFn()
+})
 onMounted(() => {
   mapCtx.value = uni.createMapContext('myMap', this)
-  console.log("mapCtx", mapCtx.value);
-
-
-  addMarkers(wordList.value)
+  // console.log("mapCtx", mapCtx.value);
+  getLocation()
 })
 
+const getListFn = async () => {
+  wordList.value = []
+  {
+    let getForm = {
+      pageNum: 1,
+      pageSize: 9999,
+      type: 4 // 4新装 3运维
+    }
+    const { code, data, msg } = await getList(getForm)
+    if (code != 0) return Toast.error(msg)
+    newEquip.value = data
+    addMarkers(data.records)
+    // wordList.value = [...wordList.value, ...data.records]
+    // data.total
+    // data.records
+  }
+  {
+    let getForm = {
+      pageNum: 1,
+      pageSize: 9999,
+      type: 3 // 4新装 3运维
+    }
+    const { code, data, msg } = await getList(getForm)
+    if (code != 0) return Toast.error(msg)
+    oldMaintain.value = data
+    addMarkers(data.records)
+    // wordList.value = [...wordList.value, ...data.records]
+    // data.records
+  }
+}
+
 const addMarkers = (list) => {
-  markers.value = list.map((item) => {
+  wordList.value = [...wordList.value, ...list, { orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]
+  markers.value = wordList.value.map((item) => {
+    // console.log("item.lat", item.lat);
+    // console.log("item.lng", item.lng);
     return {
-      id: Number(item.id),
-      latitude: item.latitude,
-      longitude: item.longitude,
+      id: item.orderId,
+      latitude: item.lat,
+      longitude: item.lng,
       width: 48,
       height: 48,
-      iconPath: item.workType == 1 ? marker1 : marker2, //视图显示图标 
-      item
+      iconPath: item.orderType == 3 ? marker1 : marker2, //视图显示图标 
+      workItem: item
     }
   })
+  // console.log("markers.value2", markers.value);
+  setMyMarker(userMap.value)
   markers.value.forEach((item) => {
     wordListMap.value.set(item.id, item)
   });
+  // markers.value.push({})
 }
 
 const onMarkerTap = (e) => {
-  // uni.navigateTo({
-  //   url: `/pagesFn/newInstall/index`
-  // })
-  // uni.switchTab({
-  //   url: `/pages/fn/index`
-  // })
   const marker = wordListMap.value.get(e.detail.markerId)
-  if (activeMarker.value && activeMarker.value.id == marker.id) { //点击了相同的marker 
+  if (activeMarker?.value && activeMarker?.value?.id == marker?.id) { //点击了相同的marker 
     activeMarkerClickNo()
     activeMarker.value = null
   } else {
@@ -197,21 +123,20 @@ const onMarkerTap = (e) => {
 }
 
 const activeMarkerClickNo = () => {
-  if (!activeMarker.value) return
+  if (!activeMarker?.value) return
   cardFlag.value = false
-  activeMarker.value.iconPath = activeMarker?.value?.item.workType == 1 ? marker1 : marker2
+  activeMarker.value.iconPath = activeMarker?.value?.workItem?.orderType == 3 ? marker1 : marker2
   activeMarker.value.width = 48
   activeMarker.value.height = 48
-  wordcard.value = activeMarker?.value?.item
+  wordcard.value = activeMarker?.value?.workItem
 }
 
 const activeMarkerClickYes = (marker,) => {
   cardFlag.value = true
-  wordcard.value = marker.item
-  marker.iconPath = marker.item.workType == 1 ? marker1_active : marker2_active
+  wordcard.value = marker.workItem
+  marker.iconPath = marker?.workItem?.orderType == 3 ? marker1_active : marker2_active
   marker.width = 66
   marker.height = 66
-  console.log("wordcard.value", wordcard.value);
   activeMarker.value = marker; // 更新当前高亮的标记点
 }
 
@@ -239,9 +164,10 @@ const getLocation = () => {
       userMap.value.latitude = res.latitude;
       userMap.value.longitude = res.longitude;
       mapCtx.value.moveToLocation();
-      setMyMarker(res)
       mapScale.value = 16
-
+      cardFlag.value = false
+      setMyMarker(userMap.value)
+      getListFn()
     },
     fail: (err) => {
       console.log(err);
@@ -250,13 +176,20 @@ const getLocation = () => {
 };
 
 const setMyMarker = (val) => {
-  console.log("markers", val);
   markers.value.splice(markers.value.length - 1, 1, {
     latitude: val.latitude,
     longitude: val.longitude,
     iconPath: myLocation, //视图显示图标 
     width: 48,
     height: 48,
+  })
+}
+
+const clickItem = (item) => {
+  console.log("item", item);
+  workDetail.value = item
+  uni.navigateTo({
+    url: "/pagesFn/work/workDetails",
   })
 }
 
@@ -284,17 +217,18 @@ const setMyMarker = (val) => {
         <cover-image class=right_location src="http://116.62.107.90:8673/images/homeMap/right_location.png"
           @tap="getLocation" />
         <cover-view class="scan_box">
+          <!-- fns/qr_img.png -->
           <cover-image class="scan" src="http://116.62.107.90:8673/images/homeMap/scan.png" @tap="scanBtn" />
         </cover-view>
       </cover-view>
 
       <cover-view class="top_card">
         <cover-view class="card_item">
-          <cover-view class="val">25</cover-view>
+          <cover-view class="val">{{ newEquip?.total ? newEquip?.total : 0 }}</cover-view>
           <cover-view class="text">待新装</cover-view>
         </cover-view>
         <cover-view class="card_item">
-          <cover-view class="val">25</cover-view>
+          <cover-view class="val">{{ oldMaintain?.total ? oldMaintain?.total : 0 }}</cover-view>
           <cover-view class="text">待运维</cover-view>
         </cover-view>
       </cover-view>
@@ -305,23 +239,28 @@ const setMyMarker = (val) => {
           <cover-view class="navigation">
             <cover-view class="text" @tap="toNavigation(wordcard)">导航</cover-view>
           </cover-view>
+          <cover-view class="clickItem">
+            <cover-view class="text" @tap="clickItem(wordcard)">查看详情</cover-view>
+          </cover-view>
         </cover-view>
         <cover-view class="body_info">
           <cover-view class="item">
             <cover-view class="label">工程师：</cover-view>
-            <cover-view class="val">{{ wordcard?.engineerName ? wordcard?.engineerName : '-' }}</cover-view>
+            <cover-view class="val">{{ wordcard?.contactName ? wordcard?.contactName : '-' }}</cover-view>
           </cover-view>
 
           <cover-view class="item">
             <cover-view class="label">联系电话：</cover-view>
-            <cover-view class="val">{{ wordcard?.engineerPhone ? wordcard?.engineerPhone : '-' }}</cover-view>
+            <cover-view class="val">{{ wordcard?.contactPhone ? wordcard?.contactPhone : '-' }}</cover-view>
             <cover-image class="image" src="http://116.62.107.90:8673/images/homeMap/phone.png"
-              @tap="makePhoneCall(19815103583)" />
+              @tap="makePhoneCall(wordcard?.contactPhone)" />
           </cover-view>
 
           <cover-view class="item">
-            <cover-view class="label">新装设备：</cover-view>
-            <cover-view class="val">{{ wordcard?.equipmentName ? wordcard?.equipmentName : '-' }}</cover-view>
+            <cover-view class="label">{{ wordcard.orderType == 3 ? '新装设备：' : '运维内容：' }} </cover-view>
+            <cover-view class="val" v-if="wordcard.orderType == 3">{{ wordcard?.equipmentName ? wordcard?.equipmentName
+              : '-' }}</cover-view>
+            <cover-view class="val" v-else>{{ wordcard?.equipmentName ? wordcard?.equipmentName : '-' }}</cover-view>
           </cover-view>
 
           <cover-view class="item">
@@ -332,14 +271,14 @@ const setMyMarker = (val) => {
           </cover-view>
 
           <cover-view class="item">
-            <cover-view class="label">设备型号：</cover-view>
-            <cover-view class="val">{{ wordcard?.equipmentType ? wordcard?.equipmentType : '-' }}</cover-view>
+            <cover-view class="label">{{ wordcard.orderType == 3 ? '设备型号：' : '故障概述：' }}</cover-view>
+            <cover-view class="val">{{ wordcard?.contactName ? wordcard?.contactName : '-' }}</cover-view>
           </cover-view>
 
 
           <cover-view class="item">
             <cover-view class="label">设备序列号：</cover-view>
-            <cover-view class="val">{{ wordcard?.equipmentCode ? wordcard?.equipmentCode : '-' }}</cover-view>
+            <cover-view class="val">{{ wordcard?.terminalSerial ? wordcard?.terminalSerial : '-' }}</cover-view>
           </cover-view>
 
         </cover-view>
@@ -563,6 +502,24 @@ const setMyMarker = (val) => {
             margin-top: 10rpx;
           }
         }
+
+        .clickItem {
+          height: 47rpx;
+          width: 130rpx;
+          margin-top: 10rpx;
+          margin-left: 20rpx;
+          font-size: 25rpx;
+          line-height: 47rpx;
+          color: #1685FF;
+          text-align: center;
+          background: #FFFFFF;
+          border-radius: 7rpx 7rpx 7rpx 7rpx;
+
+          .text {
+            margin-top: 10rpx;
+          }
+        }
+
       }
 
       .body_info {

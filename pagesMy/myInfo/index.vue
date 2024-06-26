@@ -45,6 +45,7 @@ const cancelTag = (item) => {
 
 
 const lookover = (urls) => {
+  if(!urls) return Toast.warning('暂未上传附件!')
   imgs.value = urls.split(',')
   preview(imgs.value[0])
 }
