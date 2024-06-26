@@ -71,6 +71,7 @@
         </view>
         <view class="open_blue">
           <view class="btn search_btn" v-if="!BluetoothDevicesDiscovery && !BLEConnection" @tap="searchBlue">搜索设备</view>
+          <view class="btn search_btn" v-if="BLEConnection && notifyBLEChar" @tap="goAuth">双向认证</view>
           <view class="btn" @tap="nextStep(3)" v-if="BLEConnection && notifyBLEChar">连接成功，下一步</view>
         </view>
       </view>
@@ -80,15 +81,16 @@
         <view class="open_blue">
           <!-- <view class="btn search_btn" @tap="readRandom">安全模块随机数</view>
           <view class="btn search_btn" @tap="sendCmd(secSNQuery)">安全模块序列号</view> -->
-          <view class="btn search_btn" @tap="goActive">双向认证</view>
-          <view class="btn" @tap="nextStep(4)">已激活，下一步</view>
+          <view class="btn search_btn" @tap="goActive('user0')">激活电子车牌</view>
+          <view class="btn" @tap="goActive('user1')">已激活，下一步</view>
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main4" v-if="currentStep == 4">
         <image src="http://116.62.107.90:8673/images/tips/connect_blue4.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">激活成功！</view>
         <view class="open_blue">
-          <view class="btn" @tap="goForm">读写数据</view>
+          <view class="btn" @tap="goForm" style="margin-bottom: 20rpx;">读写数据</view>
+          <view class="btn search_btn" @tap="goBack">返回上一步</view>
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main4 blue_main5" v-if="currentStep == 5">
@@ -108,11 +110,11 @@
 <script setup>
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
-import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safeSn, authStatus, getDeviceSecConfig, readRandom, addUserSelectSpec } from "../../utils/bluetooth";
+import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safeSn, authStatus, writeStatus, getDeviceSecConfig, readRandom, addUserSelectSpec } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
-const { tagsInfo, blueToothDevices, isOpenOnBlue, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
+const { tagsInfo, blueToothDevices, isOpenOnBlue, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO, addROArea } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -133,6 +135,7 @@ onLoad((opt) => {
   secRandom.value = '';
   safeSn.value = '';
   authStatus.value = false;
+  writeStatus.value = false; //私有写结果
 })
 
 onUnload(() => {
@@ -434,31 +437,43 @@ const readBlueOn = (params) => {
               sendCmd(deleteAccessSpec); //删除AO
             } else {
               console.log('--------read 未添加过AO 直接执行添加RO-------', '403');
-              addUserSelectSpec(1, 4, 9); //没有执行过addAO 直接添加RO
+
+              //没有执行过addAO 直接添加RO
+              if (addROArea.value == 'user1') {
+                addUserSelectSpec(1, 4, 9);
+              } else {
+                addUserSelectSpec(0, 4, 10);
+              }
             }
             readRules.value.deleteRO = true;
             writeRules.value.deleteRO = true;// 同时修改写写入删除RO为true,删除RO不需要重复执行
-            console.log("deleteRO:" + readRules.value.deleteRO);
           } else if (result == '453') {
             console.log('--------read 已完成删除AO 开始执行添加RO或者启动RO-------', '453');
             if (readRules.value.addRO) {
               console.log('--------read 已添加过RO 直接执行启动RO-------', '453');
               sendCmd(startSelectSpec); //启动RO应答
             } else {
-              console.log('--------read 未添加过RO 先执行启动RO-------', '453');
-              addUserSelectSpec(1, 4, 9); //删除AO后执行添加RO
+              console.log('--------read 未添加过RO 先执行添加RO-------', '453');
+
+              console.log('addROArea', addROArea.value);
+              //删除AO后执行添加RO
+              if (addROArea.value == 'user1') {
+                console.log('1,4,9');
+                addUserSelectSpec(1, 4, 9);
+              } else {
+                console.log('0,4,10');
+                addUserSelectSpec(0, 4, 10);
+              }
             }
             readRules.value.addAO = false;
           } else if (result == '401') {
-            console.log('--------启动RO应答Start-------', '401');
+            console.log('-------已完成添加RO 开始执行启动RO-------', '401');
             sendCmd(startSelectSpec); //启动RO应答
             readRules.value.addRO = true;
             writeRules.value.addRO = true;// 同时修改写写入添加RO为true,添加RO不需要重复执行
-            console.log("addRO:" + readRules.value.addRO);
           } else if (result == '405') {
-            console.log('--------已启动RO应答End-------');
+            console.log('--------已完成启动RO End-------');
             readRules.value.startRO = true;
-            console.log("startRO:" + readRules.value.startRO);
           }
         } else { //isReadRules==false 当前为写入规则
           //写规则步骤  1删除RO-403 2删除AO-453 3添加RO-401 4添加AO-451 5启动RO-405
@@ -467,7 +482,6 @@ const readBlueOn = (params) => {
             console.log('--------完成删除RO 开始删除AO-------', '403');
             sendCmd(deleteAccessSpec); //删除AO
             writeRules.value.deleteRO = true;
-            console.log("writeRules_deleteRO:" + writeRules.value.deleteRO);
           } else if (result == '453') {
             writeRules.value.deleteAO = true;
             console.log('--------完成删除AO 开始添加RO或者添加AO------', '453');
@@ -476,7 +490,13 @@ const readBlueOn = (params) => {
               startAddAO.value = true; //在form.vue中监听到startAddAO为true时，会调用addRO方法
             } else {
               console.log('--------未添加过RO 需要先添加RO------');
-              addUserSelectSpec(1, 4, 9); //添加RO
+
+              //添加RO
+              if (addROArea.value == 'user1') {
+                addUserSelectSpec(1, 4, 9);
+              } else {
+                addUserSelectSpec(0, 4, 10);
+              }
             }
           } else if (result == '401') {
             console.log('--------完成添加RO 开始添加AO-------', '401');
@@ -484,7 +504,6 @@ const readBlueOn = (params) => {
             startAddAO.value = true;//在form.vue中监听到startAddAO为true时，会调用addRO方法
 
             writeRules.value.addRO = true;
-            console.log("writeRules_addRO:" + writeRules.value.addRO);
           } else if (result == '451') {
             console.log('--------完成添加AO 开始启动RO-------', '451');
             sendCmd(startSelectSpec); //启动RO应答
@@ -500,6 +519,15 @@ const readBlueOn = (params) => {
         if (result == 500) {  //标签上报
           if (!isReadRules.value) {
             console.log('-------执行write后500-------');
+            if (writeStatus.value) {  //表示私有写成功
+              uni.hideLoading();
+              setTimeout(function () {
+                uni.showToast({ title: '写入成功', icon: 'success' });
+                // currentStep.value = 3;
+              }, 100)
+            } else {
+              closeLoad('写入失败');
+            }
             return;
           }
           tagsInfo.value = tipsInfo.value; //接收到RO结束事件
@@ -545,32 +573,48 @@ const nextStep = (obj) => {
   }
   if (obj == 3) {
     if (BluetoothAdapter.value && BLEConnection.value && notifyBLEChar.value) {
-      currentStep.value = 3;
+      sendCmd(secSNQuery.value);// 获取安全模块序列号
+      uni.showLoading({
+        title: '双向认证确认中~~~',
+        mask: true
+      })
+
+      setTimeout(function () {
+        console.log('序列号2：' + safeSn.value);
+        if (safeSn.value) {  //已获取到安全模块序列号
+          samsn.value = safeSn.value; //缓存安全模块序列号
+          uni.hideLoading();
+          setTimeout(function () {
+            uni.showToast({ title: '双向认证成功', icon: 'success' });
+            currentStep.value = 3;
+          }, 100)
+        } else {
+          closeLoad('双向认证失败！');
+        }
+      }, 500)
     }
   }
   if (obj == 4) {
-    sendCmd(secSNQuery.value);// 获取安全模块序列号
-    uni.showLoading({
-      title: '激活确认中~~~',
-      mask: true
-    })
-
-    setTimeout(function () {
-      console.log('序列号2：' + safeSn.value);
-      if (safeSn.value) {  //已获取到安全模块序列号
-        samsn.value = safeSn.value; //缓存安全模块序列号
-        uni.hideLoading();
-        setTimeout(function () {
-          uni.showToast({ title: '激活成功', icon: 'success' });
-          currentStep.value = 4;
-        }, 100)
-      } else {
-        closeLoad('激活失败！');
-      }
-    }, 500)
-
 
   }
+}
+
+//返回第三步
+const goBack = () => {
+  currentStep.value = 3;
+}
+
+
+//激活电子标签
+const goActive = (area) => {
+  console.log('原区域', addROArea.value);
+  console.log('当前切换区域', area);
+  if (addROArea.value != area) {  //切换第一次激活标签和读取标签
+    readRules.value = { deleteRO: false, addRO: false, startRO: false, addAO: true };
+    writeRules.value = { deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false }
+  }
+  addROArea.value = area;
+  currentStep.value = 4;
 }
 
 
@@ -603,7 +647,12 @@ const inventRead = () => {
     sendCmd(deleteAccessSpec); //删除AO
   } else if (readRules.value.deleteRO && !readRules.value.addRO) {
     console.log('--------添加RO应答Start-------', 'add');
-    addUserSelectSpec(1, 4, 9);
+    if (addROArea.value == 'user1') {
+      addUserSelectSpec(1, 4, 9);
+    } else {
+      addUserSelectSpec(0, 4, 10);
+    }
+
   } else {
     console.log('--------启动RO应答Start-------', 'add');
     sendCmd(startSelectSpec); //启动RO应答
@@ -635,8 +684,8 @@ const goForm = () => {
   // })
 }
 
-//激活电子标签
-const goActive = () => {
+//设备双向认证
+const goAuth = () => {
   console.log('随机数secRandom' + secRandom.value);
   uni.showLoading({
     title: '正在进行设备双向认证~~~',

@@ -26,13 +26,13 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>行驶记录仪编号</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.jlyCID" placeholder="自识别" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.U1JLYBH" placeholder="自识别" />
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>行驶记录仪安全芯片ID</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.jlyID" placeholder="自识别" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.U1AQXPID" placeholder="自识别" />
 						</view>
 					</view>
 				</view>
@@ -50,20 +50,20 @@
 							<text>省份代码</text>
 							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.SFDM" placeholder="请选择" readonly
 								 /> -->
-							<view class="boxFlex" @tap="openProvince">{{ tagsInfo.SFDM ? tagsInfo.SFDM : '请选择' }}</view>
+							<view class="boxFlex" @tap="openProvince">{{ tagsInfo.U1SFDM ? tagsInfo.U1SFDM : '请选择' }}</view>
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>车牌号码</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.PlateLicense" placeholder="自识别/请输入" />
+							<input type="text" class="boxFlex" v-model="tagsInfo.U1HPHMXH" placeholder="自识别/请输入" />
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>发牌代号</text>
 							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.FPDH" placeholder="自识别/请输入" /> -->
-							<view class="boxFlex" @tap="openFPDH">{{ tagsInfo.FPDH ? tagsInfo.FPDH : '请选择' }}</view>
+							<view class="boxFlex" @tap="openFPDH">{{ tagsInfo.U1FPDH ? tagsInfo.U1FPDH : '请选择' }}</view>
 						</view>
 					</view>
 					<view class="view_rows">
@@ -88,7 +88,7 @@
 						<view class="disBox">
 							<text>车辆类型</text>
 							<!-- <input type="text" class="boxFlex" v-model="tagsInfo.CLLX" placeholder="自识别/请选择" /> -->
-							<wd-picker :columns="carTypeList" label="" v-model="tagsInfo.CLLX" @confirm="handleConfirm"
+							<wd-picker :columns="carTypeList" label="" v-model="binary.CLLX_binary" @confirm="handleConfirm"
 								placeholder="自识别/请输入" />
 						</view>
 					</view>
@@ -149,16 +149,16 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
 import keyboard from '@/pages/components/keyboard.vue'
-import { sendCmd, addPrivateWriteAOSpec, ab2hex } from "../../utils/bluetooth";
+import { sendCmd, addPrivateWriteAOSpec, ab2hex, writeStatus } from "../../utils/bluetooth";
 import { analysisCarNumber, analysisJlyCID, addZeroBefore, binaryToHexArray } from '@/utils/message'
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
 const { tagsInfo, samsn, isReadRules, readRules, writeRules, startAddAO } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 console.log(tagsInfo.value);
-tagsInfo.value.jlyCID = 'CSU5B23001207';
-tagsInfo.value.jlyID = '8412345678';
-tagsInfo.value.PlateLicense = 'A23B';
+// tagsInfo.value.jlyCID = 'CSU5B23001207';
+// tagsInfo.value.jlyID = '8412345678';
+// tagsInfo.value.PlateLicense = 'A23B';
 import { writeData } from '../../api/index'
 
 const showKeyboard = ref(false);
@@ -200,7 +200,7 @@ const openProvince = () => {
 }
 const SFDMConfirm = (e) => {
 	console.log(e);
-	tagsInfo.value.SFDM = e.name;
+	tagsInfo.value.U1SFDM = e.name;
 	binary.value.SFDM_binary = e.value;
 }
 
@@ -220,64 +220,93 @@ const openFPDH = () => {
 	showKeyboard2.value = true;
 }
 const FPDHConfirm = (e) => {
-	tagsInfo.value.FPDH = e.name;
+	tagsInfo.value.U1FPDH = e.name;
 	binary.value.FPDH_binary = e.value;
 }
 
 
 //CLLX
 const carTypeList = ref([{ label: '大型汽车', value: '0001' }, { label: '小型汽车', value: '0010' }, { label: '使馆汽车', value: '0011' }, { label: '领馆汽车', value: '0100' }, { label: '境外汽车', value: '0101' }, { label: '外籍汽车', value: '0110' }, { label: '低速车', value: '0111' }, { label: '教练汽车', value: '1000' }, { label: '摩托车', value: '1001' }, { label: '新能源汽车', value: '1010' }, { label: '警用汽车', value: '1011' }, { label: '港澳两地车', value: '1100' }, { label: '武警车辆', value: '1101' }, { label: '军队车辆', value: '1110' }, { label: '其他车辆', value: '0000' }]);
+if (tagsInfo.value.U1HPZL) {  //U1HPZL 存在 U1HPZL=label'大型汽'
+	let temp_CLLX = carTypeList.value.find(item => {
+		return item.label == tagsInfo.value.U1HPZL;
+	})
+	binary.value.CLLX_binary = temp_CLLX.value;
+	console.log(temp_CLLX.value);
+}
 function handleConfirm (value) {
 	console.log(value);
-	tagsInfo.value.CLLX = value.value;
-	binary.value.CLLX_binary = value.value;
 }
 
+let writeTimeout = null;
+//提交写入信息
 const confirm = () => {
 	console.log(JSON.stringify(tagsInfo.value));
-	if (tagsInfo.value.PlateLicense) {  //车牌号码
-		binary.value.PlateLicense_binary = analysisCarNumber(tagsInfo.value.PlateLicense);
+	writeStatus.value = false;//初始化私有写状态
+	if (tagsInfo.value.U1HPHMXH) {  //车牌号码
+		let HPHMXH = tagsInfo.value.U1HPHMXH.toUpperCase();
+		binary.value.PlateLicense_binary = analysisCarNumber(HPHMXH);
 		console.log('车牌号码' + binary.value.PlateLicense_binary);
+	} else {
+		openToast('请输入车牌号码');
+		return;
 	}
 
-	if (tagsInfo.value.SFDM) {  //省份代码
+
+	if (tagsInfo.value.U1SFDM) {  //省份代码
 		keyListArr.find(item => {
-			if (item.name == tagsInfo.value.SFDM) {
+			if (item.name == tagsInfo.value.U1SFDM) {
 				binary.value.SFDM_binary = item.value;
 				return;
 			}
 		})
 		console.log('省份代码' + binary.value.SFDM_binary);
+	} else {
+		openToast('请选择省份代码');
+		return;
 	}
 
-	if (tagsInfo.value.FPDH) {  //发牌代号
+	if (tagsInfo.value.U1FPDH) {  //发牌代号
 		keyListArr2.find(item => {
-			if (item.name == tagsInfo.value.FPDH) {
+			if (item.name == tagsInfo.value.U1FPDH) {
 				binary.value.FPDH_binary = item.value;
 				return;
 			}
 		})
 		console.log('发牌代号' + binary.value.FPDH_binary);
+	} else {
+		openToast('请选择发牌代号');
+		return;
 	}
 
 	console.log('车辆类型' + binary.value.CLLX_binary);
+	if (!binary.value.CLLX_binary) {
+		openToast('请选择车辆类型');
+		return;
+	}
 
-	if (tagsInfo.value.jlyID) {  //行驶记录仪行驶记录仪安全芯片ID 33位
-		console.log('行驶记录仪安全芯片ID' + tagsInfo.value.jlyID);
-		let jlyID = parseInt(tagsInfo.value.jlyID, 10).toString(2);
+	if (tagsInfo.value.U1AQXPID) {  //行驶记录仪行驶记录仪安全芯片ID 33位
+		console.log('行驶记录仪安全芯片ID' + tagsInfo.value.U1AQXPID);
+		let jlyID = parseInt(tagsInfo.value.U1AQXPID, 10).toString(2);
 		if (jlyID.length < 33) {
 			jlyID = addZeroBefore(jlyID, 33);
 		}
 		binary.value.jlyID_binary = jlyID;
 		console.log('安全芯片' + binary.value.jlyID_binary);
+	} else {
+		openToast('请输入行车记录仪安全芯片ID');
+		return;
 	}
 
-	if (tagsInfo.value.jlyCID) {  //行驶记录仪编号53位
-		let jlyCID = analysisJlyCID(tagsInfo.value.jlyCID);
+	if (tagsInfo.value.U1JLYBH) {  //行驶记录仪编号53位
+		let jlyCID = tagsInfo.value.U1JLYBH.toUpperCase();
+		jlyCID = analysisJlyCID(jlyCID);
 		binary.value.jlyCID_binary = jlyCID
 		console.log('行驶记录仪编号' + binary.value.jlyCID_binary);
+	} else {
+		openToast('请输入行车记录仪编号');
+		return;
 	}
-
 
 	let binaryDataStr = binary.value.PlateLicense_binary + '' + binary.value.SFDM_binary + '' + binary.value.FPDH_binary + '' + binary.value.CLLX_binary + '' + binary.value.jlyID_binary + '' + binary.value.jlyCID_binary + '000';
 	console.log(binaryDataStr);
@@ -290,17 +319,23 @@ const confirm = () => {
 			console.log('接口请求成功', res.message);
 			writeDataArr = hexStringToByteArray(res.message);
 
-			// let temp_res = "04E881000BA1F65708015A310409F1293EBC6B97795695B65651DBC37CC5680E667A669311AC9353E2DE236431A063EC64F9E702D7C3E65205C1FB6821989C7DAF80A74EDDC956F7140D3EA5C099266A66D655F9B8A9C47886938A45CEA1FE49BEA908741829432708A8D83CD6DFA1C46B822BA5016BF61BDE5A6793DEFE207DCCC1FE9B475BE8AAA1D07C4B4B5808AF3BDDA74CC096D61FAFB8136383062FA70DFD9D96D8E280B69ED912265DF2949C16055250387BA0F5D6B0EC88EA99043B360C49BFDE802EE2BDC46499D09CC634F13DEA6E";
-			// console.log('writeDataArr', temp_res);
-			// writeDataArr = hexStringToByteArray(temp_res);
-
 			console.log(writeDataArr);
 			uni.showLoading({
 				title: '正在写入电子标签~~~',
 				mask: true
 			})
 			inventRead();
+
+			writeTimeout = setTimeout(function () {
+				closeLoad('写入失败');
+			}, 5000)
 		}
+		// else {
+		// 	uni.showToast({
+		// 		title: res.data.message,
+		// 		icon: 'none'
+		// 	})
+		// }
 	})
 }
 
@@ -308,14 +343,17 @@ const confirm = () => {
 
 //startAddAO 监听是否可以添加AO
 watch(() => {
-	return [startAddAO.value];
-}, ([newStartAddAO], [oldStartAddAO]) => {
+	return [startAddAO.value, writeStatus.value];
+}, ([newStartAddAO, newWriteStatus], [oldStartAddAO, oldWriteStatus]) => {
 	if (newStartAddAO != oldStartAddAO && newStartAddAO == true) { //监听是否可以添加AO true可以添加AO 
 		let tid = tagsInfo.value.TID.toUpperCase();
 		console.log('tid', tid);
 		tid = hexStringToByteArray(tid);
 		console.log('tid2：', tid);
 		addPrivateWriteAOSpec(tid, writeDataArr);//开始添加AO
+	}
+	if (newWriteStatus != oldWriteStatus && newWriteStatus == true) {  //监听写入状态 if写入成功 需要关闭定时器 writeTimeout
+		writeTimeout ? clearTimeout(writeTimeout) : '';
 	}
 
 })
@@ -344,28 +382,6 @@ const inventRead = () => {
 		console.log('未删除RO，先删除RO');
 		sendCmd(deleteSelectSpec); //删除RO应答
 	}
-
-	// if (!readRules.value.deleteRO) {
-	// 	sendCmd(deleteSelectSpec); //删除RO应答
-	// } else if (readRules.value.deleteRO && !readRules.value.addRO) {
-	// 	console.log('--------添加RO应答Start-------', 'add');
-	// 	addUserSelectSpec(1, 4, 9);
-	// } else {
-	// 	console.log('--------启动RO应答Start-------', 'add');
-	// 	sendCmd(startSelectSpec); //启动RO应答
-	// }
-
-	// _inventTime = setTimeout(function () {
-	// 	if (Object.keys(tagsInfo.value).length === 0) {
-	// 		uni.hideLoading();
-	// 		setTimeout(function () {
-	// 			uni.showToast({
-	// 				title: '读卡失败',
-	// 				icon: 'error'
-	// 			});
-	// 		})
-	// 	}
-	// }, 5000)
 }
 
 //字符串转十六进制数组
@@ -378,6 +394,19 @@ const hexStringToByteArray = (hexString) => {
 	var sdata = ab2hex(byteArray);
 	console.log('十六进制：' + sdata);
 	return byteArray;
+}
+
+//关闭加载loading
+const closeLoad = (title) => {
+	uni.hideLoading();
+	setTimeout(function () {
+		uni.showToast({ title: title, icon: 'error' });
+	}, 100)
+}
+
+//toast提示框
+const openToast = (title) => {
+	uni.showToast({ title: title, icon: 'none' });
 }
 
 </script>

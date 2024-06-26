@@ -33,13 +33,13 @@ http.interceptors.request.use(
     config.header = {
       ...config.header,
     };
-    
+
     const url_notoken = ['/app/login/alipayLogin', '/app/login/phoneLogin', '/app/login/getWxUserPhone', '/app/login/wxPayLogin', '/app/login/sendSms', '/app/login/getAlipayPhone2', '/app/index/getCityCodeByLat', '/system/sysProtocol/getOneProtocol'];
-  //   if (token.value) {
-  //     // config.header.Authorization = token.value;
-  //   } else if (!config.custom.noAuth) { //接口配置不需要登录
-  //     const { logout } = useAuthStore();
-  //     logout();//store退出
+    //   if (token.value) {
+    //     // config.header.Authorization = token.value;
+    //   } else if (!config.custom.noAuth) { //接口配置不需要登录
+    //     const { logout } = useAuthStore();
+    //     logout();//store退出
 
     //   // 未登录跳转登录
     //   uni.navigateTo({
@@ -63,22 +63,23 @@ http.interceptors.response.use(
     if (response.statusCode == 200 && response.data.code == 0) {
       //console.log("请求成功", response);
     } else {
-      uni.hideLoading();
-      setTimeout(() => {
-        uni.showToast({
-          title: response.data.msg,
-          icon: "none"
-        });
-      }, 100)
+      // uni.hideLoading();
+      // setTimeout(() => {
+      uni.showToast({
+        title: response.data.message,
+        icon: "none"
+      });
+      // }, 100)
+      return;
 
-      if (response.data.code == 401) {
-        // 未登录跳转登录
-        const { logout } = useAuthStore();
-        logout();
-        uni.navigateTo({
-          url: "/pagesAccount/login/index",
-        });
-      }
+      // if (response.data.code == 401) {
+      //   // 未登录跳转登录
+      //   const { logout } = useAuthStore();
+      //   logout();
+      //   uni.navigateTo({
+      //     url: "/pagesAccount/login/index",
+      //   });
+      // }
     }
     return response.data;
 

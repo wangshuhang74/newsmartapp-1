@@ -9,6 +9,7 @@ export const secRandom = ref('');//安全模块随机数
 export const safeSn = ref('');//安全模块SN  安全模块序列号
 export const secRandomSign = ref(''); //安全模块对密管系统生成的随机数RNs的签名值s，128HEX
 export const authStatus = ref(false); //双向认证状态
+export const writeStatus = ref(false);//私有写状态 true成功 false失败
 
 const frameHead = 126
 var recvBuf = new Uint8Array(1024)
@@ -894,7 +895,7 @@ const GetCustomizedInfo = (data, vehicle) => {
 					vehicle.U1Data = ab2hex(data);
 					hphmxh = "";
 					for (var j = index; j < index + paramLen; j++) {
-						hphmxh += arrFPDHHPHM[data[j]];
+						hphmxh += String.fromCharCode(data[j]);
 					}
 					vehicle.U1HPHMXH = hphmxh;
 					break;
@@ -902,7 +903,7 @@ const GetCustomizedInfo = (data, vehicle) => {
 					vehicle.U1SFDM = arrProvince[data[index]];
 					break;
 				case 0x8a03:        //发牌代号
-					vehicle.U1FPDH = arrFPDHHPHM[data[index]];
+					vehicle.U1FPDH = String.fromCharCode(data[index]);
 					break;
 				case 0x8a04:        //号牌种类
 					vehicle.U1HPZL = arrHPZL[data[index]];
@@ -1018,7 +1019,7 @@ const AnalyzingOneTagReportData = (frame, index) => {
 				index = GetTParamInfo(frame, index, paramInfo);
 				break;
 			case P_HbPrivateWriteSpecResult:
-				console.log('私有写');
+				console.log('私有写 start');
 				index = GetTParamInfo(frame, index, paramInfo);
 				vehicle.PrivateWriteAck = 1;
 				if (paramInfo.data.length >= 5) {
@@ -1035,7 +1036,8 @@ const AnalyzingOneTagReportData = (frame, index) => {
 						}
 					}
 				}
-				console.log('vehicle' + JSON.stringify(vehicle));
+				writeStatus.value = true;
+				console.log('私有写结果vehicle' + JSON.stringify(vehicle));
 				break;
 			case P_HbCustomizedReadSpecResult:
 				index = GetTParamInfo(frame, index, paramInfo);
