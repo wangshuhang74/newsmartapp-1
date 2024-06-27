@@ -6,6 +6,11 @@ import { useWorkStore } from '@/store'
 const { workDetail } = storeToRefs(useWorkStore())
 const Toast = useToast()
 const workInfo = ref({})
+const { safeAreaInsets, windowHeight } = uni.getSystemInfoSync()
+const viewportHeight = windowHeight - safeAreaInsets.top + 50 - 80
+console.log("🚀 ~ windowHeight:", windowHeight)
+console.log("🚀 ~ viewportHeight:", viewportHeight)
+
 onMounted(() => {
   if (workDetail.value) {
     workInfo.value = workDetail.value
@@ -35,8 +40,8 @@ const copyBtn = (val) => {
   <view class="workDetails">
     <navbar :title="'详情'" />
     <view class="details_center">
-      <view class="workInfo_box">
-        <scroll-view style="width: 100%; height: 100%;" :scroll-y="true" :show-scrollbar="false">
+      <view class="scrol_box">
+        <scroll-view class="workInfo_box" :scroll-y="true" :show-scrollbar="false">
           <view class="top_tit">客户名称 </view>
 
           <view class="basic_info">
@@ -93,7 +98,7 @@ const copyBtn = (val) => {
 
           </view>
 
-          <view class="car_boxs" v-for="item in 1">
+          <view class="car_boxs" v-for="item in 11">
             <view v-if="1">
               <view class="info_item">
                 <view class="label">车牌号码/VIN码:</view>
@@ -174,10 +179,10 @@ const copyBtn = (val) => {
           </view>
 
         </scroll-view>
-      </view>
-      <view class="foot_box">
-        <button class="footBtn">返还</button>
-        <button class="footBtn">处理</button>
+        <view class="foot_box">
+          <button class="footBtn">返还</button>
+          <button class="footBtn">处理</button>
+        </view>
       </view>
     </view>
   </view>
@@ -191,14 +196,23 @@ const copyBtn = (val) => {
   overflow: hidden;
   background-color: #f7f7fc;
 
+
   .details_center {
     flex: 1;
     padding: 30rpx;
     box-sizing: border-box;
 
-    .workInfo_box {
+
+    .scrol_box {
       width: 100%;
-      height: calc(100% - 150rpx);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    .workInfo_box {
+      flex: 1;
       padding: 20rpx 10rpx 20rpx 30rpx;
       box-sizing: border-box;
       background-color: #fff;
