@@ -16,7 +16,8 @@ import {
 import Request from "luch-request";
 
 
-export const baseURL = "http://192.168.2.125:8650/";
+// export const baseURL = "http://192.168.2.125:8650/";
+export const baseURL = "http://114.55.177.116:8650/";
 const http = new Request();
 http.setConfig((config) => {
 	/* 设置全局配置 */
@@ -41,14 +42,14 @@ http.interceptors.request.use(
 		if (token) {
 			config.header.Authorization = token;
 		} else if (!config.custom.noAuth) {
-			uni.navigateTo({
-				url: "/pagesAccount/login/index",
-			});
-			uni.showToast({
-				title: 'token不存在,请先登录',
-				icon: 'warning',
-				mask: true // 防止重复点击
-			})
+			// uni.navigateTo({
+			// 	url: "/pagesAccount/login/index",
+			// });
+			// uni.showToast({
+			// 	title: 'token不存在,请先登录',
+			// 	icon: 'warning',
+			// 	mask: true // 防止重复点击
+			// })
 			return Promise.reject(config); //如果token不存在，return Promise.reject(config) 会取消本次请求
 		}
 		// console.log("🚀 ~ config:", config)
@@ -75,6 +76,11 @@ http.interceptors.response.use(
 
 	},
 	(response) => {
+		console.log("🚀 ~ response:", response)
+		uni.showToast({
+			title: response.errMsg,
+			type: 'error',
+		})
 		// 请求错误做点什么。可以使用async await 做异步操作
 		return Promise.reject(response);
 	}

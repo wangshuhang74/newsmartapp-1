@@ -35,6 +35,7 @@ const getLoginHistoryFn = async () => {
   const { code, data, msg } = await getPhoneLoginHistory(deviceId.value)
   if (code != 0) return Toast.warning(msg)
   accountList.value = data
+  console.log("🚀 ~ getLoginHistoryFn ~ data:", data)
 }
 
 const handleChangeAccout = (param) => {
@@ -49,9 +50,12 @@ const handleChangeAccout = (param) => {
 }
 
 const userTypeList = {
-  1: "企业",
-  2: "主管",
-  3: "工程师"
+  1: "管理员",
+  2: "普通角色",
+  3: "客服",
+  4: "客服主管",
+  5: "运维主管",
+  6: "运维人员",
 }
 
 </script>
@@ -64,8 +68,10 @@ const userTypeList = {
       <view class="accountList">
         <view v-for="(item, key, index) in accountList" :index="index" class="account_item"
           @tap="handleChangeAccout(item)" :key="index" :class="item.phone === userInfo.phone ? 'active' : ''">
-          <text class="userName">【{{ userTypeList[item.userType] }}】 {{ item.userName ? item.userName : "" }} {{
-            item.phone }}</text>
+          <text class="userName"><text v-if="item?.rules">【{{ userTypeList[item?.rules[0]] ?
+            userTypeList[item?.rules[0]] : '普通角色' }}】</text> {{ item.userName ?
+                item.userName : "" }} {{
+              item.phone }}</text>
           <text class="logining" v-if="item.phone === userInfo.phone">当前登录账号</text>
         </view>
         <wd-status-tip v-if="accountList.length == 0" image="content" tip="暂无账号" />

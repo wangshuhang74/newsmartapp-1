@@ -1,5 +1,5 @@
 <script setup>
-import seleLIst from "../components/lxx-indexed-list/lxx-indexed-list"
+import seleLIst from "./lxx-indexed-list/lxx-indexed-list"
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { getWorkUser, complete } from '@/api'
 
@@ -68,7 +68,7 @@ const getWorkUserFn = async () => {
       id: item.userId,
       username: item.userName ? item.userName : '个人',
       deptName: item.phone,
-      avatar: "https://i.gtimg.cn/club/item/face/img/2/15922_100.gif",
+      avatar: "http://116.62.107.90:8673/images/my/personal.png",
     }
   })
   console.log("🚀 ~ getWorkUserFn ~ dataList:", dataList)
@@ -179,6 +179,16 @@ const handlePopupsClose = (val) => {
 
 </template>
 <style lang="scss" scoped>
+.requiredLabel {
+    position: relative;
+    &::before {
+        content: '*';
+        color: red;
+        position: absolute;
+        left: -16rpx;
+        top: -4rpx;
+    }
+}
 .popupContent {
   width: 100%;
   height: 600rpx;

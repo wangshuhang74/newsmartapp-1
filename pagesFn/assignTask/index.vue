@@ -5,7 +5,8 @@ import { toNavigation, makePhoneCall } from '@/utils'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { useWorkStore, } from '@/store'
 import { getList } from '@/api'
-const { workDetail } = storeToRefs(useWorkStore())
+const { workDetail, assignRefresh } = storeToRefs(useWorkStore())
+
 const workList = ref([])
 const Toast = useToast()
 
@@ -18,6 +19,13 @@ const getForm = ref({
 
 const postForm = ref({
   checkWorks: [],
+})
+
+onShow(() => {
+  if (assignRefresh.value) {
+    resetBtn()
+    assignRefresh.value = false
+  }
 })
 
 const assignShow = ref(false)
@@ -97,6 +105,7 @@ const oneKeyHandle = () => {
 }
 
 const clickItem = (item) => {
+  item.isAssignTask = true
   workDetail.value = item
   uni.navigateTo({
     url: "/pagesFn/work/workDetails",

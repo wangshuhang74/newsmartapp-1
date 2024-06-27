@@ -7,7 +7,6 @@ import { getList, acceptOrder } from '@/api'
 
 const { workDetail, workHandle } = storeToRefs(useWorkStore())
 const { userInfo } = storeToRefs(useUserStore())
-console.log("🚀 ~ userInfo:", userInfo.value)
 const message = useMessage(); // 消息弹框
 const Toast = useToast()
 const { safeAreaInsets } = uni.getSystemInfoSync()

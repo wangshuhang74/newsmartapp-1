@@ -129,6 +129,16 @@ const handlePopupsClose = (val) => {
 
 </template>
 <style lang="scss" scoped>
+.requiredLabel {
+    position: relative;
+    &::before {
+        content: '*';
+        color: red;
+        position: absolute;
+        left: -16rpx;
+        top: -4rpx;
+    }
+}
 .popupContent {
   width: 100%;
   height: 620rpx;
@@ -200,6 +210,7 @@ const handlePopupsClose = (val) => {
         justify-content: space-between;
 
         .inp {
+          width: 96%;
           padding-left: 10rpx;
           box-sizing: border-box;
           border: none;

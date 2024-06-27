@@ -23,7 +23,7 @@ onLoad(() => {
 
 const registerBtn = async () => {
   console.log("postForm", postForm.value);
-  if (!postForm.value.captcha) return Toast.warning('请输入原密码')
+  if (!postForm.value.oldPassword) return Toast.warning('请输入原密码')
   if (!postForm.value.password) return Toast.warning('请设置新密码')
   if (!postForm.value.repeatPwd) return Toast.warning('请确认新密码')
   if (postForm.value.password != postForm.value.repeatPwd) return Toast.warning('两次输入的密码不一致')
@@ -48,7 +48,7 @@ let timer;
 const SendCodeFlag = ref(false)
 const SendSecond = ref(60) // 倒计时
 const SendCodeFn = async () => {
-  if (!postForm.value.captcha) return Toast.warning('请输入原密码')
+  if (!postForm.value.oldPassword) return Toast.warning('请输入原密码')
   if (!postForm.value.password) return Toast.warning('请设置新密码')
   if (!postForm.value.repeatPwd) return Toast.warning('请确认新密码')
   if (!postForm.value.phone) return Toast.warning('请输入手机号')

@@ -337,7 +337,6 @@
 
 .requiredLabel {
     position: relative;
-
     &::before {
         content: '*';
         color: red;

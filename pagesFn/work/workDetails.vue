@@ -1,19 +1,47 @@
 <script setup>
 import navbar from '@/pages/components/navbar.vue'
+import returnPopup from '../components/returnPopup.vue'
+import assignPopup from '../components/assignPopup.vue'
+import AuditPopup from '../components/AuditPopup.vue'
+
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
-import { useWorkStore } from '@/store'
-const { workDetail } = storeToRefs(useWorkStore())
-const Toast = useToast()
-const workInfo = ref({})
-const { safeAreaInsets, windowHeight } = uni.getSystemInfoSync()
-const viewportHeight = windowHeight - safeAreaInsets.top + 50 - 80
-console.log("🚀 ~ windowHeight:", windowHeight)
-console.log("🚀 ~ viewportHeight:", viewportHeight)
+import { useUserStore, useWorkStore } from '@/store'
+import { acceptOrder, getAppOrderInfo, getList } from '@/api'
 
-onMounted(() => {
+const { workDetail, assignRefresh, auditRefresh } = storeToRefs(useWorkStore())
+const Toast = useToast()
+const message = useMessage(); // 消息弹框
+const workInfo = ref({}) // 传入的工单信息
+const workInfoApi = ref({}) // 传入的工单信息
+const { userInfo } = storeToRefs(useUserStore())
+
+const assignShow = ref(false) // 指派弹窗
+const assignInfo = ref({}) // 指派弹窗信息
+
+const returnShow = ref(false) // 返还弹窗
+const returnInfo = ref({}) // 返还弹窗信息
+
+const auditShow = ref(false) // 审核弹窗
+const auditInfo = ref({}) // 审核弹窗信息
+
+const getWork = ref({
+  pageNum: 1,
+  pageSize: 10,
+  type: null,
+  orderId: null,
+})
+const records = ref([])
+
+onShow(() => {
   if (workDetail.value) {
-    workInfo.value = workDetail.value
+    workDetail.value.isAssignTask = workDetail.value.isAssignTask ? true : false // 是否是指派页面进入的详情页
+    workDetail.value.isAuditTask = workDetail.value.isAuditTask ? true : false // 是否是审核页面进入的详情页
+    workInfo.value = { ...workDetail.value }
+    getWork.value.orderId = workDetail.value.orderId
+    getWork.value.type = workDetail.value.orderType == 2 ? 3 : workDetail.value.orderType == 3 ? 4 : null // orderType == 4 ? 5 : null //新车记录仪
+    if (getWork.value.type && !workDetail.value.isAssignTask && !workDetail.value.isAuditTask) getWorkFn()
+    getOrderInfo()
     console.log("🚀 ~ onLoad ~ workDetail.value:", workDetail.value)
   } else {
     Toast.warning("没有找到该工单信息")
@@ -25,166 +53,352 @@ onMounted(() => {
   }
 })
 
+onMounted(() => {
+
+})
+
+
+const getOrderInfo = async () => {
+  const { code, data, msg } = await getAppOrderInfo(workInfo.value.orderId)
+  if (code != 0) {
+    Toast.error(msg)
+    setTimeout(() => {
+      uni.navigateBack({
+        delta: 1
+      })
+    }, 1000)
+  } else {
+    workInfoApi.value = data
+  }
+
+}
+
+
+const getWorkFn = async () => {
+  const { code, data, msg } = await getList(getWork.value)
+  if (code != 0) return Toast.error(msg)
+  records.value = data.records
+  workInfo.value = data.records[0] ? data.records[0] : workInfo.value
+  workDetail.value = data.records[0] ? data.records[0] : workDetail.value
+}
+
+const assignBtn = async (item) => {
+  assignInfo.value = item
+  assignShow.value = true
+}
+
+const assignClose = (val) => {
+  assignShow.value = false
+  assignInfo.value = {}
+  if (val != 'refresh') return
+  Toast.success("指派成功!")
+  assignRefresh.value = true
+  uni.navigateBack({
+    delta: 1
+  })
+}
+
+const returnBtn = (item) => { // 退回
+  returnInfo.value = item
+  returnShow.value = true
+}
+
+const returnClose = (val) => {
+  returnShow.value = false
+  returnInfo.value = {}
+  if (val != 'refresh') return
+  getWorkFn()
+}
+
+const auditBtn = (item) => {
+  auditInfo.value = item
+  auditShow.value = true
+}
+
+const auditClose = (val) => {
+  auditShow.value = false
+  auditInfo.value = {}
+  if (val != 'refresh') return
+  Toast.success("审核成功!")
+  auditRefresh.value = true
+  uni.navigateBack({
+    delta: 1
+  })
+}
+
+const takeOrders = (item) => {
+  message.confirm({
+    title: "确认接单",
+    msg: "您确定要接单吗?",
+    confirmButtonText: "确认接单",
+    cancelButtonText: "暂不接单",
+  })
+    .then(async () => {
+      const { code, data, msg } = await acceptOrder(item.orderId)
+      console.log("🚀 ~ .then ~ data:", data)
+      if (code != 0) return Toast.error(msg)
+      Toast.success(msg)
+      // resetBtn() 
+      getWorkFn()
+    })
+    .catch(() => { });
+}
 
 const copyBtn = (val) => {
   uni.setClipboardData({
-    data: val,
+    data: String(val),
     success: function () {
       // Toast.success('复制成功')
-    }
+    },
+    fail: (fail) => {
+      console.log("🚀 ~ file: workDetails.vue ~ line 30 ~ fail", fail)
+    },
   })
 }
 </script>
 <template>
   <wd-toast></wd-toast>
+  <wd-message-box />
   <view class="workDetails">
     <navbar :title="'详情'" />
     <view class="details_center">
-      <view class="scrol_box">
-        <scroll-view class="workInfo_box" :scroll-y="true" :show-scrollbar="false">
-          <view class="top_tit">客户名称 </view>
+      <scroll-view class="workInfo_box" style="width: 100%; height: 100%;" :scroll-y="true" :show-scrollbar="false">
+        <view class="top_tit">{{ workInfoApi?.clientName ? workInfoApi?.clientName : '-' }} </view>
 
-          <view class="basic_info">
-            <view class="info_item">
-              <view class="label">工单编号:</view>
-              <view class="value">
-                <text>21424235345234634645634</text>
-                <image @tap="copyBtn(123)" class="copy" src="http://116.62.107.90:8673/images/icons/copy.png"
-                  mode="scaleToFill" />
-              </view>
+        <view class="basic_info">
+          <view class="info_item">
+            <view class="label">工单编号:</view>
+            <view class="value">
+              <text>{{ workInfoApi?.orderId ? workInfoApi?.orderId : '-' }}</text>
+              <image @tap="copyBtn(workInfoApi?.orderId)" class="copy"
+                src="http://116.62.107.90:8673/images/icons/copy.png" mode="scaleToFill" />
             </view>
-
-            <view class="info_item">
-              <view class="label">联系人:</view>
-              <view class="value">
-                <text>张三</text>
-              </view>
-            </view>
-
-
-            <view class="info_item">
-              <view class="label">联系电话:</view>
-              <view class="value">
-                <text>12353453464</text>
-              </view>
-            </view>
-
-
-            <view class="info_item">
-              <view class="label">工单类型:</view>
-              <view class="value">
-                <text>车辆新装</text>
-              </view>
-            </view>
-
-
-            <view class="info_item">
-              <view class="label">所属区域:</view>
-              <view class="value">
-                <text>浙江省杭州市萧山区</text>
-              </view>
-            </view>
-
-
-            <view class="info_item">
-              <view class="label">详细地址:</view>
-              <view class="value">
-                <text>浙江省杭州市萧山区阳光大道250号</text>
-              </view>
-            </view>
-
-
-
-
           </view>
 
-          <view class="car_boxs" v-for="item in 11">
-            <view v-if="1">
-              <view class="info_item">
-                <view class="label">车牌号码/VIN码:</view>
-                <view class="value">
-                  <text>19</text>
-                </view>
-              </view>
-
-
-              <view class="info_item">
-                <view class="label">通道数量:</view>
-                <view class="value">
-                  <text>10</text>
-                </view>
-              </view>
-
-
-              <view class="info_item">
-                <view class="label">设备品牌:</view>
-                <view class="value">
-                  <text>海康</text>
-                </view>
-              </view>
-
-
-              <view class="info_item">
-                <view class="label">设备序列号:</view>
-                <view class="value">
-                  <text>28192</text>
-                </view>
-              </view>
-
-              <view class="info_item">
-                <view class="label">设备型号:</view>
-                <view class="value">
-                  <text>TK28192</text>
-                </view>
-              </view>
-
-
-              <view class="info_item">
-                <view class="label">Sim卡号:</view>
-                <view class="value">
-                  <text>28192</text>
-                </view>
-              </view>
-
-              <view class="info_item">
-                <view class="label">故障概述:</view>
-                <view class="value">
-                  <text>sim损坏</text>
-                </view>
-              </view>
-
-              <view class="info_item">
-                <view class="label">运维内容:</view>
-                <view class="value">
-                  <text>XXXXXXXX</text>
-                </view>
-              </view>
-
-              <view class="info_item">
-                <view class="label">预期运维时间:</view>
-                <view class="value">
-                  <text>2024-12-12 12:00:00</text>
-                </view>
-              </view>
-
-              <view class="info_item">
-                <view class="label">备注:</view>
-                <view class="value">
-                  <text>——</text>
-                </view>
-              </view>
-
+          <view class="info_item">
+            <view class="label">联系人:</view>
+            <view class="value">
+              <text>{{ workInfoApi?.contactName ? workInfoApi?.contactName : '-' }}</text>
             </view>
-
           </view>
 
-        </scroll-view>
-        <view class="foot_box">
-          <button class="footBtn">返还</button>
-          <button class="footBtn">处理</button>
+
+          <view class="info_item">
+            <view class="label">联系电话:</view>
+            <view class="value">
+              <text>{{ workInfoApi?.contactPhone ? workInfoApi?.contactPhone : '-' }}</text>
+            </view>
+          </view>
+
+
+          <view class="info_item">
+            <view class="label">工单类型:</view>
+            <view class="value">
+              <text>{{ workInfoApi?.orderTypeDetail ? workInfoApi?.orderTypeDetail : '-' }}</text>
+            </view>
+          </view>
+
+
+          <view class="info_item">
+            <view class="label">所属区域:</view>
+            <view class="value">
+              <text>{{ workInfoApi?.area ? workInfoApi?.area : '-' }}</text>
+            </view>
+          </view>
+
+
+          <view class="info_item ov">
+            <view class="label">详细地址:</view>
+            <view class="value ">
+              <text>{{ workInfoApi?.address ? workInfoApi?.address : '-' }}</text>
+            </view>
+          </view>
         </view>
+
+        <view class="car_boxs" v-for="(item, idx) in workInfoApi?.orderExtras" :key="idx">
+          <!-- 新装 -->
+          <view v-if="workInfoApi?.orderType == 3">
+            <view class="info_item">
+              <view class="label">车牌号码/VIN码:</view>
+              <view class="value">
+                <text>{{ item?.carPlate ? item?.carPlate : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">新装设备:</view>
+              <view class="value">
+                <text>{{ item?.installType ? item?.installType : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">通道数量:</view>
+              <view class="value">
+                <text>{{ item?.channelNum ? item?.channelNum : '-' }}</text>
+              </view>
+            </view>
+
+
+            <view class="info_item">
+              <view class="label">设备品牌:</view>
+              <view class="value">
+                <text>{{ item?.terminalBrand ? item?.terminalBrand : '-' }}</text>
+              </view>
+            </view>
+
+
+            <view class="info_item">
+              <view class="label">设备序列号:</view>
+              <view class="value">
+                <text>{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">设备型号:</view>
+              <view class="value">
+                <text>{{ item?.terminalModel ? item?.terminalModel : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">Sim卡号:</view>
+              <view class="value">
+                <text>{{ item?.simNo ? item?.simNo : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">预期运维时间:</view>
+              <view class="value">
+                <text>{{ item?.expectTime ? item?.expectTime : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">备注:</view>
+              <view class="value">
+                <text>{{ item?.remark ? item?.remark : '————' }}</text>
+              </view>
+            </view>
+
+          </view>
+          <!-- 维护 -->
+          <view v-if="workInfoApi?.orderType == 2">
+            <view class="info_item">
+              <view class="label">车牌号码/VIN码:</view>
+              <view class="value">
+                <text>{{ item?.carPlate ? item?.carPlate : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">通道数量:</view>
+              <view class="value">
+                <text>{{ item?.channelNum ? item?.channelNum : '-' }}</text>
+              </view>
+            </view>
+
+
+            <view class="info_item">
+              <view class="label">设备品牌:</view>
+              <view class="value">
+                <text>{{ item?.terminalBrand ? item?.terminalBrand : '-' }}</text>
+              </view>
+            </view>
+
+
+            <view class="info_item">
+              <view class="label">设备序列号:</view>
+              <view class="value">
+                <text>{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">设备型号:</view>
+              <view class="value">
+                <text>{{ item?.terminalModel ? item?.terminalModel : '-' }}</text>
+              </view>
+            </view>
+
+
+            <view class="info_item">
+              <view class="label">Sim卡号:</view>
+              <view class="value">
+                <text>{{ item?.simNo ? item?.simNo : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">故障概述:</view>
+              <view class="value">
+                <text>{{ item?.faultContent ? item?.faultContent : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">运维内容:</view>
+              <view class="value">
+                <text>{{ item?.content ? item?.content : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">预期运维时间:</view>
+              <view class="value">
+                <text>{{ item?.expectTime ? item?.expectTime : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">备注:</view>
+              <view class="value">
+                <text>{{ item?.remark ? item?.remark : '————' }}</text>
+              </view>
+            </view>
+
+          </view>
+
+        </view>
+
+        <view class="workFlow">
+          <view class="flow_item" v-for="(item, idx) in workInfoApi?.orderRecords" :key="idx">
+            <view class="flow_top">
+              <view class="icon"></view>
+              <view class="tit">{{ item?.recordState ? item?.recordState : '-' }}</view>
+              <view class="time">{{ item?.createTime ? item?.createTime : '-' }}</view>
+            </view>
+            <view class="flow_center">
+              <view class="center">{{ item?.recordInfo ? item?.recordInfo : '-' }}</view>
+            </view>
+
+          </view>
+
+        </view>
+
+      </scroll-view>
+      <!-- 如果 records.length 是空的 说明这个工单不是待办的工单 只能显示在指派和审核中 -->
+      <view class="foot_box" v-if="records.length">
+        <button class="footBtn" @tap="returnBtn(workInfo)"
+          v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">返还</button>
+        <button class="footBtn" @tap="takeOrders(workInfo)"
+          v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">接单</button>
+        <button class="footBtn cl"
+          v-if="workInfo.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (workInfo.assigneeId == userInfo.userId || userInfo.rules.includes(workInfo.groupId))">处理</button>
       </view>
+      <!-- workInfo.isAssignTask || workInfo.isAuditTask -->
+      <view class="foot_box" v-if="workInfo.isAssignTask || workInfo.isAuditTask">
+        <button class="footBtn cl" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>
+        <button class="footBtn cl" v-if="workInfo.isAuditTask" @tap="auditBtn(workInfo)">审核
+        </button>
+      </view>
+
     </view>
+    <returnPopup v-if="returnShow" :returnShow="returnShow" :returnInfo="returnInfo" @CloseClick="returnClose" />
+    <assignPopup v-if="assignShow" :assignShow="assignShow" :assignInfo="assignInfo" @CloseClick="assignClose" />
+    <AuditPopup v-if="auditShow" :auditShow="auditShow" :auditInfo="auditInfo" @CloseClick="auditClose" />
   </view>
 </template>
 <style lang="scss" scoped>
@@ -196,24 +410,18 @@ const copyBtn = (val) => {
   overflow: hidden;
   background-color: #f7f7fc;
 
-
   .details_center {
     flex: 1;
+    height: 90%;
     padding: 30rpx;
     box-sizing: border-box;
-
-
-    .scrol_box {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
+    display: flex;
+    flex-direction: column;
 
     .workInfo_box {
+      width: 100%;
       flex: 1;
-      padding: 20rpx 10rpx 20rpx 30rpx;
+      padding: 30rpx;
       box-sizing: border-box;
       background-color: #fff;
       box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);
@@ -252,12 +460,11 @@ const copyBtn = (val) => {
           line-height: 50rpx;
           font-size: 26rpx;
           color: #000000;
-          white-space: nowrap;
-          /* 不换行 */
           overflow: hidden;
-          /* 溢出隐藏 */
           text-overflow: ellipsis;
-          /* 超出部分显示省略号 */
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
 
           .copy {
             width: 30rpx;
@@ -267,6 +474,22 @@ const copyBtn = (val) => {
           }
         }
 
+
+
+      }
+
+      .ov {
+        min-height: 80rpx;
+
+        .value {
+          line-height: 32rpx;
+          //超过两行显示省略号
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+        }
       }
 
       .basic_info {
@@ -283,13 +506,93 @@ const copyBtn = (val) => {
         border-bottom: 4rpx solid #EFEFEF;
       }
 
+      .workFlow {
+        width: 100%;
+        min-height: 200rpx;
+
+        .flow_item {
+          width: 100%;
+          min-height: 120rpx;
+
+          &:last-child {
+            .flow_top {
+              .tit {
+                color: #1082FF !important;
+              }
+
+              .icon {
+                background-color: #1082FF !important;
+              }
+            }
+
+            .flow_center {
+              border-left: none;
+            }
+          }
+
+          .flow_top {
+            width: 100%;
+            height: 60rpx;
+            line-height: 60rpx;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .tit {
+              font-size: 26rpx;
+              color: #8D949A;
+              flex: 1;
+              text-align: left;
+            }
+
+            .time {
+              min-width: 120rpx;
+              text-align: right;
+              font-size: 26rpx;
+              color: #8D949A;
+            }
+
+            .icon {
+              width: 24rpx;
+              height: 24rpx;
+              border-radius: 50%;
+              background-color: #C3C3C3;
+              margin-right: 8rpx;
+            }
+
+          }
+
+          .flow_center {
+            width: 98%;
+            min-height: 70rpx;
+            border-left: 4rpx solid #DBDBDB;
+            margin-left: 10rpx;
+
+            .center {
+              margin-left: 20rpx;
+              white-space: normal;
+              word-wrap: break-word;
+              word-break: break-all;
+              overflow: hidden;
+              box-sizing: border-box;
+              padding: 10rpx 20rpx;
+              background-color: #E6E6E6;
+              font-size: 24rpx;
+              color: #272727;
+
+            }
+          }
+
+        }
+      }
+
 
     }
 
     .foot_box {
       width: 100%;
-      height: 120rpx;
-      margin-top: 30rpx;
+      margin-top: 20rpx;
+      margin-bottom: 20rpx;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -297,12 +600,18 @@ const copyBtn = (val) => {
       .footBtn {
         width: 45%;
         height: 88rpx;
+        margin: 20rpx 0 40rpx 0;
         background: linear-gradient(90deg, #1082FF 0%, #5FA9FF 100%);
         border-radius: 14rpx 14rpx 14rpx 14rpx;
         font-size: 36rpx;
         color: #FFFFFF;
         text-align: center;
         line-height: 88rpx;
+      }
+
+      .cl {
+        width: 100%;
+        margin: 20rpx auto 40rpx auto;
       }
     }
   }

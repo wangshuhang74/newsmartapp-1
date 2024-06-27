@@ -299,6 +299,7 @@ export default {
 	display: flex;
 	/* #endif */
 	flex-direction: row;
+	background-color: #fff;
 }
 
 .uni-indexed-list__scroll {

@@ -4,11 +4,14 @@ import marker1 from '@/static/images/homeMap/marker1.png'
 import marker1_active from '@/static/images/homeMap/marker1_active.png'
 import marker2 from '@/static/images/homeMap/marker2.png'
 import marker2_active from '@/static/images/homeMap/marker2_active.png'
+import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+
 import { toNavigation, makePhoneCall } from '@/utils'
 import { getList } from '@/api'
 
 import { useUserStore, useWorkStore } from '@/store'
 const { workDetail } = storeToRefs(useWorkStore())
+const Toast = useToast()
 
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
@@ -37,19 +40,21 @@ const wordListMap = ref(new Map())
 const activeMarker = ref(null)
 
 watch(() => {
-  return [userMap.value];
-}, ([newUserMap], [oldUserMap]) => {
-  // console.log('修改前', newUserMap);
-  // console.log('修改后', oldUserMap);
-  // setMyMarker(userMap.value)
+  return [userInfo.value];
+}, ([newUserInfo], [oldUserInfo]) => {
+  console.log("🚀 ~ watch ~ newUserInfo", newUserInfo)
+  if (newUserInfo) {
+    getListFn()
+  };
 },
-  {
-    deep: true
-  }
 )
 
 onShow(() => {
   userStore.isLoginFn()
+  console.log("🚀 ~ onShow ~ wordList.value:", wordList.value.length)
+  if (wordList.value.length == 0) {
+    getLocation()
+  }
 })
 onMounted(() => {
   mapCtx.value = uni.createMapContext('myMap', this)
@@ -59,38 +64,42 @@ onMounted(() => {
 
 const getListFn = async () => {
   wordList.value = []
-  {
-    let getForm = {
-      pageNum: 1,
-      pageSize: 9999,
-      type: 4 // 4新装 3运维
-    }
-    const { code, data, msg } = await getList(getForm)
-    if (code != 0) return Toast.error(msg)
-    newEquip.value = data
-    addMarkers(data.records)
-    // wordList.value = [...wordList.value, ...data.records]
-    // data.total
-    // data.records
+  newEquip.value = ref({})
+  oldMaintain.value = ref({})
+  markers.value = [{ orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]
+  setMyMarker(userMap.value)
+  let getForm1 = {
+    pageNum: 1,
+    pageSize: 9999,
+    type: 4 // 4新装 3运维
   }
-  {
-    let getForm = {
-      pageNum: 1,
-      pageSize: 9999,
-      type: 3 // 4新装 3运维
-    }
-    const { code, data, msg } = await getList(getForm)
-    if (code != 0) return Toast.error(msg)
-    oldMaintain.value = data
-    addMarkers(data.records)
-    // wordList.value = [...wordList.value, ...data.records]
-    // data.records
+
+  let getForm2 = {
+    pageNum: 1,
+    pageSize: 9999,
+    type: 3 // 4新装 3运维
+  }
+
+  const promises = [getList(getForm1), getList(getForm2)];
+  try {
+    const [response1, response2] = await Promise.all(promises);
+    const { code: code1, data: data1, msg: msg1 } = response1;
+    if (code1 != 0) return Toast.error(msg1);
+    newEquip.value = data1;
+
+    const { code: code2, data: data2, msg: msg2 } = response2;
+    if (code2 != 0) return Toast.error(msg2);
+    oldMaintain.value = data2;
+
+    wordList.value = [...data1.records, ...data2.records]
+    addMarkers([...wordList.value, { orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]);
+  } catch (error) {
+    Toast.error("获取工单列表失败");
+    console.error(error);
   }
 }
-
 const addMarkers = (list) => {
-  wordList.value = [...wordList.value, ...list, { orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]
-  markers.value = wordList.value.map((item) => {
+  markers.value = list.map((item) => {
     // console.log("item.lat", item.lat);
     // console.log("item.lng", item.lng);
     return {

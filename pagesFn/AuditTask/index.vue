@@ -3,9 +3,10 @@ import AuditPopup from '../components/AuditPopup.vue'
 import navbar from '@/pages/components/navbar.vue'
 import { toNavigation, makePhoneCall } from '@/utils'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
-import { useWorkStore,  } from '@/store'
+import { useWorkStore, } from '@/store'
 import { getList } from '@/api'
-const { workDetail } = storeToRefs(useWorkStore())
+const { workDetail, auditRefresh } = storeToRefs(useWorkStore())
+
 const workList = ref([])
 const Toast = useToast()
 
@@ -25,6 +26,13 @@ const auditInfo = ref({})
 
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
+
+onShow(() => {
+  if(auditRefresh.value) {
+    resetBtn()
+    auditRefresh.value = false
+  }
+})
 
 onMounted(() => {
   getListFn()
@@ -98,6 +106,7 @@ const oneKeyHandle = () => {
 }
 
 const clickItem = (item) => {
+  item.isAuditTask = true
   workDetail.value = item
   uni.navigateTo({
     url: "/pagesFn/work/workDetails",
