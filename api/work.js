@@ -53,3 +53,13 @@ export const appDisposeOrder = (params) => {
 export const getWorkerList = () => { // 获取运维工程师
     return http.post("/account/getWorkerList",);
 }
+
+///driveRecord/getBySerial 行车记录仪获取车辆信息
+export const getBySerial = (params) => {
+    return http.get("/driveRecord/getBySerial?serial=" + params, {}, {});
+}
+
+///driveRecord/update
+export const update = (params) => {
+    return http.post("/driveRecord/update", params, {});
+}
