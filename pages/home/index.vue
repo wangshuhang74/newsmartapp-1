@@ -14,17 +14,17 @@ const { workDetail } = storeToRefs(useWorkStore())
 const Toast = useToast()
 
 const userStore = useUserStore()
-const { userInfo } = storeToRefs(userStore)
+const { userInfo, userMap } = storeToRefs(userStore)
 // defineOptions({
 //   name: 'Home',
 // })
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
-const userMap = ref({
-  longitude: 116.397428,
-  latitude: 39.90923
-})
+// const userMap = ref({
+//   longitude: 116.397428,
+//   latitude: 39.90923
+// })
 
 const mapCtx = ref(null)
 const markers = ref([])

@@ -11,6 +11,10 @@ export const useUserStore = defineStore(
     const loginForm = ref({})
     const deviceId = ref(null) // 设备id
     const lang = ref('zh') // 语言
+    const userMap = ref({
+      longitude: null,
+      latitude: null
+    })
 
 
     const setUserInfo = (val) => {
@@ -85,6 +89,7 @@ export const useUserStore = defineStore(
       clearUserInfo,
       isLogined,
       isLoginFn,
+      userMap
     }
   },
   {

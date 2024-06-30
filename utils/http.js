@@ -77,10 +77,7 @@ http.interceptors.response.use(
 	},
 	(response) => {
 		console.log("🚀 ~ response:", response)
-		uni.showToast({
-			title: response.errMsg,
-			type: 'error',
-		})
+		uni.showToast(response.errMsg)
 		// 请求错误做点什么。可以使用async await 做异步操作
 		return Promise.reject(response);
 	}

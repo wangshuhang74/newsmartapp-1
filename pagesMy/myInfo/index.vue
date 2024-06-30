@@ -43,18 +43,15 @@ const cancelTag = (item) => {
     .catch(() => { });
 }
 
+const imgs =ref([]) //设置图片数组
 
 const lookover = (urls) => {
   if(!urls) return Toast.warning('暂未上传附件!')
   imgs.value = urls.split(',')
-  preview(imgs.value[0])
-}
-const imgs =ref([]) //设置图片数组
-const preview = (url) => {
   setTimeout(() => {
-    previewImage.value.open(url); // 传入当前选中的图片地址(小程序必须添加$nextTick，解决组件首次加载无图)
+    previewImage.value.open(imgs.value[0]); // 传入当前选中的图片地址(小程序必须添加$nextTick，解决组件首次加载无图)
   }, 100)
-};
+}
 const onLongpress = e => {
   console.log('当前长按的图片是' + e);
   uni.showActionSheet({

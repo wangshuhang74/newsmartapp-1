@@ -1,14 +1,19 @@
 <template>
-	<view class="previewImage" v-if="show" @tap="close">
+	<view class="previewImage" v-if="show && urls.length > 0" @tap="close">
 		<view class="page" v-if="urls.length > 0">
 			<text class="text">{{ current + 1 }} / {{ urls.length }}</text>
 		</view>
-		<swiper class="swiper" :current="current" @change="swiperChange"  @touchstart="handleTouchStart" @touchend="handleTouchEnd">
+		<swiper class="swiper" :current="current" @change="swiperChange" @touchstart="handleTouchStart"
+			@touchend="handleTouchEnd">
 			<swiper-item v-for="(item, index) in urls" :key="index">
 				<movable-area class="movable-area" scale-area>
-					<movable-view class="movable-view" direction="all" :inertia="true" damping="100" scale="true" scale-min="1" scale-max="4" :scale-value="scale">
+					<movable-view class="movable-view" direction="all" :inertia="true" damping="100" scale="true"
+						scale-min="1" scale-max="4" :scale-value="scale">
 						<scroll-view scroll-y="true" class="uni-scroll-view" :show-scrollbar="false">
-							<view class="scroll-view"><image :key="index" class="image" :src="item" mode="widthFix" @longpress="onLongpress(item)" /></view>
+							<view class="scroll-view">
+								<image :key="index" class="image" :src="item" mode="widthFix"
+									@longpress="onLongpress(item)" />
+							</view>
 						</scroll-view>
 					</movable-view>
 				</movable-area>
@@ -36,6 +41,7 @@ export default {
 			isZooming: false // 是否处于缩放状态
 		};
 	},
+
 	methods: {
 		//打开
 		open(current) {
@@ -43,9 +49,11 @@ export default {
 			this.show = true;
 			this.$emit('open');
 		},
+
 		//关闭
 		close() {
 			if (!this.isZooming) {
+				console.log("close关闭");
 				this.show = false;
 				this.current = 0;
 				this.$emit('close');
@@ -71,31 +79,37 @@ export default {
 
 <style lang="scss" scoped>
 .previewImage {
-	z-index: 9999;
+	z-index: 999;
 	position: fixed;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
 	background-color: #000000;
+
 	.swiper {
 		width: 100%;
 		height: 100vh;
+
 		swiper-item {
 			.movable-area {
 				height: 100%;
 				width: 100%;
+
 				.movable-view {
 					width: 100%;
 					min-height: 100%;
-					.uni-scroll-view{
+
+					.uni-scroll-view {
 						height: 100vh;
 					}
+
 					.scroll-view {
 						display: flex;
 						align-items: center;
 						justify-content: center;
 						min-height: 100vh;
+
 						.image {
 							width: 100%;
 							height: auto;
@@ -105,12 +119,14 @@ export default {
 			}
 		}
 	}
+
 	.page {
 		position: absolute;
-		z-index: 9999;
+		z-index: 999;
 		width: 100%;
 		top: 60rpx;
 		text-align: center;
+
 		.text {
 			color: #fff;
 			font-size: 32rpx;

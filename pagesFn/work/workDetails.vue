@@ -59,15 +59,18 @@ onMounted(() => {
 
 
 const getOrderInfo = async () => {
+  Toast.loading('加载中...')
   const { code, data, msg } = await getAppOrderInfo(workInfo.value.orderId)
   if (code != 0) {
     Toast.error(msg)
+    Toast.close()
     setTimeout(() => {
       uni.navigateBack({
         delta: 1
       })
     }, 1000)
   } else {
+    Toast.close()
     workInfoApi.value = data
   }
 
@@ -75,8 +78,13 @@ const getOrderInfo = async () => {
 
 
 const getWorkFn = async () => {
+  Toast.loading('加载中...')
+  setTimeout(() => {
+    Toast.close()
+  }, 5000)
   const { code, data, msg } = await getList(getWork.value)
   if (code != 0) return Toast.error(msg)
+  Toast.close()
   records.value = data.records
   workInfo.value = data.records[0] ? data.records[0] : workInfo.value
   workDetail.value = data.records[0] ? data.records[0] : workDetail.value
@@ -394,7 +402,7 @@ const copyBtn = (val) => {
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">接单</button>
         <button class="footBtn cl"
           v-if="workInfo.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (workInfo.assigneeId == userInfo.userId || userInfo.rules.includes(workInfo.groupId))"
-          @tap="workHandle(workInfo)">处理</button>
+          @tap="handleWork(workInfo)">处理</button>
       </view>
       <!-- workInfo.isAssignTask || workInfo.isAuditTask -->
       <view class="foot_box" v-if="workInfo.isAssignTask || workInfo.isAuditTask">

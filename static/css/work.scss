@@ -337,6 +337,7 @@
 
 .requiredLabel {
     position: relative;
+
     &::before {
         content: '*';
         color: red;
@@ -344,4 +345,9 @@
         left: -16rpx;
         top: -4rpx;
     }
+}
+
+:deep(.loadmore) {
+    background-color: #f4f4f4;
+    margin: 20px 0;
 }

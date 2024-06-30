@@ -28,7 +28,7 @@ const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
 
 onShow(() => {
-  if(auditRefresh.value) {
+  if (auditRefresh.value) {
     resetBtn()
     auditRefresh.value = false
   }
@@ -38,13 +38,19 @@ onMounted(() => {
   getListFn()
 })
 
+const listState = ref('loading') // 加载状态
+
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
-  if (code != 0) return Toast.error(msg)
-  total.value = data.total
-  if (isTriggered.value) isTriggered.value = false
-  Toast.close()
-  workList.value = [...workList.value, ...data.records]
+  if (code != 0) {
+    Toast.error(msg)
+  } else {
+    listState.value = 'finished'
+    total.value = data.total
+    if (isTriggered.value) isTriggered.value = false
+    Toast.close()
+    workList.value = [...workList.value, ...data.records]
+  }
 }
 
 const onRefresherrefresh = () => { // 下拉刷新
@@ -56,13 +62,15 @@ const onRefresherrefresh = () => { // 下拉刷新
 }
 
 const scrollBottom = () => { // 上拉加载
-  Toast.loading('加载中...')
+  // Toast.loading('加载中...')
   let lengths = workList.value.length
   if (lengths < total.value) {
     getForm.value.pageNum++
     getListFn()
+    listState.value = 'loading'
   } else {
-    Toast.warning("没有更多了!")
+    listState.value = 'finished'
+    // Toast.warning("没有更多了!")
   }
 }
 
@@ -187,6 +195,7 @@ const clickItem = (item) => {
         </view>
       </wd-checkbox-group>
       <wd-status-tip v-if="workList && workList.length == 0" image="content" tip="暂无工单" />
+      <wd-loadmore v-if="workList.length > 5" custom-class="loadmore" :state="listState" @reload="getListFn" />
     </scroll-view>
     <view class="oneKey" v-if="workList && workList.length != 0">
       <wd-checkbox v-model="allHandleValue" @change="allHandleChange">{{ allHandleValue ? '取消全选' : "全选" }}</wd-checkbox>
