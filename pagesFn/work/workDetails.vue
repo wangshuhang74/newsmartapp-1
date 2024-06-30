@@ -9,7 +9,7 @@ import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import { useUserStore, useWorkStore } from '@/store'
 import { acceptOrder, getAppOrderInfo, getList } from '@/api'
 
-const { workDetail, assignRefresh, auditRefresh } = storeToRefs(useWorkStore())
+const { workDetail, workHandle, assignRefresh, auditRefresh } = storeToRefs(useWorkStore())
 const Toast = useToast()
 const message = useMessage(); // 消息弹框
 const workInfo = ref({}) // 传入的工单信息
@@ -142,6 +142,13 @@ const takeOrders = (item) => {
       getWorkFn()
     })
     .catch(() => { });
+}
+
+const handleWork = (item) => {
+  workHandle.value = item
+  uni.navigateTo({
+    url: "/pagesFn/work/handleWork",
+  })
 }
 
 const copyBtn = (val) => {
@@ -386,7 +393,8 @@ const copyBtn = (val) => {
         <button class="footBtn" @tap="takeOrders(workInfo)"
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">接单</button>
         <button class="footBtn cl"
-          v-if="workInfo.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (workInfo.assigneeId == userInfo.userId || userInfo.rules.includes(workInfo.groupId))">处理</button>
+          v-if="workInfo.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (workInfo.assigneeId == userInfo.userId || userInfo.rules.includes(workInfo.groupId))"
+          @tap="workHandle(workInfo)">处理</button>
       </view>
       <!-- workInfo.isAssignTask || workInfo.isAuditTask -->
       <view class="foot_box" v-if="workInfo.isAssignTask || workInfo.isAuditTask">
