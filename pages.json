@@ -243,6 +243,15 @@
 						"navigationStyle": "custom",
 						"navigationBarTitleText": "处理工单"
 					}
+				},
+				{
+					"path": "work/signature",
+					"name": "signature",
+					"needLogin": true,
+					"style": {
+						"navigationStyle": "custom",
+						"navigationBarTitleText": "签名"
+					}
 				}
 			]
 		}
