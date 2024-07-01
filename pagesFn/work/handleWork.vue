@@ -5,7 +5,7 @@ import QreviewImage from '../../pages/components/q-previewImage.vue'
 import { baseURL } from '@/utils/http'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { useWorkStore, useUserStore } from '@/store'
-import { appDisposeOrder, complete } from '@/api'
+import { appDisposeOrder, complete, appDisposeOrderInfo } from '@/api'
 import { pathToBase64, base64ToPath } from "@/utils/tools.js"; // 图片转base64
 import dayjs from "dayjs";
 
@@ -144,11 +144,38 @@ onMounted(() => {
   });
 
   uni.getSystemInfoSync().platform == "ios" ? isIos.value = true : isIos.value = false
+  appDisposeOrderInfoFn()
 })
 
 
+
+//页面销毁时
+onUnmounted(() => {
+  uni.$off('sign')
+  appDisposeOrderFn(postForm.value) // 页面销毁时保存工单
+})
+
+const appDisposeOrderInfoFn = async () => {
+  uni.showToast({
+    title: '加载中...',
+    icon: 'loading',
+    duration: 2000
+  });
+  const { code, data, msg } = await appDisposeOrderInfo({
+    orderId: workHandle.value.orderId
+  })
+  if (code != 0) {
+    Toast.error(msg)
+    uni.hideToast()
+  } else {
+    uni.hideToast()
+    postForm.value.addressInfo = data.addressInfo
+    postForm.value.applyInfo = data.applyInfo
+    postForm.value.signInfo = data.signInfo
+  }
+}
+
 const submitBtn = async () => { // 提交工单
-  console.log("🚀 ~ submitBtn ~ postForm.value:", postForm.value)
   Toast.loading("提交中...");
   const { code, data, msg } = await appDisposeOrder(postForm.value)
   if (code != 0) {
@@ -156,14 +183,25 @@ const submitBtn = async () => { // 提交工单
     Toast.close()
   } else {
     const { code, data, msg } = await complete(postLcForm.value)
-    if (code != 0) return Toast.error(msg)
-    Toast.success("提交成功")
-    Toast.close()
-    setTimeout(() => {
-      uni.navigateBack({
-        delta: 1
-      })
-    }, 1000)
+    if (code != 0) {
+      Toast.error(msg)
+      Toast.close()
+    } else {
+      Toast.success("提交成功")
+      Toast.close()
+      setTimeout(() => {
+        uni.navigateBack({
+          delta: 1
+        })
+      }, 1000)
+    }
+  }
+}
+
+const appDisposeOrderFn = async (value) => {
+  const { code, data, msg } = await appDisposeOrder(postForm.value)
+  if (code != 0) {
+    Toast.error(msg)
   }
 }
 

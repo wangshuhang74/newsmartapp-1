@@ -58,3 +58,8 @@ export const getWorkerList = () => { // 获取运维工程师
 export const getAppOrderInfo = (orderId) => {
     return http.post(`/order/getAppOrderInfo${orderId ? "?orderId=" + orderId : ''}`,);
 }
+
+// /order/appDisposeOrderInfo // 处理详情-回显
+export const appDisposeOrderInfo = (params) => {
+    return http.post("/order/appDisposeOrderInfo", params, {});
+}
