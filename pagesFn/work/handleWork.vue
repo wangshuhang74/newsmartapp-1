@@ -17,6 +17,7 @@ const { userInfo, userMap } = storeToRefs(userStore) // 用户信息
 const isIos = ref(false) // 是否是ios
 const watermarkUrl = ref("https://report.gb19056.com/watermark/") // 水印相机地址
 const openWebview = ref(false)  // 是否打开水印相机
+const variableList = ref([]) // 需要预览的图片列表
 const previewImage = ref(null); // 图片预览dom
 const sheetShow = ref(false) // 选择上传方式弹框
 const upType = ref(null) // 上传类型
@@ -307,16 +308,20 @@ const getAddress = (lat, lng) => {
 
 
 const upBtn = (type, idx) => {
-  console.log("🚀 ~ upBtn ~ type:", type)
-  console.log("🚀 ~ upBtn ~ idx:", idx)
   upType.value = type // 当前上传类型
   upIdx.value = idx
-  if (userInfo.value.userType == 2) { // 如果是主管 可以选择性上传
+  const typeList = ['drivingLicense', 'driverLicense',
+    'managerFile', 'electricalFile', 'busFile', 'hostPic', 'attachment']
+
+  if (typeList.includes(type)) { // 如果是附件上传 可以选择性上传
     sheetShow.value = true
-  } else { // 如果是工程师 只能现场拍照
+  } else if (workHandle.value.powerAlbum) { // 如果不是附件上传，判断有没有权限上传 
+    sheetShow.value = true // 如果是用 可以选择性上传
+  } else { // 只能现场拍照
     upImgFn()
     //upAlbum()
   }
+
 }
 
 const sheetSelect = ({ index }) => { // 选择上传方式
@@ -535,35 +540,20 @@ const uploadFileApi = async (path) => { //上传图片接口
       fileName: "工单图片",
     },
     success: (uploadFileRes) => {
+      const typeList = ['beforeApplyPic', 'afterApplyPic', 'drivingLicense', 'driverLicense',
+        'managerFile', 'electricalFile', 'busFile', 'hostPic', 'attachment']
       const { data } = JSON.parse(uploadFileRes.data);
       console.log("🚀 ~ uploadFileApi ~ data:", data)
       if (upType.value == "storePic") { //  门店图片
         postForm.value.addressInfo.storePic.push(data.url)
-      } else if (upType.value == "beforeApplyPic") { // 施工前照片
-        postForm.value.applyInfo[upIdx.value].beforeApplyPic.push(data.url)
-      } else if (upType.value == "afterApplyPic") { // 施工后照片
-        postForm.value.applyInfo[upIdx.value].afterApplyPic.push(data.url)
+      } else if (typeList.includes(upType.value)) { // 施工信息图片
+        postForm.value.applyInfo[upIdx.value][upType.value].push(data.url)
       }
     },
   });
 }
-const upObj = { // 上传图片类型映射表
-  "storePic": "门店图片",
-  "beforeApplyPic": "施工前照片",
-  "afterApplyPic": "施工后照片",
-}
 
-const sheetActions = [ // 选择上传方式
-  {
-    name: '现场拍照',
-    subname: '水印相机'
-  },
-  {
-    name: '手机相册上传',
-  }
-]
 
-const variableList = ref([]) // 需要预览的图片列表
 const onLongpress = e => { // 图片预览长按事件
   console.log('当前长按的图片是' + e);
   uni.showActionSheet({
@@ -639,6 +629,29 @@ const goSign = (e) => {
     url: `/pagesFn/work/signature?upType=${e}`
   })
 }
+
+const upObj = { // 上传图片类型映射表
+  "storePic": "门店图片",
+  "beforeApplyPic": "施工前照片",
+  "afterApplyPic": "施工后照片",
+  "drivingLicense": "行驶证",
+  "driverLicense": "驾驶证",
+  "managerFile": "管理员信息附件",
+  "electricalFile": "电气附件",
+  "busFile": "总线附件",
+  "hostPic": "主机照片",
+  "attachment": "附件检查",
+}
+
+const sheetActions = [ // 选择上传方式
+  {
+    name: '现场拍照',
+    subname: '水印相机'
+  },
+  {
+    name: '手机相册上传',
+  }
+]
 
 // --------------------------------------------------工单维护选项信息 --------------------------------------
 const vehicleTypeList = [// 车辆类型
@@ -741,7 +754,6 @@ const breakdownTypeList = [  // 故障分类
     label: '其他',
     value: '其他'
   },
-
 ]
 const failureCauseList = [ //故障原因
   {
@@ -797,7 +809,7 @@ const failureCauseList = [ //故障原因
     value: '其他'
   },
 ]
-const maintenanceMode = ref([
+const maintenanceMode = [
   {
     label: '维护处理',
     value: '维护处理'
@@ -806,8 +818,8 @@ const maintenanceMode = ref([
     label: '更换部件',
     value: '更换部件'
   },
-])
-const changeList = ref([
+]
+const changeList = [
   {
     label: '主机',
     value: '主机'
@@ -840,8 +852,8 @@ const changeList = ref([
     label: '物联卡',
     value: '物联卡'
   },
-])
-const equipmentList = ref([
+]
+const equipmentList = [
   {
     label: '大华',
     value: '大华'
@@ -854,9 +866,9 @@ const equipmentList = ref([
     label: '其他',
     value: '其他'
   }
-])
+]
 
-const aisleList = ref([
+const aisleList = [
   {
     label: "通道1",
     value: '1',
@@ -921,7 +933,7 @@ const aisleList = ref([
     label: "通道16",
     value: '16',
   },
-])
+]
 
 const maintenanceModeChange = (val, item) => {
   item.whContent = ''  //维护内容
@@ -992,8 +1004,6 @@ const carTypeChange = (item) => {
 // --------------------------------------------------行车记录仪新装 上传图片 --------------------------------------
 
 const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx是当前点击的图片下标
-  console.log("🚀 ~ upBtn ~ imgList:", imgList)
-  console.log("🚀 ~ upBtn ~ idx:", idx)
   uni.chooseImage({
     count: 9,
     sizeType: ["original", "compressed"],  // 可以指定是原图还是压缩图，默认二者都有
@@ -1282,7 +1292,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.drivingLicense, index, idx, 'drivingLicense')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.drivingLicense, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('drivingLicense', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
@@ -1295,7 +1305,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.driverLicense, index, idx, 'driverLicense')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.driverLicense, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('driverLicense', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
@@ -1308,7 +1318,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.managerFile, index, idx, 'managerFile')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.managerFile, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('managerFile', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
@@ -1321,7 +1331,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.electricalFile, index, idx, 'electricalFile')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.electricalFile, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('electricalFile', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
@@ -1334,7 +1344,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.busFile, index, idx, 'busFile')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.busFile, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('busFile', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
@@ -1347,7 +1357,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.hostPic, index, idx, 'hostPic')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.hostPic, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('hostPic', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
@@ -1360,7 +1370,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                       @tap="lookover(item.attachment, index, idx, 'attachment')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtns(item.attachment, idx)">
+                    <view class="img_item up_btn" @tap="upBtn('attachment', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>

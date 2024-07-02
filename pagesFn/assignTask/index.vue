@@ -134,7 +134,7 @@ const clickItem = (item) => {
               <text class="tit">{{ item?.clientName ? item?.clientName : '-' }}-{{ item?.carPlate ? item?.carPlate :
                 '-' }}</text>
               <text class="tags tag1" v-if="item.orderTypeDetail">{{ item.orderTypeDetail }}</text>
-              <text class="tags tag2" v-if="item.orderStatus">{{ item.orderStatus }}</text>
+              <!-- <text class="tags tag2" v-if="item.orderStatus">{{ item.orderStatus }}</text> -->
             </wd-checkbox>
             <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
           </view>
