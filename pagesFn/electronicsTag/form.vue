@@ -86,9 +86,9 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>出厂日期</text>
-							<wd-calendar use-default-slot v-model="CCRQ_DATE"> <!-- @confirm="handleConfirm"-->
+							<wd-datetime-picker v-model="CCRQ_DATE" type="date" use-default-slot @confirm="handleTime($event, 0)">
 								<input type="text" class="boxFlex" v-model="postForm.productDate" placeholder="自识别/请输入" disabled />
-							</wd-calendar>
+							</wd-datetime-picker>
 						</view>
 					</view>
 					<view class="view_rows">
@@ -100,13 +100,17 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>检验有效期</text>
-							<input type="text" class="boxFlex" v-model="postForm.validDate" placeholder="自识别/请输入" />
+							<wd-datetime-picker v-model="JYYXQ_DATE" type="date" use-default-slot @confirm="handleTime($event, 1)">
+								<input type="text" class="boxFlex" v-model="postForm.validDate" placeholder="自识别/请输入" disabled />
+							</wd-datetime-picker>
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>强制报废期</text>
-							<input type="text" class="boxFlex" v-model="postForm.scrapDate" placeholder="自识别/请输入" />
+							<wd-datetime-picker v-model="QZBFQ_DATE" type="date" use-default-slot @confirm="handleTime($event, 2)">
+								<input type="text" class="boxFlex" v-model="postForm.scrapDate" placeholder="自识别/请输入" disabled />
+							</wd-datetime-picker>
 						</view>
 					</view>
 					<view class="view_rows">
@@ -152,7 +156,8 @@
 </template>
 
 <script setup>
-import { dayjs } from "wot-design-uni"; // ui组件库
+// import { dayjs } from "wot-design-uni"; // ui组件库
+import dayjs from 'dayjs'
 import navbar from '@/pages/components/navbar.vue'
 import keyboard from '@/pages/components/keyboard.vue'
 import { sendCmd, addPrivateWriteAOSpec, ab2hex, writeStatus } from "../../utils/bluetooth";
@@ -166,11 +171,13 @@ import { writeData, getBySerial, update } from '../../api/index'
 const showKeyboard = ref(false);
 const showKeyboard2 = ref(false);
 const isTagsInfo = ref(false);//数据是否是通过读卡获取的
-const CCRQ_DATE = ref();//出厂日期
-CCRQ_DATE.value = new Date('2024-06-25 00:00:00').getTime();
-console.log(Date.now());
-console.log(CCRQ_DATE.value);
+const CCRQ_DATE = ref('');//出厂日期
+const JYYXQ_DATE = ref(''); //检验有效期
+const QZBFQ_DATE = ref(''); //强制报废期
 
+// const maxDate = ref(null);
+// let _day = dayjs().add(1, 'year');
+// maxDate.value = new Date(_day).getTime();
 console.log('tagsInfo', tagsInfo.value);
 
 const keyClick = (e) => {
@@ -204,7 +211,13 @@ const postForm = ref({
 })
 onMounted(() => {
 	if (tagsInfo.value.U1JLYBH) { //行车记录仪编号
-		isTagsInfo.value = true;
+		isTagsInfo.value = true; //表示已经是通过读卡获取的数据 以下6个字段的数据通过读卡获取
+		postForm.value.U1JLYBH = tagsInfo.value.U1JLYBH;
+		postForm.value.U1AQXPID = tagsInfo.value.U1AQXPID;
+		postForm.value.U1HPZL = tagsInfo.value.U1HPZL;
+		postForm.value.U1SFDM = tagsInfo.value.U1SFDM;
+		postForm.value.U1HPHMXH = tagsInfo.value.U1HPHMXH;
+		postForm.value.U1FPDH = tagsInfo.value.U1FPDH;
 		dataInit(tagsInfo.value.U1JLYBH);
 	}
 })
@@ -230,12 +243,12 @@ const dataInit = (obj) => {
 			console.log(res);
 			binary.value.HMZL_binary = '';
 			if (isTagsInfo.value) {  //表示已经是通过读卡获取的数据
-				postForm.value.U1JLYBH = tagsInfo.value.U1JLYBH;
-				postForm.value.U1AQXPID = tagsInfo.value.U1AQXPID;
-				postForm.value.U1HPZL = tagsInfo.value.U1HPZL;
-				postForm.value.U1SFDM = tagsInfo.value.U1SFDM;
-				postForm.value.U1HPHMXH = tagsInfo.value.U1HPHMXH;
-				postForm.value.U1FPDH = tagsInfo.value.U1FPDH;
+				// postForm.value.U1JLYBH = tagsInfo.value.U1JLYBH;
+				// postForm.value.U1AQXPID = tagsInfo.value.U1AQXPID;
+				// postForm.value.U1HPZL = tagsInfo.value.U1HPZL;
+				// postForm.value.U1SFDM = tagsInfo.value.U1SFDM;
+				// postForm.value.U1HPHMXH = tagsInfo.value.U1HPHMXH;
+				// postForm.value.U1FPDH = tagsInfo.value.U1FPDH;
 			} else {
 				postForm.value.U1AQXPID = res.data.tpmId;
 				postForm.value.U1HPZL = res.data.carCardType;
@@ -261,6 +274,15 @@ const dataInit = (obj) => {
 				})
 				binary.value.HMZL_binary = temp_HMZL.value;
 				console.log(temp_HMZL.value);
+			}
+			if (postForm.value.productDate) {
+				CCRQ_DATE.value = new Date(postForm.value.productDate).getTime();
+			}
+			if (postForm.value.validDate) {
+				JYYXQ_DATE.value = new Date(postForm.value.validDate).getTime();
+			}
+			if (postForm.value.scrapDate) {
+				QZBFQ_DATE.value = new Date(postForm.value.scrapDate).getTime();
 			}
 		}
 	})
@@ -507,6 +529,16 @@ const closeLoad = (title) => {
 //toast提示框
 const openToast = (title) => {
 	uni.showToast({ title: title, icon: 'none' });
+}
+
+const handleTime = (e, obj) => {
+	if (obj == 0) {
+		postForm.value.productDate = dayjs(e.value).format('YYYY-MM-DD');
+	} else if (obj == 1) {
+		postForm.value.validDate = dayjs(e.value).format('YYYY-MM-DD');
+	} else if (obj == 2) {
+		postForm.value.scrapDate = dayjs(e.value).format('YYYY-MM-DD');
+	}
 }
 
 </script>
