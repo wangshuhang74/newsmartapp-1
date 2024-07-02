@@ -110,14 +110,14 @@
 <script setup>
 import { auth } from "../../api/index"
 import navbar from '@/pages/components/navbar.vue'
-import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safeSn, authStatus, writeStatus, getDeviceSecConfig, readRandom, addUserSelectSpec } from "../../utils/bluetooth";
+import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safeSn, authStatus, writeStatus, getDeviceSecConfig, readRandom, addUserSelectSpec, addAOReadSpec } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
 const { tagsInfo, blueToothDevices, isOpenOnBlue, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO, addROArea } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
 // 获取屏幕边界到安全区域距离
-const { safeAreaInsets } = uni.getSystemInfoSync()
+const { safeAreaInsets, osName } = uni.getSystemInfoSync()
 const currentStep = ref(1); //当前步骤step
 const blueList = ref([]); //获取蓝牙列表
 // const deviceId = ref('');//蓝牙设备id
@@ -205,24 +205,36 @@ const openBlue = () => {
         console.log('初始化蓝牙失败')
         console.error('open', err)
         // #ifdef APP-PLUS
-        // #ifdef APP-ANDROID 
-        uni.showModal({
-          title: '是否打开蓝牙',
-          content: '',
-          success: function (res) {
-            if (res.confirm) {
-              const main = plus.android.runtimeMainActivity()
-              const Intent = plus.android.importClass('android.content.Intent')
-              const mIntent = new Intent('android.settings.BLUETOOTH_SETTINGS')
-              main.startActivity(mIntent)
-            } else if (res.cancel) {
-              console.log('用户点击取消')
-            }
-          },
-        })
+        if (osName == 'android') {
+          uni.showModal({
+            title: '是否打开蓝牙',
+            content: '',
+            success: function (res) {
+              if (res.confirm) {
+                const main = plus.android.runtimeMainActivity()
+                const Intent = plus.android.importClass('android.content.Intent')
+                const mIntent = new Intent('android.settings.BLUETOOTH_SETTINGS')
+                main.startActivity(mIntent)
+              } else if (res.cancel) {
+                console.log('用户点击取消')
+              }
+            },
+          })
+        } else if (osName == 'ios') {
+          // uni.showModal({
+          //   title: '请先启用蓝牙',
+          //   showCancel: false,
+          //   content: '',
+          //   success: function (res) {
+          //     if (res.confirm) {
+          //       console.log('用户点击确定')
+          //     }
+          //   },
+          // })
+        }
         // #endif
 
-        //#else
+        // #ifdef MP-WEIXIN
         uni.showModal({
           title: '请先启用蓝牙',
           showCancel: false,
@@ -469,12 +481,19 @@ const readBlueOn = (params) => {
           } else if (result == '401') {
             console.log('-------已完成添加RO 开始执行启动RO-------', '401');
             sendCmd(startSelectSpec); //启动RO应答
+
+            // addAOReadSpec(1, 4, 9); //添加user1的读AO
             readRules.value.addRO = true;
             writeRules.value.addRO = true;// 同时修改写写入添加RO为true,添加RO不需要重复执行
           } else if (result == '405') {
             console.log('--------已完成启动RO End-------');
             readRules.value.startRO = true;
+          } else if (result == '451') {
+            console.log('-------已完成添加AO读 开始执行启动RO-------', '451');
+            sendCmd(startSelectSpec); //启动RO应答
           }
+
+
         } else { //isReadRules==false 当前为写入规则
           //写规则步骤  1删除RO-403 2删除AO-453 3添加RO-401 4添加AO-451 5启动RO-405
           //const writeRules = ref({ deleteRO: false, deleteAO: false, addRO: false, addAO: false, startRO: false });
