@@ -314,8 +314,8 @@ const upBtn = (type, idx) => {
   if (userInfo.value.userType == 2) { // 如果是主管 可以选择性上传
     sheetShow.value = true
   } else { // 如果是工程师 只能现场拍照
-    // upImgFn()
-    upAlbum()
+    upImgFn()
+    //upAlbum()
   }
 }
 
@@ -859,67 +859,67 @@ const equipmentList = ref([
 const aisleList = ref([
   {
     label: "通道1",
-    value: 1,
+    value: '1',
   },
   {
     label: "通道2",
-    value: 2,
+    value: '2',
   },
   {
     label: "通道3",
-    value: 3,
+    value: '3',
   },
   {
     label: "通道4",
-    value: 4,
+    value: '4',
   },
   {
     label: "通道5",
-    value: 5,
+    value: '5',
   },
   {
     label: "通道6",
-    value: 6,
+    value: '6',
   },
   {
     label: "通道7",
-    value: 7,
+    value: '7',
   },
   {
     label: "通道8",
-    value: 8,
+    value: '8',
   },
   {
     label: "通道9",
-    value: 9,
+    value: '9',
   },
   {
     label: "通道10",
-    value: 10,
+    value: '10',
   },
   {
     label: "通道11",
-    value: 11,
+    value: '11',
   },
   {
     label: "通道12",
-    value: 12,
+    value: '12',
   },
   {
     label: "通道13",
-    value: 13,
+    value: '13',
   },
   {
     label: "通道14",
-    value: 14,
+    value: '14',
   },
   {
     label: "通道15",
-    value: 15,
+    value: '15',
   },
   {
     label: "通道16",
-    value: 16,
+    value: '16',
   },
 ])
 
@@ -996,8 +996,8 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
   console.log("🚀 ~ upBtn ~ idx:", idx)
   uni.chooseImage({
     count: 9,
-    sizeType: ["original", "compressed"],
-    sourceType: ["album"],
+    sizeType: ["original", "compressed"],  // 可以指定是原图还是压缩图，默认二者都有
+    sourceType: ["album", "camera"],
     success: (res) => {
       let tempFilePaths = res.tempFilePaths;
       tempFilePaths.forEach((item) => {
