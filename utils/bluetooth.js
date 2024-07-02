@@ -782,7 +782,7 @@ const GetCustomizedInfo = (data, vehicle) => {
 					var provinceNum = ((cid[3] & 0xff) >> 6);
 					provinceNum |= ((cid[4] << 2) & 0xff);
 
-					var scid = "No." + arrProvinceCode[provinceNum] + String(number).padStart(10, '0');
+					var scid = arrProvinceCode[provinceNum] + String(number).padStart(10, '0'); //"No." + 
 					vehicle.CID = scid;
 					break;
 				case 0x8802:            //省份代码+发牌代号

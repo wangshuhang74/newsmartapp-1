@@ -65,8 +65,8 @@ export const appDisposeOrderInfo = (params) => {
 }
 
 ///driveRecord/getBySerial 行车记录仪获取车辆信息
-export const getBySerial = (params) => {
-    return http.get("/driveRecord/getBySerial?serial=" + params, {}, {});
+export const getBySerial = (key, params) => {
+    return http.get("/driveRecord/getBySerial?" + key + "=" + params, {}, {});
 }
 
 ///driveRecord/update
