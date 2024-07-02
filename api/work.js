@@ -63,3 +63,13 @@ export const getAppOrderInfo = (orderId) => {
 export const appDisposeOrderInfo = (params) => {
     return http.post("/order/appDisposeOrderInfo", params, {});
 }
+
+///driveRecord/getBySerial 行车记录仪获取车辆信息
+export const getBySerial = (params) => {
+    return http.get("/driveRecord/getBySerial?serial=" + params, {}, {});
+}
+
+///driveRecord/update
+export const update = (params) => {
+    return http.post("/driveRecord/update", params, {});
+}
