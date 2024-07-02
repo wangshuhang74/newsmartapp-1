@@ -16,7 +16,7 @@ import {
 import Request from "luch-request";
 
 
-// export const baseURL = "http://192.168.2.127:8650/";
+// export const baseURL = "http://192.168.2.129:8650/";
 export const baseURL = "http://114.55.177.116:8650/";
 const http = new Request();
 http.setConfig((config) => {
@@ -35,7 +35,7 @@ http.interceptors.request.use(
 		} = storeToRefs(useUserStore()); // 解构pinia的store
 		const token = userInfo.value.token;
 		// console.log("🚀 ~ token:", token)
-		// /* 请求之前拦截器。可以使用async await 做异步操作 */
+		// /* 请求之前 拦截器。可以使用async await 做异步操作 */
 		config.header = {
 			...config.header,
 		};
@@ -77,7 +77,11 @@ http.interceptors.response.use(
 	},
 	(response) => {
 		console.log("🚀 ~ response:", response)
-		uni.showToast(response.errMsg)
+		uni.showToast({
+			title: response.errMsg,
+			icon: 'error',
+			duration: 2000
+		});
 		// 请求错误做点什么。可以使用async await 做异步操作
 		return Promise.reject(response);
 	}

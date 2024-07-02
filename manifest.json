@@ -79,7 +79,7 @@
                 },
                 "UIBackgroundModes" : [ "location" ], // 数组，支持多个 ,
                 "idfa" : false, // 是否使用广告标识符
-                "dSYMs" : false // 是否上传符号表
+                "dSYMs" : false
             },
             /* ios打包配置 */
             "sdkConfigs" : {

@@ -42,8 +42,9 @@ onShow(() => {
     getWork.value.type = workDetail.value.orderType == 2 ? 3 : workDetail.value.orderType == 3 ? 4 : null // orderType == 4 ? 5 : null //新车记录仪
     if (getWork.value.type && !workDetail.value.isAssignTask && !workDetail.value.isAuditTask) getWorkFn()
     getOrderInfo()
-    console.log("🚀 ~ onLoad ~ workDetail.value:", workDetail.value)
+    console.log("🚀 ~ onLoad ~ workDetail.value:111111", workDetail.value)
   } else {
+    console.log("🚀 ~ onLoad ~ workDetail.value:222222", workDetail.value)
     Toast.warning("没有找到该工单信息")
     setTimeout(() => {
       uni.navigateBack({
@@ -63,12 +64,12 @@ const getOrderInfo = async () => {
   const { code, data, msg } = await getAppOrderInfo(workInfo.value.orderId)
   if (code != 0) {
     Toast.error(msg)
-    Toast.close()
     setTimeout(() => {
+      Toast.close()
       uni.navigateBack({
         delta: 1
       })
-    }, 1000)
+    }, 600)
   } else {
     Toast.close()
     workInfoApi.value = data
@@ -170,6 +171,16 @@ const copyBtn = (val) => {
     },
   })
 }
+
+
+const checkRules = (userInfo, item) => {// 处理按钮权限
+  return (
+    ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
+    ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
+  );
+}
+
+
 </script>
 <template>
   <wd-toast></wd-toast>
@@ -400,11 +411,8 @@ const copyBtn = (val) => {
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">返还</button>
         <button class="footBtn" @tap="takeOrders(workInfo)"
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">接单</button>
-        <button class="footBtn cl"
-          v-if="workInfo.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (workInfo.assigneeId == userInfo.userId || userInfo.rules.includes(workInfo.groupId))"
-          @tap="handleWork(workInfo)">处理</button>
+        <button class="footBtn cl" v-if="checkRules(userInfo, workInfo)" @tap="handleWork(workInfo)">处理</button>
       </view>
-      <!-- workInfo.isAssignTask || workInfo.isAuditTask -->
       <view class="foot_box" v-if="workInfo.isAssignTask || workInfo.isAuditTask">
         <button class="footBtn cl" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>
         <button class="footBtn cl" v-if="workInfo.isAuditTask" @tap="auditBtn(workInfo)">审核

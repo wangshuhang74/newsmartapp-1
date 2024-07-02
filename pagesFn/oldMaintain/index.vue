@@ -144,6 +144,12 @@ const handleWork = (item) => {
   })
 }
 
+const checkRules = (userInfo, item) => { // 处理按钮权限
+  return (
+    ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
+    ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
+  );
+}
 
 </script>
 
@@ -232,11 +238,12 @@ const handleWork = (item) => {
           <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0 && userInfo.rules.includes(6)">接单
           </view>
           <!-- <view class="btn" v-if="[5, 6].some(rule => userInfo.rules.includes(rule))">处理 assigneeId -->
-          <view class="btn"
+          <!-- <view class="btn"
             v-if="item.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (item.assigneeId == userInfo.userId || userInfo.rules.includes(item.groupId))"
             @tap.stop="handleWork(item)">
             处理
-          </view>
+          </view> -->
+          <view class="btn" v-if="checkRules(userInfo, item)" @tap.stop="handleWork(item)">处理</view>
         </view>
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />

@@ -67,7 +67,8 @@ http.interceptors.response.use(
       // setTimeout(() => {
       uni.showToast({
         title: response.data.message,
-        icon: "none"
+        icon: 'error',
+        duration: 2000
       });
       // }, 100)
       return;

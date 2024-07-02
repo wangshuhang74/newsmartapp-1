@@ -23,7 +23,9 @@ const sheetShow = ref(false) // 选择上传方式弹框
 const upType = ref(null) // 上传类型
 const holdType = ref(null) // 预览类型
 const holdIdx = ref(null) // 预览类型
-const upIdx = ref(null)
+const upIdx = ref(null) // 上传下标
+
+
 
 const variableXZ = { //新装
   deviceType: null, // 设备类型 ,
@@ -82,6 +84,24 @@ const variableWH = {//维护
   channelType: [],//通道类型 ,
 }
 
+const postForm = ref({
+  orderId: null, // 工单id
+  flowInfo: { // 流程信息
+    taskId: null, // 任务id
+    instanceId: null // 实例id
+  },
+  addressInfo: { // 地址核查
+    isLocation: 1, // 是否到达现场 0 到达 1 未到达
+    address: null, // 地址
+    storePic: [] // 门店图片
+  },
+  applyInfo: [], // 施工信息
+  signInfo: { // 签字确认
+    engieeSign: null, // 工程师签字
+    userSign: null, // 用户签字
+  }
+})
+
 const postLcForm = ref({
   comment: 1,
   procInsId: null,
@@ -93,27 +113,8 @@ const postLcForm = ref({
   },
 })
 
-const postForm = ref({
-  orderId: null, // 工单id
-  flowInfo: { // 流程信息
-    taskId: null, // 任务id
-    instanceId: null // 实例id
-  },
-  addressInfo: { // 地址核查
-    isLocation: 0, // 是否到达现场 0否 1是
-    address: null, // 地址
-    storePic: [] // 门店图片
-  },
-  applyInfo: [], // 施工信息
-  signInfo: { // 签字确认
-    engieeSign: null, // 工程师签字
-    userSign: null, // 用户签字
-  }
-})
-
 
 onMounted(() => {
-  getLocation()
   if (workHandle.value) {
     postForm.value.orderId = workHandle.value.orderId
     postForm.value.signInfo.orderId = workHandle.value.orderId
@@ -166,31 +167,37 @@ const appDisposeOrderInfoFn = async () => {
     orderId: workHandle.value.orderId
   })
   if (code != 0) {
-    Toast.error(msg)
+    verifyErr(msg)
     uni.hideToast()
   } else {
     uni.hideToast()
-    postForm.value.addressInfo = data.addressInfo
+    console.log("data", data);
+    postForm.value.addressInfo.storePic = data.addressInfo.storePic ? data.addressInfo.storePic : []
     postForm.value.applyInfo = data.applyInfo
     postForm.value.signInfo = data.signInfo
+    getLocation()
   }
 }
 
 const submitBtn = async () => { // 提交工单
+  console.log("🚀 ~ appDisposeOrderInfoFn ~ postForm.value:", postForm.value)
+  const verify = verifyForm()
+  if (!verify) return
   Toast.loading("提交中...");
   const { code, data, msg } = await appDisposeOrder(postForm.value)
   if (code != 0) {
-    Toast.error(msg)
+    verifyErr(msg)
     Toast.close()
   } else {
     const { code, data, msg } = await complete(postLcForm.value)
     if (code != 0) {
-      Toast.error(msg)
+      verifyErr(msg)
       Toast.close()
     } else {
       Toast.success("提交成功")
       Toast.close()
       setTimeout(() => {
+        console.log("🚀 ~ appDisposeOrderInfoFn ~ data:", data)
         uni.navigateBack({
           delta: 1
         })
@@ -202,7 +209,7 @@ const submitBtn = async () => { // 提交工单
 const appDisposeOrderFn = async (value) => {
   const { code, data, msg } = await appDisposeOrder(postForm.value)
   if (code != 0) {
-    Toast.error(msg)
+    verifyErr(msg)
   }
 }
 
@@ -222,6 +229,7 @@ const delWorkBtn = (idx) => { // 删除施工信息
 
 // 获取当前位置
 const getLocation = (type) => {
+  postForm.value.addressInfo.address = null
   Toast.loading("定位中...");
   uni.getLocation({
     // type: "wgs84",
@@ -245,10 +253,7 @@ const getLocation = (type) => {
         if (type) Toast.success("校验成功");
       } else {
         postForm.value.addressInfo.isLocation = 1
-        if (type) Toast.error({
-          msg: `校验到您可能未到达现场,距离工单处理现场仍有${isLocation}米!`,
-          duration: 3000
-        });
+        if (type) verifyErr(`校验到您可能未到达现场,距离工单处理现场仍有${isLocation}米!`);
       }
       getAddress(res.latitude, res.longitude).then((res) => {
         postForm.value.addressInfo.address = res.data.regeocode.formatted_address
@@ -257,7 +262,7 @@ const getLocation = (type) => {
     fail: (err) => {
       postForm.value.addressInfo.isLocation = 1
       Toast.close();
-      Toast.error("定位失败");
+      verifyErr("定位失败");
       console.log(err);
     },
   });
@@ -265,7 +270,7 @@ const getLocation = (type) => {
 
 const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => { // 计算两点之间的距离
   console.log(lat1, lon1, lat2, lon2);
-  if (!lat2 || !lat2) return Toast.error("未获取到工单位置信息!")
+  if (!lat2 || !lat2) return verifyErr("未获取到工单位置信息!")
   Number.prototype.deg2rad = function (deg) {
     return deg * (Math.PI / 180);
   };
@@ -315,7 +320,7 @@ const upBtn = (type, idx) => {
 
   if (typeList.includes(type)) { // 如果是附件上传 可以选择性上传
     sheetShow.value = true
-  } else if (workHandle.value.powerAlbum) { // 如果不是附件上传，判断有没有权限上传 
+  } else if (workHandle.value.ext1) { // 如果不是附件上传，判断有没有权限上传 
     sheetShow.value = true // 如果是用 可以选择性上传
   } else { // 只能现场拍照
     upImgFn()
@@ -985,7 +990,7 @@ const carTypeList = [// 车辆类型
   },
 ]
 
-const carTypeChange = (item) => {
+const carTypeChange = (item) => { //车辆类型改变
   if (item.deviceType != '汽车行驶记录仪') {
     item.drivingLicense = []
     item.driverLicense = []
@@ -1000,32 +1005,158 @@ const carTypeChange = (item) => {
     item.afterApplyPic = []
   }
 }
+const segmentedCenter = ref(null);
+const verifyErr = (msg) => {
+  // uni.showToast({
+  //   title: msg,
+  //   icon: 'error',
+  // })
+  Toast.error(msg)
+  // segmentedCenter.value.scrollTo(0, 2);
+}
 
-// --------------------------------------------------行车记录仪新装 上传图片 --------------------------------------
+const verifyForm = () => {
+  if (postForm.value.addressInfo.isLocation == 1 && !postForm.value.addressInfo.address) {
+    verifyErr("请输入正确地址")
+    return false
+  }
+  if (workHandle.value.orderType == 2) { //维护
+    const isValid = postForm.value.applyInfo.some((item, idx) => {
+      if (!item.faultType) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择故障分类!`)
+        return true
+      }
+      if (!item.faultReason) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择故障原因!`)
+        return true
+      }
+      if (!item.whType) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择维护方式!`)
+        return true
+      }
 
-const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx是当前点击的图片下标
-  uni.chooseImage({
-    count: 9,
-    sizeType: ["original", "compressed"],  // 可以指定是原图还是压缩图，默认二者都有
-    sourceType: ["album", "camera"],
-    success: (res) => {
-      let tempFilePaths = res.tempFilePaths;
-      tempFilePaths.forEach((item) => {
-        uni.uploadFile({
-          url: baseURL + "sysFile/uploadFile",
-          filePath: item,
-          name: "file",
-          formData: {
-            fileName: "工单图片",
-          },
-          success: (uploadFileRes) => {
-            const { data } = JSON.parse(uploadFileRes.data);
-            imgList.push(data.url)
-          },
-        });
-      });
-    },
-  });
+      if (item.whType == '维护处理') {
+        if (!item.whContent) {
+          verifyErr(`施工信息 ${idx + 1} - 请输入维护内容!`)
+          return true
+        }
+      } else if (item.whType == '更换部件') {
+        if (!item.replacePart) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择更换部件!`)
+          return true
+        }
+        if (!item.deviceBrand) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择设备品牌!`)
+          return true
+        }
+        if (!item.deviceSerial) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择设备序列号!`)
+          return true
+        }
+        if (!item.deviceModel) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
+          return true
+        }
+        if (!item.simNum) {
+          verifyErr(`施工信息 ${idx + 1} - 请输入SIM卡号!`)
+          return true
+        }
+      }
+    })
+    if (!isValid) {
+      console.log("全部校验通过", !isValid);
+      // return true
+    } else {
+      console.log("校验不通过", !isValid);
+      return false
+    }
+  } else if (workHandle.value.orderType == 3) { //新装
+    const isValid = postForm.value.applyInfo.some((item, idx) => {
+
+      if (!item.deviceType) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择设备类型!`)
+        return true
+      }
+
+      if (!item.carPlate) {
+        verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码/VIN码!`)
+        return true
+      }
+
+      if (!item.carType) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择车辆类型!`)
+        return true
+      }
+
+      if (!item.deviceBrand) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择设备品牌!`)
+        return true
+      }
+      if (!item.deviceSerial) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择设备序列号!`)
+        return true
+      }
+      if (!item.deviceModel) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
+        return true
+      }
+      if (!item.simNum) {
+        verifyErr(`施工信息 ${idx + 1} - 请输入SIM卡号!`)
+        return true
+      }
+
+      if (item.deviceType == '汽车行驶记录仪') {
+        if (!item.drivingLicense || item.drivingLicense.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传行驶证附件!`)
+          return true
+        }
+        if (!item.driverLicense || item.driverLicense.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传驾驶证附件!`)
+          return true
+        }
+        if (!item.managerFile || item.managerFile.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上管理员信息附件!`)
+          return true
+        }
+        if (!item.electricalFile || item.electricalFile.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传电气附件!`)
+          return true
+        }
+        if (!item.busFile || item.busFile.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传>总线附件!`)
+          return true
+        }
+        if (!item.hostPic || item.hostPic.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传主机照片附件!`)
+          return true
+        }
+        if (!item.attachment || item.attachment.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传附件检查照片!`)
+          return true
+        }
+      }
+
+    })
+    if (!isValid) {
+      console.log("全部校验通过", !isValid);
+      // return true
+    } else {
+      console.log("校验不通过", !isValid);
+      return false
+    }
+  }
+  console.log("postForm.value.signInfo.engieeSign", postForm.value.signInfo.engieeSign);
+  if (!postForm.value.signInfo.engieeSign) {
+    verifyErr("运维人员签名不能为空")
+    return false
+  }
+  if (!postForm.value.signInfo.userSign) {
+    verifyErr("用户签名不能为空")
+    return false
+  }
+
+
+  return true
 }
 
 </script>
@@ -1041,22 +1172,18 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
         </view>
         <wd-tabs v-model="segmented" @change="tabChange">
           <block>
-            <wd-tab title="地址核查">
-            </wd-tab>
+            <wd-tab title="地址核查"></wd-tab>
           </block>
           <block>
-            <wd-tab title="施工信息">
-
-            </wd-tab>
+            <wd-tab title="施工信息"></wd-tab>
           </block>
           <block>
-            <wd-tab title="签字确认">
-            </wd-tab>
+            <wd-tab title="签字确认"></wd-tab>
           </block>
         </wd-tabs>
       </view>
 
-      <scroll-view scroll-y :show-scrollbar="false" class="segmented_center ">
+      <scroll-view scroll-y :show-scrollbar="false" class="segmented_center" ref="segmentedCenter">
         <view class="center center1" v-show="segmented == 0">
           <view class="verifyInfo">
             <view class="label">位置校验：</view>
@@ -1067,8 +1194,8 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
             <wd-radio :value="1" class="isErr">有误</wd-radio>
           </wd-radio-group>
 
-          <view class="correct_text">
-            <view class="label">正确地址：</view>
+          <view class="correct_text" v-if="postForm.addressInfo.isLocation == 1">
+            <view class="label requiredLabel">正确地址：</view>
             <view class="textarea_box">
               <image class="address_img" src="http://116.62.107.90:8673/images/icons/address.png" mode="scaleToFill" />
               <textarea v-model="postForm.addressInfo.address" placeholder="请输入正确的地址"></textarea>
@@ -1088,12 +1215,11 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
             </view>
             <view class="up_tip">请打开手机「隐私权限」</view>
           </view>
-
         </view>
 
         <view class="center center2" v-show="segmented == 1">
           <!-- <view v-for="item in 110">{{ workHandle.value }}</view> -->
-          <!-- 2:维护,3:新装, 4：行车记录仪新装 -->
+          <!-- 2:维护,3:新装,  -->
           <view class="forms" v-if="workHandle.orderType == 2">
             <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
               <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
@@ -1114,14 +1240,14 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
               </view>
               <wd-select-picker filterable type="radio" label="故障分类" :columns="breakdownTypeList"
-                v-model="item.faultType" align-right />
+                v-model="item.faultType" align-right required />
               <wd-select-picker filterable type="radio" label="故障原因" :columns="failureCauseList"
-                v-model="item.faultReason" align-right />
-              <wd-select-picker label="维护方式" type="radio" required :columns="maintenanceMode" v-model="item.whType"
-                align-right @change="maintenanceModeChange($event, item)" />
+                v-model="item.faultReason" align-right required />
+              <wd-select-picker label="维护方式" type="radio" :columns="maintenanceMode" v-model="item.whType" align-right
+                @change="maintenanceModeChange($event, item)" required />
               <view v-if="item.whType == '维护处理'">
                 <view class="correct_text">
-                  <view class="label">维护内容</view>
+                  <view class="label requiredLabel">维护内容</view>
                   <view class="textarea_box">
                     <textarea v-model="item.whContent" placeholder="请输入维护内容"></textarea>
                   </view>
@@ -1206,12 +1332,12 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
               </view>
               <view v-else-if="item.whType == '更换部件'">
                 <wd-select-picker filterable type="radio" label="更换部件" :columns="changeList" v-model="item.replacePart"
-                  align-right />
+                  align-right required />
                 <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList"
-                  v-model="item.deviceBrand" align-right />
-                <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" />
-                <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" />
-                <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" />
+                  v-model="item.deviceBrand" align-right required />
+                <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+                <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
+                <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
                 <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType" align-right />
               </view>
 
@@ -1239,10 +1365,10 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
           <view class="forms" v-if="workHandle.orderType == 3">
             <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
               <wd-select-picker filterable type="radio" label="设备类型" :columns="carTypeList" v-model="item.deviceType"
-                align-right @change="carTypeChange(item)" />
-              <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
+                align-right @change="carTypeChange(item)" required />
+              <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
               <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
-                align-right />
+                align-right required />
 
               <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
                 <view class="label">施工前照片:</view>
@@ -1258,10 +1384,10 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
               </view>
 
               <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList" v-model="item.deviceBrand"
-                align-right />
-              <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" />
-              <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" />
-              <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" />
+                align-right required />
+              <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+              <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
+              <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
               <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType" align-right />
 
               <view class="correct_text" style="border: none;" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
@@ -1286,7 +1412,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
 
               <view class="up_list" v-if="item.deviceType == '汽车行驶记录仪'">
                 <view class="upImg_box">
-                  <view class="label">行驶证附件:</view>
+                  <view class="label requiredLabel">行驶证附件:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.drivingLicense"
                       @tap="lookover(item.drivingLicense, index, idx, 'drivingLicense')">
@@ -1299,7 +1425,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
 
                 <view class="upImg_box">
-                  <view class="label">驾驶证附件:</view>
+                  <view class="label requiredLabel">驾驶证附件:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.driverLicense"
                       @tap="lookover(item.driverLicense, index, idx, 'driverLicense')">
@@ -1312,7 +1438,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
 
                 <view class="upImg_box">
-                  <view class="label">管理员信息附件:</view>
+                  <view class="label requiredLabel">管理员信息附件:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.managerFile"
                       @tap="lookover(item.managerFile, index, idx, 'managerFile')">
@@ -1325,7 +1451,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
 
                 <view class="upImg_box">
-                  <view class="label">电气附件:</view>
+                  <view class="label requiredLabel">电气附件:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.electricalFile"
                       @tap="lookover(item.electricalFile, index, idx, 'electricalFile')">
@@ -1338,7 +1464,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
 
                 <view class="upImg_box">
-                  <view class="label">总线附件:</view>
+                  <view class="label requiredLabel">总线附件:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.busFile"
                       @tap="lookover(item.busFile, index, idx, 'busFile')">
@@ -1351,7 +1477,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
 
                 <view class="upImg_box">
-                  <view class="label">主机照片:</view>
+                  <view class="label requiredLabel">主机照片:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.hostPic"
                       @tap="lookover(item.hostPic, index, idx, 'hostPic')">
@@ -1364,7 +1490,7 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
                 </view>
 
                 <view class="upImg_box">
-                  <view class="label">附件检查:</view>
+                  <view class="label requiredLabel">附件检查:</view>
                   <view class="img_box">
                     <view class="img_item" v-for="(img, index) in item.attachment"
                       @tap="lookover(item.attachment, index, idx, 'attachment')">
@@ -1465,6 +1591,8 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
   }
 }
 
+
+
 .handleWork {
   display: flex;
   flex-direction: column;
@@ -1484,6 +1612,8 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
     .segmented_center {
       width: 100%;
       flex: 1;
+
+
     }
 
     .center {
@@ -1495,6 +1625,8 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
         font-size: 24rpx;
         color: #AAAAAA;
         margin-right: 10rpx;
+        padding-left: 6rpx;
+        box-sizing: border-box;
 
       }
 
@@ -1594,14 +1726,16 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
         height: 60rpx;
         line-height: 60rpx;
 
-        .isErr {
-          .wd-radio__label {
-            color: #FF0000;
-          }
+        .is-checked {
+          &.isErr {
+            .wd-radio__label {
+              color: #FF0000;
+            }
 
-          .wd-radio__shape {
-            border-color: #FF0000;
-            background-color: #FF0000;
+            .wd-radio__shape {
+              border-color: #FF0000;
+              background-color: #FF0000;
+            }
           }
         }
       }
@@ -1930,5 +2064,21 @@ const upBtns = (imgList, idx) => { // imgList是需要上传的图片数组 idx�
 
   }
 
+  .requiredLabel {
+    position: relative;
+
+    &::before {
+      content: '*';
+      color: #fa4350;
+      position: absolute;
+      left: -12rpx;
+      top: -6rpx;
+      // transform: scale(1.5);
+      font-size: 18px;
+    }
+  }
+}
+:deep(.uni-scroll-view-content) {
+  height: 90% !important;
 }
 </style>
