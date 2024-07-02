@@ -10,13 +10,13 @@
 					<view class="view_rows">
 						<view class="disBox">
 							<text>汽车电子标识卡号</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.CID" placeholder="自识别" disabled />
+							<input type="text" class="boxFlex" v-model="postForm.cid" placeholder="自识别" disabled />
 						</view>
 					</view>
 					<view class="view_rows">
 						<view class="disBox">
 							<text>电子标识安全芯片ID</text>
-							<input type="text" class="boxFlex" v-model="tagsInfo.TID" placeholder="自识别" disabled />
+							<input type="text" class="boxFlex" v-model="postForm.tid" placeholder="自识别" disabled />
 						</view>
 					</view>
 				</view>
@@ -190,8 +190,8 @@ let deviceRes = uni.getDeviceInfo();
 console.log('获取设备唯一标识', deviceRes.deviceId);
 
 const postForm = ref({
-	// CID: '', //电子标签卡号
-	// TID: '',//电子标签安全芯片id
+	cid: '', //电子标签卡号
+	tid: '',//电子标签安全芯片id
 	U1JLYBH: '', //行驶记录仪编号
 	U1AQXPID: '',//行驶记录仪安全芯片ID
 	U1HPZL: '',//号牌种类
@@ -220,6 +220,15 @@ onMounted(() => {
 		postForm.value.U1FPDH = tagsInfo.value.U1FPDH;
 		dataInit(tagsInfo.value.U1JLYBH);
 	}
+
+	if (tagsInfo.value.CID) { //存在CID 电子标识卡号 存在表读的user0 不存在读的user1
+		postForm.value.cid = tagsInfo.value.CID;
+		postForm.value.tid = tagsInfo.value.TID;
+	} else if (tagsInfo.value.TID) {
+		//请求接口查询CID
+		postForm.value.tid = tagsInfo.value.TID;
+		getCID(tagsInfo.value.TID);
+	}
 })
 
 
@@ -238,7 +247,7 @@ const binary = ref({
 
 //初始化数据
 const dataInit = (obj) => {
-	getBySerial(obj).then((res) => {
+	getBySerial('serial', obj).then((res) => {
 		if (res.code == 0) {
 			console.log(res);
 			binary.value.HMZL_binary = '';
@@ -284,6 +293,18 @@ const dataInit = (obj) => {
 			if (postForm.value.scrapDate) {
 				QZBFQ_DATE.value = new Date(postForm.value.scrapDate).getTime();
 			}
+		}
+	})
+}
+
+//获取CID
+const getCID = (id) => {
+	console.log('TID', id);
+	getBySerial('tId', id).then(res => {
+		console.log('tIdResult', res);
+		if (res.code == 0) {
+			postForm.value.cid = res.data.cid;
+			// postForm.value.tId = res.data.TID;
 		}
 	})
 }
@@ -343,6 +364,11 @@ let writeTimeout = null;
 //提交写入信息
 const confirm = () => {
 	console.log(JSON.stringify(postForm.value));
+	if (!postForm.value.cid) {
+		openToast('当前汽车电子标识卡号');
+		return;
+	}
+
 	writeStatus.value = false;//初始化私有写状态
 	if (postForm.value.U1HPHMXH) {  //车牌号码
 		let HPHMXH = postForm.value.U1HPHMXH.toUpperCase();
