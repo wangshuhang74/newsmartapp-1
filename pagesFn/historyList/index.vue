@@ -24,6 +24,8 @@ const getForm = ref({
 
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
+const listState = ref('loading') // 加载状态
+const showLoadmore = ref(false) // 是否显示加载更多
 
 const orderTypeList = ref([ // 工单类型
   { label: '全部', value: null },
@@ -43,19 +45,14 @@ onMounted(() => {
     getForm.value.engiee = userInfo.value.userId
   }
 })
-const listState = ref('loading') // 加载状态
+
+
 const getListFn = async () => {
   const { code, data, msg } = await finishedList(getForm.value)
-  if (code != 0) {
-    Toast.error(msg)
-    listState.value = 'error'
-  } else {
-    listState.value = 'finished'
-    total.value = data.total
-    if (isTriggered.value) isTriggered.value = false
-    Toast.close()
-    workList.value = [...workList.value, ...data.records]
-  }
+  if (code != 0) return Toast.error(msg)
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  workList.value = [...workList.value, ...data.records]
 }
 
 const getClientOptionFn = async () => {
@@ -113,17 +110,20 @@ const onRefresherrefresh = () => { // 下拉刷新
 }
 
 const scrollBottom = () => { // 上拉加载
-  // Toast.loading('加载中...')
+  listState.value = 'loading'
+  showLoadmore.value = true
   let lengths = workList.value.length
   if (lengths < total.value) {
     getForm.value.pageNum++
     getListFn()
-    listState.value = 'loading'
   } else {
-    listState.value = 'finished'
-    // Toast.warning("没有更多了!")
+    listState.value = 'finished' // 加载完成
+    setTimeout(() => {
+      showLoadmore.value = false
+    }, 1500);
   }
 }
+
 
 const leftBtn = () => {
   console.log('leftBtn')
@@ -140,6 +140,7 @@ function handleConfirm() { //自定义时间下拉 确定按钮
   getForm.value.endTime = dayjs(sliderValue.value).endOf('month').format("YYYY-MM-DD")
   console.log("handleConfirm-getForm.value ", getForm.value);
   dropMenu.value.close()
+  workList.value = []
   getListFn()
 }
 
@@ -284,7 +285,7 @@ const clickItem = (item) => {
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />
     </scroll-view>
-    <wd-loadmore v-if="workList.length > 5" custom-class="loadmore" :state="listState" @reload="getListFn" />
+    <wd-loadmore v-if="showLoadmore" custom-class="loadmore" :state="listState" />
   </view>
 </template>
 

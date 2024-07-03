@@ -103,6 +103,11 @@
     padding: 20rpx 30rpx;
     width: 100%;
 
+    &.padding_box {
+        padding-bottom: 150rpx;
+        box-sizing: border-box;
+    }
+
     :deep(.wd-checkbox-group) {
         background-color: transparent !important;
         background: transparent !important;
@@ -323,6 +328,14 @@
         color: #FFFFFF;
     }
 
+}
+
+:deep(.wd-loadmore) {
+    background-color: #f7f7fc !important;
+}
+
+.loadmore {
+    background-color: #f7f7fc !important;
 }
 
 .wd-status-tip {

@@ -1218,8 +1218,6 @@ const verifyForm = () => {
         </view>
 
         <view class="center center2" v-show="segmented == 1">
-          <!-- <view v-for="item in 110">{{ workHandle.value }}</view> -->
-          <!-- 2:维护,3:新装,  -->
           <view class="forms" v-if="workHandle.orderType == 2">
             <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
               <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
@@ -1364,6 +1362,8 @@ const verifyForm = () => {
           </view>
           <view class="forms" v-if="workHandle.orderType == 3">
             <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
+              <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
+                src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
               <wd-select-picker filterable type="radio" label="设备类型" :columns="carTypeList" v-model="item.deviceType"
                 align-right @change="carTypeChange(item)" required />
               <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
@@ -2078,6 +2078,7 @@ const verifyForm = () => {
     }
   }
 }
+
 :deep(.uni-scroll-view-content) {
   height: 90% !important;
 }

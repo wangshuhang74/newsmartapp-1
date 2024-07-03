@@ -75,6 +75,7 @@ export const useUserStore = defineStore(
         })
       } else {
         // console.log("登录了");
+        return true
       }
     }
 

@@ -26,7 +26,8 @@ const returnInfo = ref({}) // 返回
 
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
-
+const listState = ref('loading') // 加载状态
+const showLoadmore = ref(false) // 是否显示加载更多
 onShow(() => {
   if (workList.value.length) resetBtn()
 })
@@ -34,19 +35,14 @@ onShow(() => {
 onMounted(() => {
   getListFn()
 })
-const listState = ref('loading') // 加载状态
+
+
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
-  if (code != 0) {
-    Toast.error(msg)
-    listState.value = 'error'
-  } else {
-    listState.value = 'finished'
-    total.value = data.total
-    if (isTriggered.value) isTriggered.value = false
-    Toast.close()
-    workList.value = [...workList.value, ...data.records]
-  }
+  if (code != 0) return Toast.error(msg)
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  workList.value = [...workList.value, ...data.records]
 }
 
 const searchInput = debounce(() => {
@@ -64,19 +60,21 @@ const onRefresherrefresh = () => { // 下拉刷新
   console.log("🚀 ~ onRefresherrefresh ~ onRefresherrefresh:",)
 }
 
+
 const scrollBottom = () => { // 上拉加载
-  // Toast.loading('加载中...')
+  listState.value = 'loading'
+  showLoadmore.value = true
   let lengths = workList.value.length
   if (lengths < total.value) {
     getForm.value.pageNum++
     getListFn()
-    listState.value = 'loading'
   } else {
-    listState.value = 'finished'
-    // Toast.warning("没有更多了!")
+    listState.value = 'finished' // 加载完成
+    setTimeout(() => {
+      showLoadmore.value = false
+    }, 1500);
   }
 }
-
 
 const scanBtn = () => {
   uni.scanCode({
@@ -242,7 +240,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />
     </scroll-view>
-    <wd-loadmore v-if="workList.length > 5" custom-class="loadmore" :state="listState" @reload="getListFn" />
+    <wd-loadmore v-if="showLoadmore" custom-class="loadmore" :state="listState" />
     <returnPopup v-if="returnShow" :returnShow="returnShow" :returnInfo="returnInfo" @CloseClick="CloseClick" />
   </view>
 </template>

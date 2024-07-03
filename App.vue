@@ -8,10 +8,8 @@ const { blueToothDevices, isOpenOnBlue, isReadRules, readRules, writeRules } = s
 onLaunch(() => {
 	// console.log('App Launch')
 	// blueToothDevices.value = [];
-	// console.log('清空blueToothDevices');
-
 	isOpenOnBlue.value = false;
-	console.log('重置已开启蓝牙监听状态 false');
+	// console.log('重置已开启蓝牙监听状态 false');
 
 	//以下三步清空读写规则的步骤，清空后需要重新下发读写规则
 	isReadRules.value = true;

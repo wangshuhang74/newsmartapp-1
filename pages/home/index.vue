@@ -5,6 +5,7 @@ import marker1_active from '@/static/images/homeMap/marker1_active.png'
 import marker2 from '@/static/images/homeMap/marker2.png'
 import marker2_active from '@/static/images/homeMap/marker2_active.png'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
+import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
 
 import { toNavigation, makePhoneCall } from '@/utils'
 import { getList } from '@/api'
@@ -50,15 +51,15 @@ watch(() => {
 )
 
 onShow(() => {
-  userStore.isLoginFn()
-  console.log("🚀 ~ onShow ~ wordList.value:", wordList.value.length)
+  const isLogin = userStore.isLoginFn()
+  if (isLogin) checkUpdate()//如果已经登录就检查更新
   if (wordList.value.length == 0) {
     getLocation()
   }
 })
+
 onMounted(() => {
   mapCtx.value = uni.createMapContext('myMap', this)
-  // console.log("mapCtx", mapCtx.value);
   getLocation()
 })
 
@@ -90,6 +91,7 @@ const getListFn = async () => {
     const { code: code2, data: data2, msg: msg2 } = response2;
     if (code2 != 0) return Toast.error(msg2);
     oldMaintain.value = data2;
+
 
     wordList.value = [...data1.records, ...data2.records]
     addMarkers([...wordList.value, { orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]);

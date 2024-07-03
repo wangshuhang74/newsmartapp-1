@@ -63,7 +63,6 @@ http.interceptors.request.use(
 http.interceptors.response.use(
 	async (response) => {
 		if (response.statusCode == 200 && response.data.code == 0) { } else {
-			uni.hideLoading();
 			if (response.data.code == 401) {
 				// 未登录跳转登录
 				uni.navigateTo({
@@ -77,11 +76,11 @@ http.interceptors.response.use(
 	},
 	(response) => {
 		console.log("🚀 ~ response:", response)
-		uni.showToast({
-			title: response.errMsg,
-			icon: 'error',
-			duration: 2000
-		});
+		// uni.showToast({
+		// 	title: response.errMsg,
+		// 	icon: 'error',
+		// 	duration: 2000
+		// });
 		// 请求错误做点什么。可以使用async await 做异步操作
 		return Promise.reject(response);
 	}

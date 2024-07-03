@@ -26,7 +26,8 @@ const auditInfo = ref({})
 
 const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
-
+const listState = ref('loading') // 加载状态
+const showLoadmore = ref(false) // 是否显示加载更多
 onShow(() => {
   if (auditRefresh.value) {
     resetBtn()
@@ -38,19 +39,14 @@ onMounted(() => {
   getListFn()
 })
 
-const listState = ref('loading') // 加载状态
+
 
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
-  if (code != 0) {
-    Toast.error(msg)
-  } else {
-    listState.value = 'finished'
-    total.value = data.total
-    if (isTriggered.value) isTriggered.value = false
-    Toast.close()
-    workList.value = [...workList.value, ...data.records]
-  }
+  if (code != 0) return Toast.error(msg)
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  workList.value = [...workList.value, ...data.records]
 }
 
 const onRefresherrefresh = () => { // 下拉刷新
@@ -62,15 +58,18 @@ const onRefresherrefresh = () => { // 下拉刷新
 }
 
 const scrollBottom = () => { // 上拉加载
-  // Toast.loading('加载中...')
+  console.log("🚀 ~ scrollBottom ~ scrollBottom:",)
+  listState.value = 'loading'
+  showLoadmore.value = true
   let lengths = workList.value.length
   if (lengths < total.value) {
     getForm.value.pageNum++
     getListFn()
-    listState.value = 'loading'
   } else {
-    listState.value = 'finished'
-    // Toast.warning("没有更多了!")
+    listState.value = 'finished' // 加载完成
+    setTimeout(() => {
+      showLoadmore.value = false
+    }, 1500);
   }
 }
 
@@ -126,8 +125,9 @@ const clickItem = (item) => {
   <wd-toast></wd-toast>
   <view class="AuditTask">
     <navbar :title="'审核任务'" />
-    <scroll-view class="list_box" :scroll-y="true" :show-scrollbar="false" @scrolltolower="scrollBottom"
-      @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
+    <scroll-view class="list_box" :class="{ padding_box: workList.length != 0 }" :scroll-y="true" :show-scrollbar="false"
+      @scrolltolower="scrollBottom" @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered"
+      refresher-enabled :lower-threshold="50">
       <wd-checkbox-group v-model="postForm.checkWorks" @change="checkboxChange">
         <view class="work_item" v-for="(item, idx) in workList" :key="idx">
           <view class="work_top">
@@ -195,7 +195,7 @@ const clickItem = (item) => {
         </view>
       </wd-checkbox-group>
       <wd-status-tip v-if="workList && workList.length == 0" image="content" tip="暂无工单" />
-      <wd-loadmore v-if="workList.length > 5" custom-class="loadmore" :state="listState" @reload="getListFn" />
+      <wd-loadmore v-if="showLoadmore" custom-class="loadmore" :state="listState" />
     </scroll-view>
     <view class="oneKey" v-if="workList && workList.length != 0">
       <wd-checkbox v-model="allHandleValue" @change="allHandleChange">{{ allHandleValue ? '取消全选' : "全选" }}</wd-checkbox>

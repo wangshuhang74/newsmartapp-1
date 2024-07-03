@@ -21,6 +21,8 @@ const getForm = ref({
 
 const returnShow = ref(false)
 const returnInfo = ref({})
+const listState = ref('loading') // 加载状态
+const showLoadmore = ref(false) // 是否显示加载更多
 
 
 const total = ref(0) // 总条数
@@ -34,19 +36,13 @@ onMounted(() => {
   getListFn()
 })
 
-const listState = ref('loading') // 加载状态
+
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
-  if (code != 0) {
-    Toast.error(msg)
-    listState.value = 'error'
-  } else {
-    listState.value = 'finished'
-    total.value = data.total
-    if (isTriggered.value) isTriggered.value = false
-    Toast.close()
-    workList.value = [...workList.value, ...data.records]
-  }
+  if (code != 0) return Toast.error(msg)
+  total.value = data.total
+  if (isTriggered.value) isTriggered.value = false
+  workList.value = [...workList.value, ...data.records]
 }
 
 
@@ -62,19 +58,20 @@ const onRefresherrefresh = () => { // 下拉刷新
   getForm.value.pageNum = 1
   workList.value = []
   getListFn()
-  console.log("🚀 ~ onRefresherrefresh ~ onRefresherrefresh:",)
 }
 
 const scrollBottom = () => { // 上拉加载
-  // Toast.loading('加载中...')
+  listState.value = 'loading'
+  showLoadmore.value = true
   let lengths = workList.value.length
   if (lengths < total.value) {
     getForm.value.pageNum++
     getListFn()
-    listState.value = 'loading'
   } else {
-    listState.value = 'finished'
-    // Toast.warning("没有更多了!")
+    listState.value = 'finished' // 加载完成
+    setTimeout(() => {
+      showLoadmore.value = false
+    }, 1500);
   }
 }
 
@@ -237,18 +234,12 @@ const checkRules = (userInfo, item) => { // 处理按钮权限
           </view>
           <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0 && userInfo.rules.includes(6)">接单
           </view>
-          <!-- <view class="btn" v-if="[5, 6].some(rule => userInfo.rules.includes(rule))">处理 assigneeId -->
-          <!-- <view class="btn"
-            v-if="item.isAccept == 1 && [5, 6].some(rule => userInfo.rules.includes(rule)) && (item.assigneeId == userInfo.userId || userInfo.rules.includes(item.groupId))"
-            @tap.stop="handleWork(item)">
-            处理
-          </view> -->
           <view class="btn" v-if="checkRules(userInfo, item)" @tap.stop="handleWork(item)">处理</view>
         </view>
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />
     </scroll-view>
-    <wd-loadmore v-if="workList.length > 5" custom-class="loadmore" :state="listState" @reload="getListFn" />
+    <wd-loadmore v-if="showLoadmore" custom-class="loadmore" :state="listState" />
     <returnPopup v-if="returnShow" :returnShow="returnShow" :returnInfo="returnInfo" @CloseClick="CloseClick" />
 
   </view>
