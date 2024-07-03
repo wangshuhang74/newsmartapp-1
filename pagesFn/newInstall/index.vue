@@ -207,7 +207,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
 
           <view class="work_it">
             <view class="label">新装设备:</view>
-            <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
+            <view class="value">{{ item?.installType ? item?.installType : '-' }}</view>
           </view>
 
           <view class="work_it">

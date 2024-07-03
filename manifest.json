@@ -2,8 +2,8 @@
     "name" : "智慧运维",
     "appid" : "__UNI__F40DA66",
     "description" : "智慧运维是一款便携于一线运维人员使用的工具软件，提高运维人员工作效率，方便运维联系用户，在线提交工单、审核工单的软件。",
-    "versionName" : "2.1.0",
-    "versionCode" : 210,
+    "versionName" : "3.0.0",
+    "versionCode" : 300,
     "transformPx" : false,
     "app-plus" : {
         /* 5+App特有相关 */
@@ -146,8 +146,12 @@
             "urlCheck" : false
         },
         "usingComponents" : true,
+        "requiredPrivateInfos" : [ "chooseLocation", "getLocation" ],
         "permission" : {
             "scope.userLocation" : {
+                "desc" : "需要您的同意，以便于使用时定位获取附近的工单信息。"
+            },
+            "scope.userFuzzyLocation" : {
                 "desc" : "需要您的同意，以便于使用时定位获取附近的工单信息。"
             }
         }

@@ -5,35 +5,27 @@ import marker1_active from '@/static/images/homeMap/marker1_active.png'
 import marker2 from '@/static/images/homeMap/marker2.png'
 import marker2_active from '@/static/images/homeMap/marker2_active.png'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
-import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
-
 import { toNavigation, makePhoneCall } from '@/utils'
 import { getList } from '@/api'
-
 import { useUserStore, useWorkStore } from '@/store'
+// #ifdef APP-PLUS
+import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
+
+//#endif
 const { workDetail } = storeToRefs(useWorkStore())
 const Toast = useToast()
 
 const userStore = useUserStore()
 const { userInfo, userMap } = storeToRefs(userStore)
-// defineOptions({
-//   name: 'Home',
-// })
-
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
-// const userMap = ref({
-//   longitude: 116.397428,
-//   latitude: 39.90923
-// })
-
-const mapCtx = ref(null)
-const markers = ref([])
-const mapScale = ref(14)
-const cardFlag = ref(false)
-const wordcard = ref({})
-const newEquip = ref({})
-const oldMaintain = ref({})
+const mapCtx = ref(null)//地图实例
+const markers = ref([]) //地图标记点
+const mapScale = ref(14) //地图缩放比例
+const cardFlag = ref(false) //是否显示工单详情卡片
+const wordcard = ref({}) //工单详情卡片数据
+const newEquip = ref({}) //新装设备列表数据
+const oldMaintain = ref({}) //运维设备列表数据
 
 
 const wordList = ref([])
@@ -52,7 +44,10 @@ watch(() => {
 
 onShow(() => {
   const isLogin = userStore.isLoginFn()
+  // #ifdef APP-PLUS
+  console.log("🚀 ~ onShow ~ isLogin:", isLogin)
   if (isLogin) checkUpdate()//如果已经登录就检查更新
+  //#endif
   if (wordList.value.length == 0) {
     getLocation()
   }
@@ -105,7 +100,7 @@ const addMarkers = (list) => {
     // console.log("item.lat", item.lat);
     // console.log("item.lng", item.lng);
     return {
-      id: item.orderId,
+      id: Number(item.orderId),
       latitude: item.lat,
       longitude: item.lng,
       width: 48,
@@ -257,7 +252,7 @@ const clickItem = (item) => {
         <cover-view class="body_info">
           <cover-view class="item">
             <cover-view class="label">工程师：</cover-view>
-            <cover-view class="val">{{ wordcard?.contactName ? wordcard?.contactName : '-' }}</cover-view>
+            <cover-view class="val">{{ wordcard?.engiee ? wordcard?.engiee : '-' }}</cover-view>
           </cover-view>
 
           <cover-view class="item">
@@ -269,9 +264,9 @@ const clickItem = (item) => {
 
           <cover-view class="item">
             <cover-view class="label">{{ wordcard.orderType == 3 ? '新装设备：' : '运维内容：' }} </cover-view>
-            <cover-view class="val" v-if="wordcard.orderType == 3">{{ wordcard?.equipmentName ? wordcard?.equipmentName
+            <cover-view class="val" v-if="wordcard.orderType == 3">{{ wordcard?.installType ? wordcard?.installType
               : '-' }}</cover-view>
-            <cover-view class="val" v-else>{{ wordcard?.equipmentName ? wordcard?.equipmentName : '-' }}</cover-view>
+            <cover-view class="val" v-else>{{ wordcard?.content ? wordcard?.content : '-' }}</cover-view>
           </cover-view>
 
           <cover-view class="item">
@@ -283,7 +278,9 @@ const clickItem = (item) => {
 
           <cover-view class="item">
             <cover-view class="label">{{ wordcard.orderType == 3 ? '设备型号：' : '故障概述：' }}</cover-view>
-            <cover-view class="val">{{ wordcard?.contactName ? wordcard?.contactName : '-' }}</cover-view>
+            <cover-view class="val" v-if="wordcard.orderType == 3">{{ wordcard?.terminalModel ? wordcard?.terminalModel
+              : '-' }}</cover-view>
+            <cover-view class="val" v-else>{{ wordcard?.faultContent ? wordcard?.faultContent : '-' }}</cover-view>
           </cover-view>
 
 

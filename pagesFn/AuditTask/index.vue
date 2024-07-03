@@ -156,11 +156,11 @@ const clickItem = (item) => {
 
             <view class="work_it" v-if="item.orderType == 3">
               <view class="label">新装设备:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
+              <view class="value">{{ item?.installType ? item?.installType : '-' }}</view>
             </view>
             <view class="work_it" v-else-if="item.orderType == 2">
               <view class="label">运维内容:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
+              <view class="value">{{ item?.content ? item?.content : '-' }}</view>
             </view>
 
             <view class="work_it">
@@ -174,12 +174,12 @@ const clickItem = (item) => {
 
             <view class="work_it" v-if="item.orderType == 3">
               <view class="label">设备型号:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
+              <view class="value">{{ item?.terminalModel ? item?.terminalModel : '-' }}</view>
             </view>
 
             <view class="work_it" v-else-if="item.orderType == 2">
               <view class="label">故障概述:</view>
-              <view class="value">{{ item?.contactName ? item?.contactName : '-' }}</view>
+              <view class="value">{{ item?.faultContent ? item?.faultContent : '-' }}</view>
             </view>
 
             <view class="work_it">

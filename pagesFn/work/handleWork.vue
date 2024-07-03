@@ -1554,8 +1554,9 @@ const verifyForm = () => {
         <button class="foot_btn" v-else-if="segmented == 1" @tap="nextStep(2)">下一步</button>
       </scroll-view>
     </view>
-    <web-view ref="mywebview" :src="watermarkUrl" @message="handleMessage" @onPostMessage="handleMessage"
-      class="webview" :fullscreen="false" v-if="openWebview" />
+    <!-- @onPostMessage="handleMessage" -->
+    <web-view ref="mywebview" :src="watermarkUrl" @message="handleMessage" class="webview" :fullscreen="false"
+      v-if="openWebview" />
     <QreviewImage ref="previewImage" :urls="variableList" @onLongpress="onLongpress" />
     <wd-action-sheet v-model="sheetShow" :actions="sheetActions" @select="sheetSelect" />
   </view>
@@ -1580,11 +1581,6 @@ const verifyForm = () => {
     height: 100% !important;
 
     uni-resize-sensor {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    * {
       width: 100% !important;
       height: 100% !important;
     }
