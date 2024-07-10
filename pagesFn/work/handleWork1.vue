@@ -9,9 +9,6 @@ import { appDisposeOrder, complete, appDisposeOrderInfo } from '@/api'
 import { pathToBase64, base64ToPath } from "@/utils/tools.js"; // 图片转base64
 import dayjs from "dayjs";
 
-// import swItem from '../components/swiper/sw-item.vue'
-// import swiperItemRu from '../components/swiper/swiper-item-ru.vue'
-
 const { workHandle } = storeToRefs(useWorkStore()) // 传递过来的工单信息
 const Toast = useToast() // 提示框
 const segmented = ref(0) // tab切换
@@ -116,6 +113,7 @@ const postLcForm = ref({
   },
 })
 
+
 onMounted(() => {
   if (workHandle.value) {
     postForm.value.orderId = workHandle.value.orderId
@@ -127,10 +125,6 @@ onMounted(() => {
     postLcForm.value.instanceId = workHandle.value.procInsId
     postLcForm.value.taskId = workHandle.value.taskId
     postLcForm.value.deployId = workHandle.value.deployId
-    if ([5,].some(rule => userInfo.value.rules.includes(rule))) {
-      postLcForm.value.variables.isManager = 1
-    }
-
 
     console.log("🚀 ~ onMounted ~ workHandle.value.orderType:", workHandle.value)
     if (workHandle.value.orderType == 2) { // 维护
@@ -225,7 +219,6 @@ const addWorkBtn = () => { // 添加施工信息
   } else if (workHandle.value.orderType == 3) { // 新装
     postForm.value.applyInfo.push(JSON.parse(JSON.stringify({ ...variableXZ })))
   }
-  workCurrent.value = postForm.value.applyInfo.length - 1
 }
 
 const delWorkBtn = (idx) => { // 删除施工信息
@@ -237,13 +230,13 @@ const delWorkBtn = (idx) => { // 删除施工信息
 // 获取当前位置
 const getLocation = (type) => {
   postForm.value.addressInfo.address = null
-  //Toast.loading("定位中...");
+  Toast.loading("定位中...");
   uni.getLocation({
     // type: "wgs84",
     type: "gcj02",
     enableHighAccuracy: true,//高精度
     success: (res) => {
-      //Toast.close();
+      Toast.close();
       console.log("res定位", res);
       userMap.value.latitude = res.latitude;
       userMap.value.longitude = res.longitude;
@@ -268,7 +261,7 @@ const getLocation = (type) => {
     },
     fail: (err) => {
       postForm.value.addressInfo.isLocation = 1
-      //Toast.close();
+      Toast.close();
       verifyErr("定位失败");
       console.log(err);
     },
@@ -1031,50 +1024,41 @@ const verifyForm = () => {
     const isValid = postForm.value.applyInfo.some((item, idx) => {
       if (!item.faultType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择故障分类!`)
-        workCurrent.value = idx
         return true
       }
       if (!item.faultReason) {
         verifyErr(`施工信息 ${idx + 1} - 请选择故障原因!`)
-        workCurrent.value = idx
         return true
       }
       if (!item.whType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择维护方式!`)
-        workCurrent.value = idx
         return true
       }
 
       if (item.whType == '维护处理') {
         if (!item.whContent) {
           verifyErr(`施工信息 ${idx + 1} - 请输入维护内容!`)
-          workCurrent.value = idx
           return true
         }
       } else if (item.whType == '更换部件') {
         if (!item.replacePart) {
           verifyErr(`施工信息 ${idx + 1} - 请选择更换部件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.deviceBrand) {
           verifyErr(`施工信息 ${idx + 1} - 请选择设备品牌!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.deviceSerial) {
           verifyErr(`施工信息 ${idx + 1} - 请选择设备序列号!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.deviceModel) {
           verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.simNum) {
           verifyErr(`施工信息 ${idx + 1} - 请输入SIM卡号!`)
-          workCurrent.value = idx
           return true
         }
       }
@@ -1091,77 +1075,63 @@ const verifyForm = () => {
 
       if (!item.deviceType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择设备类型!`)
-        workCurrent.value = idx
         return true
       }
 
       if (!item.carPlate) {
         verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码/VIN码!`)
-        workCurrent.value = idx
         return true
       }
 
       if (!item.carType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择车辆类型!`)
-        workCurrent.value = idx
         return true
       }
 
       if (!item.deviceBrand) {
         verifyErr(`施工信息 ${idx + 1} - 请选择设备品牌!`)
-        workCurrent.value = idx
         return true
       }
       if (!item.deviceSerial) {
         verifyErr(`施工信息 ${idx + 1} - 请选择设备序列号!`)
-        workCurrent.value = idx
         return true
       }
       if (!item.deviceModel) {
         verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
-        workCurrent.value = idx
         return true
       }
       if (!item.simNum) {
         verifyErr(`施工信息 ${idx + 1} - 请输入SIM卡号!`)
-        workCurrent.value = idx
         return true
       }
 
       if (item.deviceType == '汽车行驶记录仪') {
         if (!item.drivingLicense || item.drivingLicense.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传行驶证附件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.driverLicense || item.driverLicense.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传驾驶证附件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.managerFile || item.managerFile.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上管理员信息附件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.electricalFile || item.electricalFile.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传电气附件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.busFile || item.busFile.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传>总线附件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.hostPic || item.hostPic.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传主机照片附件!`)
-          workCurrent.value = idx
           return true
         }
         if (!item.attachment || item.attachment.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传附件检查照片!`)
-          workCurrent.value = idx
           return true
         }
       }
@@ -1188,20 +1158,6 @@ const verifyForm = () => {
 
   return true
 }
-
-const workCurrent = ref(0)
-const animationfinish = (e) => {
-  workCurrent.value = e.detail.current;
-}
-
-const onswiperchange = (e) => {
-  // #ifndef APP-PLUS || H5 || MP-WEIXIN || MP-QQ
-  let index = e.target.current || e.detail.current;
-  // this.tabsChange(index);
-  workCurrent.value = index;
-  // #endif
-}
-
 
 </script>
 <template>
@@ -1262,328 +1218,302 @@ const onswiperchange = (e) => {
         </view>
 
         <view class="center center2" v-show="segmented == 1">
-          <view class="workCurrent_box" v-if="postForm.applyInfo.length > 1">
-            <view class="currentIndex" v-for="(item, idx) in postForm.applyInfo" :key="idx"
-              :class="{ active: workCurrent == idx }" @tap="workCurrent = idx">
-			  {{ '施工信息-' + (idx + 1) }}
-			  <view class="bor"></view>
-			  </view>
-          </view>
-          <swiper class="my_swiper" :current="workCurrent" @animationfinish="animationfinish" @change="onswiperchange"
-            v-if="workHandle.orderType == 2">
-            <swiper-item class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx"
-              :class="{ ios: isIos }">
-              <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
-                <view class="work_del_btn">
-                  <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
-                    src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
-                </view>
-                <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
-                <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
-                  align-right />
-                <view class="upImg_box">
-                  <view class="label">施工前照片:</view>
-                  <view class="img_box">
-                    <view class="img_item" v-for="(img, index) in item.beforeApplyPic"
-                      @tap="lookover(item.beforeApplyPic, index, idx, 'beforeApplyPic')">
-                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                    </view>
-                    <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
-                    </view>
+          <view class="forms" v-if="workHandle.orderType == 2">
+            <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
+              <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
+                src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+              <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
+              <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
+                align-right />
+              <view class="upImg_box">
+                <view class="label">施工前照片:</view>
+                <view class="img_box">
+                  <view class="img_item" v-for="(img, index) in item.beforeApplyPic"
+                    @tap="lookover(item.beforeApplyPic, index, idx, 'beforeApplyPic')">
+                    <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                  </view>
+                  <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
+                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                   </view>
                 </view>
-                <wd-select-picker filterable type="radio" label="故障分类" :columns="breakdownTypeList"
-                  v-model="item.faultType" align-right required />
-                <wd-select-picker filterable type="radio" label="故障原因" :columns="failureCauseList"
-                  v-model="item.faultReason" align-right required />
-                <wd-select-picker label="维护方式" type="radio" :columns="maintenanceMode" v-model="item.whType" align-right
-                  @change="maintenanceModeChange($event, item)" required />
-                <view v-if="item.whType == '维护处理'">
-                  <view class="correct_text">
-                    <view class="label requiredLabel">维护内容</view>
-                    <view class="textarea_box">
-                      <textarea v-model="item.whContent" placeholder="请输入维护内容"></textarea>
-                    </view>
-                  </view>
-                  <view class="usePart">
-                    <view class="label">使用部件</view>
-                    <view class="parts">
-                      <view class="input_number">
-                        <view class="label">主机:</view>
-                        <wd-input-number :min="0" v-model="item.ext1" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">硬盘:</view>
-                        <wd-input-number :min="0" v-model="item.ext2" />
-                      </view>
-                      <view class="input_number">
-                        <view class="label">U盘:</view>
-                        <wd-input-number :min="0" v-model="item.ext3" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">摄像头:</view>
-                        <wd-input-number :min="0" v-model="item.ext4" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">GPS天线:</view>
-                        <wd-input-number :min="0" v-model="item.ext5" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">4G天线:</view>
-                        <wd-input-number :min="0" v-model="item.ext6" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">电源线:</view>
-                        <wd-input-number :min="0" v-model="item.ext7" />
-                      </view>
-                      <view class="input_number">
-                        <view class="label">视频线:</view>
-                        <wd-input-number :min="0" v-model="item.ext8" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">显示屏:</view>
-                        <wd-input-number :min="0" v-model="item.ext9" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">转接线:</view>
-                        <wd-input-number :min="0" v-model="item.ext10" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">机芯:</view>
-                        <wd-input-number :min="0" v-model="item.ext11" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">灯板:</view>
-                        <wd-input-number :min="0" v-model="item.ext12" />
-                      </view>
-                      <view class="input_number">
-                        <view class="label">防爆管:</view>
-                        <wd-input-number :min="0" v-model="item.ext13" />
-                      </view>
-
-                      <view class="input_number">
-                        <view class="label">保险:</view>
-                        <wd-input-number :min="0" v-model="item.ext14" />
-                      </view>
-
-                      <view class="input_number input_long">
-                        <view class="label">辅材(金属变径,紧缩变径,波纹管等):</view>
-                        <wd-input-number :min="0" v-model="item.ext15" />
-                      </view>
-
-                    </view>
-                  </view>
-                </view>
-                <view v-else-if="item.whType == '更换部件'">
-                  <wd-select-picker filterable type="radio" label="更换部件" :columns="changeList"
-                    v-model="item.replacePart" align-right required />
-                  <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList"
-                    v-model="item.deviceBrand" align-right required />
-                  <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
-                  <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
-                  <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
-                  <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType"
-                    align-right />
-                </view>
-                <view style="height: 10rpx;" />
-                <view class="upImg_box">
-                  <view class="label">施工后照片:</view>
-                  <view class="img_box"> <!-- afterApplyPic -->
-                    <view class="img_item" v-for="(img, index) in item.afterApplyPic"
-                      @tap="lookover(item.afterApplyPic, index, idx, 'afterApplyPic')">
-                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                    </view>
-                    <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
-                    </view>
-                  </view>
-                </view>
-
-                <view class="correct_text" style="border: none;">
-                  <view class="label">备注</view>
+              </view>
+              <wd-select-picker filterable type="radio" label="故障分类" :columns="breakdownTypeList"
+                v-model="item.faultType" align-right required />
+              <wd-select-picker filterable type="radio" label="故障原因" :columns="failureCauseList"
+                v-model="item.faultReason" align-right required />
+              <wd-select-picker label="维护方式" type="radio" :columns="maintenanceMode" v-model="item.whType" align-right
+                @change="maintenanceModeChange($event, item)" required />
+              <view v-if="item.whType == '维护处理'">
+                <view class="correct_text">
+                  <view class="label requiredLabel">维护内容</view>
                   <view class="textarea_box">
-                    <textarea v-model="item.remark" placeholder="请输入备注"></textarea>
+                    <textarea v-model="item.whContent" placeholder="请输入维护内容"></textarea>
                   </view>
                 </view>
-              </scroll-view>
-            </swiper-item>
-          </swiper>
+                <view class="usePart">
+                  <view class="label">使用部件</view>
+                  <view class="parts">
+                    <view class="input_number">
+                      <view class="label">主机:</view>
+                      <wd-input-number :min="0" v-model="item.ext1" />
+                    </view>
 
-          <swiper class="my_swiper" :current="workCurrent" @animationfinish="animationfinish" @change="onswiperchange"
-            v-if="workHandle.orderType == 3">
-            <swiper-item class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx"
-              :class="{ ios: isIos }">
-              <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
-                <view class="work_del_btn">
-                  <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
-                    src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+                    <view class="input_number">
+                      <view class="label">硬盘:</view>
+                      <wd-input-number :min="0" v-model="item.ext2" />
+                    </view>
+                    <view class="input_number">
+                      <view class="label">U盘:</view>
+                      <wd-input-number :min="0" v-model="item.ext3" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">摄像头:</view>
+                      <wd-input-number :min="0" v-model="item.ext4" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">GPS天线:</view>
+                      <wd-input-number :min="0" v-model="item.ext5" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">4G天线:</view>
+                      <wd-input-number :min="0" v-model="item.ext6" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">电源线:</view>
+                      <wd-input-number :min="0" v-model="item.ext7" />
+                    </view>
+                    <view class="input_number">
+                      <view class="label">视频线:</view>
+                      <wd-input-number :min="0" v-model="item.ext8" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">显示屏:</view>
+                      <wd-input-number :min="0" v-model="item.ext9" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">转接线:</view>
+                      <wd-input-number :min="0" v-model="item.ext10" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">机芯:</view>
+                      <wd-input-number :min="0" v-model="item.ext11" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">灯板:</view>
+                      <wd-input-number :min="0" v-model="item.ext12" />
+                    </view>
+                    <view class="input_number">
+                      <view class="label">防爆管:</view>
+                      <wd-input-number :min="0" v-model="item.ext13" />
+                    </view>
+
+                    <view class="input_number">
+                      <view class="label">保险:</view>
+                      <wd-input-number :min="0" v-model="item.ext14" />
+                    </view>
+
+                    <view class="input_number input_long">
+                      <view class="label">辅材(金属变径,紧缩变径,波纹管等):</view>
+                      <wd-input-number :min="0" v-model="item.ext15" />
+                    </view>
+
+                  </view>
                 </view>
-                <wd-select-picker filterable type="radio" label="设备类型" :columns="carTypeList" v-model="item.deviceType"
-                  align-right @change="carTypeChange(item)" required />
-                <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
-                <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
+              </view>
+              <view v-else-if="item.whType == '更换部件'">
+                <wd-select-picker filterable type="radio" label="更换部件" :columns="changeList" v-model="item.replacePart"
                   align-right required />
-
-                <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
-                  <view class="label">施工前照片:</view>
-                  <view class="img_box">
-                    <view class="img_item" v-for="(img, index) in item.beforeApplyPic"
-                      @tap="lookover(item.beforeApplyPic, index, idx, 'beforeApplyPic')">
-                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                    </view>
-                    <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
-                    </view>
-                  </view>
-                </view>
-
                 <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList"
                   v-model="item.deviceBrand" align-right required />
                 <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
                 <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
                 <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
                 <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType" align-right />
+              </view>
 
-                <view class="correct_text" style="border: none;" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
-                  <view class="label">新装内容</view>
-                  <view class="textarea_box">
-                    <textarea v-model="item.xzContent" placeholder="请输入新装内容"></textarea>
+              <view class="upImg_box">
+                <view class="label">施工后照片:</view>
+                <view class="img_box"> <!-- afterApplyPic -->
+                  <view class="img_item" v-for="(img, index) in item.afterApplyPic"
+                    @tap="lookover(item.afterApplyPic, index, idx, 'afterApplyPic')">
+                    <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                  </view>
+                  <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
+                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                   </view>
                 </view>
-                <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
-                  <view class="label">施工后照片:</view>
-                  <view class="img_box"> <!-- afterApplyPic -->
-                    <view class="img_item" v-for="(img, index) in item.afterApplyPic"
-                      @tap="lookover(item.afterApplyPic, index, idx, 'afterApplyPic')">
+              </view>
+
+              <view class="correct_text" style="border: none;">
+                <view class="label">备注</view>
+                <view class="textarea_box">
+                  <textarea v-model="item.remark" placeholder="请输入备注"></textarea>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="forms" v-if="workHandle.orderType == 3">
+            <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
+              <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
+                src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+              <wd-select-picker filterable type="radio" label="设备类型" :columns="carTypeList" v-model="item.deviceType"
+                align-right @change="carTypeChange(item)" required />
+              <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
+              <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
+                align-right required />
+
+              <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
+                <view class="label">施工前照片:</view>
+                <view class="img_box">
+                  <view class="img_item" v-for="(img, index) in item.beforeApplyPic"
+                    @tap="lookover(item.beforeApplyPic, index, idx, 'beforeApplyPic')">
+                    <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                  </view>
+                  <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
+                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                  </view>
+                </view>
+              </view>
+
+              <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList" v-model="item.deviceBrand"
+                align-right required />
+              <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+              <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
+              <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
+              <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType" align-right />
+
+              <view class="correct_text" style="border: none;" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
+                <view class="label">新装内容</view>
+                <view class="textarea_box">
+                  <textarea v-model="item.xzContent" placeholder="请输入新装内容"></textarea>
+                </view>
+              </view>
+
+              <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
+                <view class="label">施工后照片:</view>
+                <view class="img_box"> <!-- afterApplyPic -->
+                  <view class="img_item" v-for="(img, index) in item.afterApplyPic"
+                    @tap="lookover(item.afterApplyPic, index, idx, 'afterApplyPic')">
+                    <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                  </view>
+                  <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
+                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                  </view>
+                </view>
+              </view>
+
+              <view class="up_list" v-if="item.deviceType == '汽车行驶记录仪'">
+                <view class="upImg_box">
+                  <view class="label requiredLabel">行驶证附件:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.drivingLicense"
+                      @tap="lookover(item.drivingLicense, index, idx, 'drivingLicense')">
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
-                    <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
+                    <view class="img_item up_btn" @tap="upBtn('drivingLicense', idx)">
                       <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
 
-                <view class="up_list" v-if="item.deviceType == '汽车行驶记录仪'">
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">行驶证附件:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.drivingLicense"
-                        @tap="lookover(item.drivingLicense, index, idx, 'drivingLicense')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('drivingLicense', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
+                <view class="upImg_box">
+                  <view class="label requiredLabel">驾驶证附件:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.driverLicense"
+                      @tap="lookover(item.driverLicense, index, idx, 'driverLicense')">
+                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                    </view>
+                    <view class="img_item up_btn" @tap="upBtn('driverLicense', idx)">
+                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
-
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">驾驶证附件:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.driverLicense"
-                        @tap="lookover(item.driverLicense, index, idx, 'driverLicense')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('driverLicense', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
-                    </view>
-                  </view>
-
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">管理员信息附件:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.managerFile"
-                        @tap="lookover(item.managerFile, index, idx, 'managerFile')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('managerFile', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
-                    </view>
-                  </view>
-
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">电气附件:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.electricalFile"
-                        @tap="lookover(item.electricalFile, index, idx, 'electricalFile')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('electricalFile', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
-                    </view>
-                  </view>
-
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">总线附件:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.busFile"
-                        @tap="lookover(item.busFile, index, idx, 'busFile')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('busFile', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
-                    </view>
-                  </view>
-
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">主机照片:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.hostPic"
-                        @tap="lookover(item.hostPic, index, idx, 'hostPic')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('hostPic', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
-                    </view>
-                  </view>
-
-                  <view class="upImg_box">
-                    <view class="label requiredLabel">附件检查:</view>
-                    <view class="img_box">
-                      <view class="img_item" v-for="(img, index) in item.attachment"
-                        @tap="lookover(item.attachment, index, idx, 'attachment')">
-                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
-                      </view>
-                      <view class="img_item up_btn" @tap="upBtn('attachment', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
-                          mode="scaleToFill" />
-                      </view>
-                    </view>
-                  </view>
-
                 </view>
 
-                <view class="correct_text" style="border: none;">
-                  <view class="label">备注</view>
-                  <view class="textarea_box">
-                    <textarea v-model="item.remark" placeholder="请输入备注"></textarea>
+                <view class="upImg_box">
+                  <view class="label requiredLabel">管理员信息附件:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.managerFile"
+                      @tap="lookover(item.managerFile, index, idx, 'managerFile')">
+                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                    </view>
+                    <view class="img_item up_btn" @tap="upBtn('managerFile', idx)">
+                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    </view>
                   </view>
                 </view>
-              </scroll-view>
-            </swiper-item>
-          </swiper>
 
+                <view class="upImg_box">
+                  <view class="label requiredLabel">电气附件:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.electricalFile"
+                      @tap="lookover(item.electricalFile, index, idx, 'electricalFile')">
+                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                    </view>
+                    <view class="img_item up_btn" @tap="upBtn('electricalFile', idx)">
+                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    </view>
+                  </view>
+                </view>
+
+                <view class="upImg_box">
+                  <view class="label requiredLabel">总线附件:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.busFile"
+                      @tap="lookover(item.busFile, index, idx, 'busFile')">
+                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                    </view>
+                    <view class="img_item up_btn" @tap="upBtn('busFile', idx)">
+                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    </view>
+                  </view>
+                </view>
+
+                <view class="upImg_box">
+                  <view class="label requiredLabel">主机照片:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.hostPic"
+                      @tap="lookover(item.hostPic, index, idx, 'hostPic')">
+                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                    </view>
+                    <view class="img_item up_btn" @tap="upBtn('hostPic', idx)">
+                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    </view>
+                  </view>
+                </view>
+
+                <view class="upImg_box">
+                  <view class="label requiredLabel">附件检查:</view>
+                  <view class="img_box">
+                    <view class="img_item" v-for="(img, index) in item.attachment"
+                      @tap="lookover(item.attachment, index, idx, 'attachment')">
+                      <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                    </view>
+                    <view class="img_item up_btn" @tap="upBtn('attachment', idx)">
+                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    </view>
+                  </view>
+                </view>
+
+              </view>
+
+              <view class="correct_text" style="border: none;">
+                <view class="label">备注</view>
+                <view class="textarea_box">
+                  <textarea v-model="item.remark" placeholder="请输入备注"></textarea>
+                </view>
+              </view>
+
+            </view>
+
+          </view>
         </view>
 
         <view class="center center3" v-show="segmented == 2">
@@ -1828,219 +1758,178 @@ const onswiperchange = (e) => {
           border-radius: 7rpx 7rpx 7rpx 7rpx;
           margin-left: 40rpx;
         }
+
       }
     }
 
     .center2 {
       width: 100%;
-      min-height: 1200rpx;
+      min-height: 800rpx;
       padding: 0;
 
-      .workCurrent_box {
-        width: 100%;
-        margin-bottom: 20rpx;
-        background: #FFFFFF;
-        box-shadow: 0rpx 4rpx 7rpx 2rpx rgba(0, 0, 0, 0.16);
-        border-radius: 9rpx 9rpx 9rpx 9rpx;
-
-        .currentIndex {
-          width: calc(100% / 4);
-          height: 66rpx;
-          color: #9B9B9B;
-          display: inline-block;
-          font-size: 26rpx;
-          line-height: 60rpx;
-          text-align: center;
-			box-sizing: border-box;
-			
-          &.active {
-			  color: #55A4FF;
-			  position: relative;
-			  .bor{
-				  width: 80%;
-				  height: 4rpx;
-				  background-color: #55A4FF;
-				  position: absolute;
-				  bottom: 4rpx;
-				  left: 10%;
-			  }
-          }
-        }
-      }
-
-      .my_swiper {
-        width: 100%;
-        height: 1200rpx;
-        background-color: #fff;
-        padding: 0 20rpx 20rpx 20rpx;
-        box-sizing: border-box;
-        box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);
-        border-radius: 14rpx 14rpx 14rpx 14rpx;
-      }
-
-      .up_list {
-        width: 100%;
-      }
-
-      .work_del_btn {
-        width: 100%;
-        height: 42rpx;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-
-        .operate_img {
-          width: 42rpx;
-          height: 42rpx;
-        }
-      }
-
-
-      .form_center {
-        width: 100%;
-        height: 100%;
-        margin-bottom: 30rpx;
+      .forms {
         position: relative;
 
-        &.ios {
-          :deep(.wd-popup) {
-            width: 90%;
-            left: 5%;
-            z-index: 9999;
-          }
-        }
-      }
-
-      :deep(.wd-input) {
-        padding: 18rpx 10rpx 8rpx 0 !important;
-        height: 60rpx;
-        border-bottom: 2rpx solid #EFEFEF;
-
-        .wd-input__label-inner {
-          font-size: 24rpx;
-          color: #AAAAAA;
-        }
-
-        .wd-input__inner {
-          text-align: right;
-          padding-right: 36rpx;
-          box-sizing: border-box;
-        }
-
-        .uni-input-placeholder {
-          font-size: 24rpx;
-          color: #000000;
-        }
-      }
-
-      :deep(.wd-select-picker) {
-        padding: 0 !important;
-        border-bottom: 2rpx solid #EFEFEF;
-
-        .wd-select-picker__field {
-          height: 100%;
-        }
-
-        .wd-select-picker__cell {
-          padding-left: 0;
-          padding-right: 0;
-        }
-
-        .wd-select-picker__label {
-          font-size: 24rpx;
-          color: #AAAAAA;
-        }
-
-        .wd-select-picker__value--placeholder {
-          font-size: 24rpx;
-          color: #000000;
-        }
-
-      }
-
-      .upImg_box {
-        margin: 20rpx 0 0 0;
-        padding-bottom: 10rpx;
-        border-bottom: 2rpx solid #EFEFEF;
-      }
-
-      .correct_text {
-        margin: 20rpx 0 0 0;
-        padding-bottom: 20rpx;
-        border-bottom: 2rpx solid #EFEFEF;
-      }
-
-      .usePart {
-        width: 100%;
-        height: 780rpx;
-        margin: 20rpx 0;
-        padding-bottom: 20rpx;
-        background-color: #fff;
-
-        .parts {
+        .up_list {
           width: 100%;
-          height: 780rpx;
-          background: #F4F4F4;
-          border-radius: 7rpx 7rpx 7rpx 7rpx;
-          margin-top: 10rpx;
-          display: flex;
-          flex-wrap: wrap;
-          padding: 20rpx 10rpx;
+        }
+
+        .operate_img {
+          position: absolute;
+          right: 0rpx;
+          top: 0rpx;
+          z-index: 9;
+        }
+
+        .form_center {
+          padding: 20rpx;
           box-sizing: border-box;
+          width: 100%;
+          background-color: #fff;
+          box-shadow: 0rpx 5rpx 11rpx 2rpx rgba(0, 0, 0, 0.09);
+          border-radius: 14rpx 14rpx 14rpx 14rpx;
+          margin-bottom: 30rpx;
+          position: relative;
 
-          .input_number {
-            width: 50% !important;
-            height: 66rpx;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 20rpx;
-            box-sizing: border-box;
-            flex-wrap: nowrap;
-
-            .label {
-              color: #000000;
-            }
-
-            &.input_long {
-              width: 100% !important;
-
-              .label {}
-            }
-          }
-
-          :deep(.wd-input-number) {
-            //不换行
-            white-space: nowrap;
-
-            .wd-input-number__action {
-              width: 50rpx;
-              height: 50rpx;
-              border-radius: 50%;
-              overflow: hidden;
-              background-color: #55A4FF;
-              color: #fff;
-              transform: scale(.7);
-
-              // &::before{
-              //   font-size: 22rpx !important;
-              // }
-            }
-
-            .wd-input-number__action-icon {
-              // font-size: 20rpx !important;
-              // line-height: 24rpx !important;
-              // text-align: center;
-            }
-
-            .wd-input-number__inner {
-              border: 2rpx solid #55A4FF;
-              box-sizing: border-box;
-              border-radius: 4rpx;
-              padding: 0 3rpx;
+          &.ios {
+            :deep(.wd-popup) {
+              width: 90%;
+              left: 5%;
+              z-index: 9999;
             }
           }
         }
+
+        :deep(.wd-input) {
+          padding: 18rpx 10rpx 8rpx 0 !important;
+          height: 60rpx;
+          border-bottom: 2rpx solid #EFEFEF;
+
+          .wd-input__label-inner {
+            font-size: 24rpx;
+            color: #AAAAAA;
+          }
+
+          .wd-input__inner {
+            text-align: right;
+            padding-right: 36rpx;
+            box-sizing: border-box;
+          }
+
+          .uni-input-placeholder {
+            font-size: 24rpx;
+            color: #000000;
+          }
+        }
+
+        :deep(.wd-select-picker) {
+          padding: 0 !important;
+          border-bottom: 2rpx solid #EFEFEF;
+
+          .wd-select-picker__field {
+            height: 100%;
+          }
+
+          .wd-select-picker__cell {
+            padding-left: 0;
+            padding-right: 0;
+          }
+
+          .wd-select-picker__label {
+            font-size: 24rpx;
+            color: #AAAAAA;
+          }
+
+          .wd-select-picker__value--placeholder {
+            font-size: 24rpx;
+            color: #000000;
+          }
+
+        }
+
+        .upImg_box {
+          margin: 20rpx 0 0 0;
+          padding-bottom: 10rpx;
+          border-bottom: 2rpx solid #EFEFEF;
+        }
+
+        .correct_text {
+          margin: 20rpx 0 0 0;
+          padding-bottom: 20rpx;
+          border-bottom: 2rpx solid #EFEFEF;
+        }
+
+        .usePart {
+          width: 100%;
+          min-width: 600rpx;
+          margin: 20rpx 0 0 0;
+          padding-bottom: 20rpx;
+
+          .parts {
+            width: 100%;
+            background: #F4F4F4;
+            border-radius: 7rpx 7rpx 7rpx 7rpx;
+            margin-top: 10rpx;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20rpx 10rpx;
+            box-sizing: border-box;
+
+            .input_number {
+              width: 50%;
+              height: 66rpx;
+              display: flex;
+              align-items: center;
+              justify-content: flex-end;
+              padding-right: 20rpx;
+              box-sizing: border-box;
+              flex-wrap: nowrap;
+
+              .label {
+                color: #000000;
+              }
+
+              &.input_long {
+                width: 100% !important;
+
+                .label {}
+              }
+            }
+
+            :deep(.wd-input-number) {
+              //不换行
+              white-space: nowrap;
+
+              .wd-input-number__action {
+                width: 50rpx;
+                height: 50rpx;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: #55A4FF;
+                color: #fff;
+                transform: scale(.7);
+
+                // &::before{
+                //   font-size: 22rpx !important;
+                // }
+              }
+
+              .wd-input-number__action-icon {
+                // font-size: 20rpx !important;
+                // line-height: 24rpx !important;
+                // text-align: center;
+              }
+
+              .wd-input-number__inner {
+                border: 2rpx solid #55A4FF;
+                box-sizing: border-box;
+                border-radius: 4rpx;
+                padding: 0 3rpx;
+              }
+            }
+          }
+        }
+
       }
     }
 
@@ -2173,13 +2062,12 @@ const onswiperchange = (e) => {
 
   .requiredLabel {
     position: relative;
-    margin-left: 16rpx;
 
     &::before {
       content: '*';
       color: #fa4350;
       position: absolute;
-      left: -15rpx;
+      left: -12rpx;
       top: -6rpx;
       // transform: scale(1.5);
       font-size: 18px;
@@ -2190,15 +2078,4 @@ const onswiperchange = (e) => {
 :deep(.uni-scroll-view-content) {
   height: 90% !important;
 }
-
-// :deep(.wd-transition) {
-//   width: 100vw;
-//   height: 100vh;
-//   z-index: 99999;
-
-//   .wd-popup {
-//     width: 100vw;
-//     height: 100vh;
-//     z-index: 99999;
-//   }
-// }</style>
+</style>

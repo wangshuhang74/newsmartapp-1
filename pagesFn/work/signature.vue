@@ -73,10 +73,11 @@ const uploadFileApi = async (path) => { //上传图片接口
 <style lang="scss" scoped>
 .signature_box {
     width: 100vw;
-    height: 100vh;
+    height: 98vh;
     padding: 30rpx;
     box-sizing: border-box;
     display: flex;
+    margin-top: 2vh;
 
     .btns_box {
         width: 12%;
