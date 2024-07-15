@@ -161,7 +161,7 @@ import dayjs from 'dayjs'
 import navbar from '@/pages/components/navbar.vue'
 import keyboard from '@/pages/components/keyboard.vue'
 import { sendCmd, addPrivateWriteAOSpec, ab2hex, writeStatus } from "../../utils/bluetooth";
-import { analysisCarNumber, analysisJlyCID, addZeroBefore, binaryToHexArray } from '@/utils/message'
+import { analysisCarNumber, analysisJlyCID, addZeroBefore, binaryToHexArray, crc32Decimal } from '@/utils/message'
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
 const tagsStore = useTagsStore()
@@ -259,7 +259,15 @@ const dataInit = (obj) => {
 				// postForm.value.U1HPHMXH = tagsInfo.value.U1HPHMXH;
 				// postForm.value.U1FPDH = tagsInfo.value.U1FPDH;
 			} else {
-				postForm.value.U1AQXPID = res.data.tpmId;
+				if (res.data.tpmId) {
+					postForm.value.U1AQXPID = res.data.tpmId;
+				} else if (obj.length == 13) {
+					postForm.value.U1AQXPID = crc32Decimal(obj);
+					console.log('U1AQXPID', postForm.value.U1AQXPID);
+				} else {
+					postForm.value.U1AQXPID = '';
+				}
+
 				postForm.value.U1HPZL = res.data.carCardType;
 				postForm.value.U1SFDM = res.data.provinceCode;
 				postForm.value.U1HPHMXH = res.data.carPlateShort;

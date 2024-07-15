@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { auth } from '../api'
+import crc32 from 'crc/crc32';
 
 
 const carNumberLabel = { 'A': '000000', 'B': '000001', 'C': '000010', 'D': '000011', 'E': '000100', 'F': '000101', 'G': '000110', 'H': '000111', 'I': '', 'J': '001001', 'K': '001010', 'L': '001011', 'M': '001100', 'N': '001101', 'O': '', 'P': '001111', 'Q': '010000', 'R': '010001', 'S': '010010', 'T': '010011', 'U': '010100', 'V': '010101', 'W': '010110', 'X': '010111', 'Y': '011000', 'Z': '011001', '0': '011010', '1': '011011', '2': '011100', '3': '011101', '4': '011110', '5': '011111', '6': '100000', '7': '100001', '8': '100010', '9': '100011' };
@@ -94,6 +95,16 @@ export const binaryToHexArray = (binaryDataStr) => {
 
 	hexStr = hexStr + '' + parseInt(crc8Str).toString(16).padStart(2, '0').toUpperCase();//添加crc校验
 	return hexStr;
+}
+
+//crc32转十进制
+export const crc32Decimal = (str) => {
+	let crcBinary = crc32(str).toString(2); //crc32 后转二进制
+	crcBinary = addZeroBefore(crcBinary, 32); //二进制前面补0 到32位
+	crcBinary = "1" + crcBinary; //32位二进制前面补1 到33位
+	console.log('crcBinary', crcBinary);
+	let crcDec = parseInt(crcBinary, 2); //二进制转10进制
+	return crcDec;
 }
 
 
