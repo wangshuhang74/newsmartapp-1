@@ -172,6 +172,15 @@
 						"navigationStyle": "custom",
 						"navigationBarTitleText": "修改密码"
 					}
+				},
+				{
+					"path": "i18n/index",
+					"name": "i18n",
+					"needLogin": true,
+					"style": {
+						"navigationStyle": "custom",
+						"navigationBarTitleText": "多语言"
+					}
 				}
 			]
 		},

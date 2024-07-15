@@ -27,42 +27,59 @@ const fnList = [
     id: 1,
     title: '个人档案',
     path: '/pagesMy/myInfo/index',
-    icon: icon1
+    icon: icon1,
+    type: 'navigateTo'
   },
   {
     id: 2,
     title: '用户收款',
     path: '/pagesMy/receiveUser/index',
-    icon: sk_icon
+    icon: sk_icon,
+    type: 'navigateTo'
   },
   {
     id: 3,
     title: '切换账号',
     path: '/pagesMy/switchAccount/index',
-    icon: qh_icon
+    icon: qh_icon,
+    type: 'navigateTo'
   },
   {
     id: 4,
     title: '关于我们',
     path: '/pagesMy/about/index',
-    icon: about_icon
+    icon: about_icon,
+    type: 'navigateTo'
+  },
+  {
+    id: 7,
+    title: '切换语言',
+    path: '/pagesMy/i18n/index',
+    icon: qh_icon,
+    type: 'navigateTo'
   },
   {
     id: 5,
     title: '修改密码',
     path: '/pagesMy/changePassword/index',
-    icon: mm_icon
+    icon: mm_icon,
+    type: 'navigateTo'
   },
   {
     id: 6,
     title: '退出登录',
     path: '/pagesAccount/login/index',
-    icon: gj_icon
+    icon: gj_icon,
+    type: ''
   },
 ]
 
 const itemClick = (item) => {
-  if (item.id == 6) {
+  if (item.type == 'navigateTo') {
+    uni.navigateTo({
+      url: item.path
+    })
+  } else if (item.id == 6) {
     Message.confirm({
       title: "退出登录",
       msg: `确定退出登录吗？`,
@@ -72,11 +89,6 @@ const itemClick = (item) => {
         userStore.clearUserInfo()
       })
       .catch(() => { });
-
-  } else {
-    uni.navigateTo({
-      url: item.path
-    })
   }
 }
 

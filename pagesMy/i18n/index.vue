@@ -13,7 +13,8 @@ const Toast = useToast()
 //切换语言
 const switchLang = () => {
   const code = userStore.switchLang(locale)
-  if (code == 0) Toast.success(lang.value == 'zh' ? '切换成功' : 'Switch Success')
+  console.log("🚀 ~ switchLang ~ code:", code)
+  if (code) Toast.success(lang.value == 'zh' ? '切换成功' : 'Switch Success')
 }
 
 </script>
@@ -25,7 +26,7 @@ const switchLang = () => {
     <view class="info_flow">
       <text>{{ $t('你好') }} {{ $t('世界') }}</text>
 
-      <button @tap="switchLang">切换{{ lang == 'zh' ? '英文' : '中文' }}</button>
+      <button class="btn" @tap="switchLang">切换{{ lang == 'zh' ? '英文' : '中文' }}</button>
     </view>
   </view>
 </template>
@@ -38,11 +39,22 @@ const switchLang = () => {
   overflow: hidden;
   background-color: #f7f7fc;
 
+
   .info_flow {
     flex: 1;
-    width: 100;
-    padding-bottom: 100rpx;
-    overflow-y: scroll;
+    width: 100%;
+    padding: 20rpx;
+    box-sizing: border-box;
+
+    .btn {
+      width: 90%;
+      height: 90rpx;
+      font-size: 36rpx;
+      color: #FFFFFF;
+      margin: 100rpx auto 100rpx auto;
+      background: linear-gradient(90deg, #1082FF 0%, #5FA9FF 100%);
+      border-radius: 14rpx 14rpx 14rpx 14rpx;
+    }
   }
 }
 </style>

@@ -51,6 +51,7 @@ const variableXZ = { //新装
   busFile: [],//总线附件
   hostPic: [],//主机照片 ,
   attachment: [], //附件检查 ,
+  tpmId: null,//设备安全芯片ID 
 
 }
 const variableWH = {//维护
@@ -115,6 +116,128 @@ const postLcForm = ref({
     comment: 1,
   },
 })
+
+const selectType = ref('radio') // checkbox radio
+const selectPicker = ref(null)// 选择器
+const selectColumns = ref([])//选择器选项变量
+const selectValue = ref(null) // 选择器选中值
+const selectIdx = ref(0)//当前选择器的索引
+const selectDataType = ref('')//当前选择器的类型
+const openSelect = (item, idx, type) => {
+  selectIdx.value = idx
+  selectDataType.value = type
+  // carType vehicleTypeList
+  switch (type) {
+    case 'carType':
+      selectType.value = 'radio'
+      selectColumns.value = vehicleTypeList
+      selectValue.value = item.carType
+      break;
+    // faultType breakdownTypeList 
+    case 'faultType':
+      selectType.value = 'radio'
+      selectColumns.value = breakdownTypeList
+      selectValue.value = item.faultType
+      break;
+    // faultReason failureCauseList 
+    case 'faultReason':
+      selectType.value = 'radio'
+      selectColumns.value = failureCauseList
+      selectValue.value = item.faultReason
+      break;
+    // whType maintenanceMode 
+    case 'whType':
+      selectType.value = 'radio'
+      selectColumns.value = maintenanceMode
+      selectValue.value = item.whType
+      break;
+    //replacePart changeList
+    case 'replacePart':
+      selectType.value = 'radio'
+      selectColumns.value = changeList
+      selectValue.value = item.replacePart
+      break;
+    //deviceBrand equipmentList
+    case 'deviceBrand':
+      selectType.value = 'radio'
+      selectColumns.value = equipmentList
+      selectValue.value = item.deviceBrand
+      break;
+    //channelType aisleList
+    case 'channelType':
+      selectType.value = 'checkbox'
+      selectColumns.value = aisleList
+      selectValue.value = item.channelType
+      break;
+    //deviceType carTypeList
+    case 'deviceType':
+      selectType.value = 'radio'
+      selectColumns.value = carTypeList
+      selectValue.value = item.deviceType
+      break;
+    default:
+      break;
+  }
+  setTimeout(() => {
+    selectPicker.value.open()
+  }, 100,)
+}
+
+const selectClose = (val) => {
+  console.log("🚀 ~ selectClose ~ val:", val.value)
+  let item;
+  setTimeout(() => {
+    postForm.value.applyInfo[selectIdx.value][selectDataType.value] = selectValue.value
+    item = postForm.value.applyInfo[selectIdx.value]
+    switch (selectDataType.value) {
+      case 'whType':
+        if (val.value == '更换部件') {
+          item.whContent = ''  //维护内容
+          item.ext1 = 0
+          item.ext2 = 0
+          item.ext3 = 0
+          item.ext4 = 0
+          item.ext5 = 0
+          item.ext6 = 0
+          item.ext7 = 0
+          item.ext8 = 0
+          item.ext9 = 0
+          item.ext10 = 0
+          item.ext11 = 0
+          item.ext12 = 0
+          item.ext13 = 0
+          item.ext14 = 0
+          item.ext15 = 0
+        } else {
+          item.replacePart = null // 更换的部件
+          item.deviceBrand = null // 设备品牌
+          item.deviceSerial = null // 设备序列号
+          item.deviceModel = null // 设备型号
+          item.simNum = null // sim卡号
+          item.channelType = [] // 通道类型
+        }
+        break;
+      case 'deviceType': //车辆类型改变
+        if (val.value != '汽车行驶记录仪') {
+          item.drivingLicense = []
+          item.driverLicense = []
+          item.managerFile = []
+          item.electricalFile = []
+          item.busFile = []
+          item.hostPic = []
+          item.attachment = []
+        } else {
+          item.xzContent = ''
+          item.beforeApplyPic = []
+          item.afterApplyPic = []
+        }
+        break;
+
+    }
+    console.log("🚀 ~ openSelect ~ postForm.value:", postForm.value)
+  }, 50,)
+}
+
 
 onMounted(() => {
   if (workHandle.value) {
@@ -230,6 +353,11 @@ const addWorkBtn = () => { // 添加施工信息
 
 const delWorkBtn = (idx) => { // 删除施工信息
   postForm.value.applyInfo.splice(idx, 1)
+  if (postForm.value.applyInfo.length > 1) {
+    workCurrent.value = postForm.value.applyInfo.length - 1
+  } else {
+    workCurrent.value = 0
+  }
 }
 
 
@@ -713,6 +841,8 @@ const vehicleTypeList = [// 车辆类型
   },
 
 ]
+
+
 const breakdownTypeList = [  // 故障分类
   {
     label: '丢里程',
@@ -883,95 +1013,69 @@ const equipmentList = [
 const aisleList = [
   {
     label: "通道1",
-    value: '1',
+    value: '通道1',
   },
   {
     label: "通道2",
-    value: '2',
+    value: '通道2',
   },
   {
     label: "通道3",
-    value: '3',
+    value: '通道3',
   },
   {
     label: "通道4",
-    value: '4',
+    value: '通道4',
   },
   {
     label: "通道5",
-    value: '5',
+    value: '通道5',
   },
   {
     label: "通道6",
-    value: '6',
+    value: '通道6',
   },
   {
     label: "通道7",
-    value: '7',
+    value: '通道7',
   },
   {
     label: "通道8",
-    value: '8',
+    value: '通道8',
   },
   {
     label: "通道9",
-    value: '9',
+    value: '通道9',
   },
   {
     label: "通道10",
-    value: '10',
+    value: '通道10',
   },
   {
     label: "通道11",
-    value: '11',
+    value: '通道11',
   },
   {
     label: "通道12",
-    value: '12',
+    value: '通道12',
   },
   {
     label: "通道13",
-    value: '13',
+    value: '通道13',
   },
   {
     label: "通道14",
-    value: '14',
+    value: '通道14',
   },
   {
     label: "通道15",
-    value: '15',
+    value: '通道15',
   },
   {
     label: "通道16",
-    value: '16',
+    value: '通道16',
   },
 ]
-
-const maintenanceModeChange = (val, item) => {
-  item.whContent = ''  //维护内容
-  item.ext1 = 0
-  item.ext2 = 0
-  item.ext3 = 0
-  item.ext4 = 0
-  item.ext5 = 0
-  item.ext6 = 0
-  item.ext7 = 0
-  item.ext8 = 0
-  item.ext9 = 0
-  item.ext10 = 0
-  item.ext11 = 0
-  item.ext12 = 0
-  item.ext13 = 0
-  item.ext14 = 0
-  item.ext15 = 0
-
-  item.replacePart = null // 更换的部件
-  item.deviceBrand = null // 设备品牌
-  item.deviceSerial = null // 设备序列号
-  item.deviceModel = null // 设备型号
-  item.simNum = null // sim卡号
-  item.channelType = [] // 通道类型
-}
 // --------------------------------------------------工单新装选项信息 --------------------------------------
 
 const carTypeList = [// 车辆类型
@@ -997,21 +1101,7 @@ const carTypeList = [// 车辆类型
   },
 ]
 
-const carTypeChange = (item) => { //车辆类型改变
-  if (item.deviceType != '汽车行驶记录仪') {
-    item.drivingLicense = []
-    item.driverLicense = []
-    item.managerFile = []
-    item.electricalFile = []
-    item.busFile = []
-    item.hostPic = []
-    item.attachment = []
-  } else {
-    item.xzContent = ''
-    item.beforeApplyPic = []
-    item.afterApplyPic = []
-  }
-}
+
 const segmentedCenter = ref(null);
 const verifyErr = (msg) => {
   // uni.showToast({
@@ -1202,6 +1292,13 @@ const onswiperchange = (e) => {
   // #endif
 }
 
+const bluetoothBtn = (item) => {
+  console.log("🚀 ~ bluetoothBtn ~ item:", item)
+  uni.navigateTo({
+    url: '/pagesFn/electronicsTag/index',
+  })
+}
+
 
 </script>
 <template>
@@ -1265,22 +1362,28 @@ const onswiperchange = (e) => {
           <view class="workCurrent_box" v-if="postForm.applyInfo.length > 1">
             <view class="currentIndex" v-for="(item, idx) in postForm.applyInfo" :key="idx"
               :class="{ active: workCurrent == idx }" @tap="workCurrent = idx">
-			  {{ '施工信息-' + (idx + 1) }}
-			  <view class="bor"></view>
-			  </view>
+              {{ '施工信息-' + (idx + 1) }}
+              <view class="bor"></view>
+            </view>
           </view>
-          <swiper class="my_swiper" :current="workCurrent" @animationfinish="animationfinish" @change="onswiperchange"
-            v-if="workHandle.orderType == 2">
+          <swiper :disable-touch="postForm.applyInfo.length <= 1" class="my_swiper" :current="workCurrent"
+            @animationfinish="animationfinish" @change="onswiperchange" v-if="workHandle.orderType == 2">
             <swiper-item class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx"
               :class="{ ios: isIos }">
               <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
                 <view class="work_del_btn">
-                  <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
+                  <image class="operate_img" @tap="delWorkBtn(idx)" v-if="postForm.applyInfo.length > 1"
                     src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
                 </view>
                 <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
-                <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
-                  align-right />
+                <view class="inp_item">
+                  <view class="label">车辆类型:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'carType')">
+                    <view class="val">{{ item.carType ? item.carType : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
                 <view class="upImg_box">
                   <view class="label">施工前照片:</view>
                   <view class="img_box">
@@ -1293,21 +1396,40 @@ const onswiperchange = (e) => {
                     </view>
                   </view>
                 </view>
-                <wd-select-picker filterable type="radio" label="故障分类" :columns="breakdownTypeList"
-                  v-model="item.faultType" align-right required />
-                <wd-select-picker filterable type="radio" label="故障原因" :columns="failureCauseList"
-                  v-model="item.faultReason" align-right required />
-                <wd-select-picker label="维护方式" type="radio" :columns="maintenanceMode" v-model="item.whType" align-right
-                  @change="maintenanceModeChange($event, item)" required />
+                <view class="inp_item">
+                  <view class="label requiredLabel">故障分类:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'faultType')">
+                    <view class="val">{{ item.faultType ? item.faultType : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
+                <view class="inp_item">
+                  <view class="label requiredLabel">故障原因:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'faultReason')">
+                    <view class="val">{{ item.faultReason ? item.faultReason : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
+                <view class="inp_item">
+                  <view class="label requiredLabel">维护方式:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'whType')">
+                    <view class="val">{{ item.whType ? item.whType : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
+
                 <view v-if="item.whType == '维护处理'">
                   <view class="correct_text">
-                    <view class="label requiredLabel">维护内容</view>
+                    <view class="label requiredLabel">维护内容:</view>
                     <view class="textarea_box">
                       <textarea v-model="item.whContent" placeholder="请输入维护内容"></textarea>
                     </view>
                   </view>
                   <view class="usePart">
-                    <view class="label">使用部件</view>
+                    <view class="label">使用部件:</view>
                     <view class="parts">
                       <view class="input_number">
                         <view class="label">主机:</view>
@@ -1385,15 +1507,38 @@ const onswiperchange = (e) => {
                   </view>
                 </view>
                 <view v-else-if="item.whType == '更换部件'">
-                  <wd-select-picker filterable type="radio" label="更换部件" :columns="changeList"
-                    v-model="item.replacePart" align-right required />
-                  <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList"
-                    v-model="item.deviceBrand" align-right required />
+                  <view class="inp_item">
+                    <view class="label requiredLabel">更换部件:</view>
+                    <view class="inp_value" @tap="openSelect(item, idx, 'replacePart')">
+                      <view class="val">{{ item.replacePart ? item.replacePart : '请选择' }}</view>
+                      <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                        mode="scaleToFill" />
+                    </view>
+                  </view>
+                  <view class="inp_item">
+                    <view class="label requiredLabel">设备品牌:</view>
+                    <view class="inp_value" @tap="openSelect(item, idx, 'deviceBrand')">
+                      <view class="val">{{ item.deviceBrand ? item.deviceBrand : '请选择' }}</view>
+                      <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                        mode="scaleToFill" />
+                    </view>
+                  </view>
                   <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
                   <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
                   <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
-                  <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType"
-                    align-right />
+
+                  <view class="inp_item">
+                    <view class="label">通道类型:</view>
+                    <view class="inp_value" @tap="openSelect(item, idx, 'channelType')">
+                      <view class="val">{{ item.channelType &&
+                        item.channelType.length ?
+                        item.channelType.join(',') : '请选择'
+                        }}</view>
+                      <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                        mode="scaleToFill" />
+                    </view>
+                  </view>
+
                 </view>
                 <view style="height: 10rpx;" />
                 <view class="upImg_box">
@@ -1410,7 +1555,7 @@ const onswiperchange = (e) => {
                 </view>
 
                 <view class="correct_text" style="border: none;">
-                  <view class="label">备注</view>
+                  <view class="label">备注:</view>
                   <view class="textarea_box">
                     <textarea v-model="item.remark" placeholder="请输入备注"></textarea>
                   </view>
@@ -1425,14 +1570,28 @@ const onswiperchange = (e) => {
               :class="{ ios: isIos }">
               <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
                 <view class="work_del_btn">
-                  <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
+                  <image class="operate_img" @tap="delWorkBtn(idx)" v-if="postForm.applyInfo.length > 1"
                     src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
                 </view>
-                <wd-select-picker filterable type="radio" label="设备类型" :columns="carTypeList" v-model="item.deviceType"
-                  align-right @change="carTypeChange(item)" required />
+
+                <view class="inp_item">
+                  <view class="label requiredLabel">设备类型:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'deviceType')">
+                    <view class="val">{{ item.deviceType ? item.deviceType : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
                 <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
-                <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
-                  align-right required />
+
+                <view class="inp_item">
+                  <view class="label">车辆类型:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'carType')">
+                    <view class="val">{{ item.carType ? item.carType : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
 
                 <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
                   <view class="label">施工前照片:</view>
@@ -1447,15 +1606,47 @@ const onswiperchange = (e) => {
                   </view>
                 </view>
 
-                <wd-select-picker filterable type="radio" label="设备品牌" :columns="equipmentList"
-                  v-model="item.deviceBrand" align-right required />
-                <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+                <view class="inp_item">
+                  <view class="label requiredLabel">设备品牌:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'deviceBrand')">
+                    <view class="val">{{ item.deviceBrand ? item.deviceBrand : '请选择' }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
+
+
+                <view class="inp_item" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'">
+                  <view class="label requiredLabel">设备序列号:</view>
+                  <view class="inp_value inp_box">
+                    <view class="bluetooth_box" @tap="bluetoothBtn(item)">
+                      <image class="bluetooth_img" src="http://116.62.107.90:8673/images/icons/bluetooth.png"
+                        mode="scaleToFill" />
+                      <text>蓝牙连接</text>
+                    </view>
+                    <input class="input_val" type="text" placeholder="请输入" v-model="item.deviceSerial">
+                  </view>
+                </view>
+
+                <wd-input type="text" v-else v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+
                 <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
                 <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
-                <wd-select-picker filterable label="通道类型" :columns="aisleList" v-model="item.channelType" align-right />
+
+                <view class="inp_item">
+                  <view class="label">通道类型:</view>
+                  <view class="inp_value" @tap="openSelect(item, idx, 'channelType')">
+                    <view class="val">{{ item.channelType &&
+                      item.channelType.length ?
+                      item.channelType.join(',') : '请选择'
+                      }}</view>
+                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      mode="scaleToFill" />
+                  </view>
+                </view>
 
                 <view class="correct_text" style="border: none;" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
-                  <view class="label">新装内容</view>
+                  <view class="label">新装内容:</view>
                   <view class="textarea_box">
                     <textarea v-model="item.xzContent" placeholder="请输入新装内容"></textarea>
                   </view>
@@ -1572,13 +1763,35 @@ const onswiperchange = (e) => {
                     </view>
                   </view>
 
+
+                  <view class="upImg_box">
+                    <view class="label requiredLabel">施工后照片:</view>
+                    <view class="img_box">
+                      <view class="img_item" v-for="(img, index) in item.afterApplyPic"
+                        @tap="lookover(item.afterApplyPic, index, idx, 'afterApplyPic')">
+                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                      </view>
+                      <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
+                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                          mode="scaleToFill" />
+                      </view>
+                    </view>
+                  </view>
+
                 </view>
 
                 <view class="correct_text" style="border: none;">
-                  <view class="label">备注</view>
+                  <view class="label">备注:</view>
                   <view class="textarea_box">
                     <textarea v-model="item.remark" placeholder="请输入备注"></textarea>
                   </view>
+                </view>
+
+                <view class="RFID_box" @tap="bluetoothBtn(item)">
+                  <view class="icon"></view>
+                  <view class="tit">电子标识连接</view>
+                  <image class="tag_img" src="http://116.62.107.90:8673/images/icons/item_arrow_f.png"
+                    mode="scaleToFill" />
                 </view>
               </scroll-view>
             </swiper-item>
@@ -1629,6 +1842,8 @@ const onswiperchange = (e) => {
       v-if="openWebview" />
     <QreviewImage ref="previewImage" :urls="variableList" @onLongpress="onLongpress" />
     <wd-action-sheet v-model="sheetShow" :actions="sheetActions" @select="sheetSelect" />
+    <wd-select-picker use-default-slot ref="selectPicker" filterable :type="selectType" :columns="selectColumns"
+      v-model="selectValue" @confirm="selectClose" />
   </view>
 </template>
 <style lang="scss" scoped>
@@ -1693,7 +1908,7 @@ const onswiperchange = (e) => {
         margin-right: 10rpx;
         padding-left: 6rpx;
         box-sizing: border-box;
-
+        flex-shrink: 0; // 不缩小
       }
 
       .up_tip {
@@ -1851,19 +2066,20 @@ const onswiperchange = (e) => {
           font-size: 26rpx;
           line-height: 60rpx;
           text-align: center;
-			box-sizing: border-box;
-			
+          box-sizing: border-box;
+
           &.active {
-			  color: #55A4FF;
-			  position: relative;
-			  .bor{
-				  width: 80%;
-				  height: 4rpx;
-				  background-color: #55A4FF;
-				  position: absolute;
-				  bottom: 4rpx;
-				  left: 10%;
-			  }
+            color: #55A4FF;
+            position: relative;
+
+            .bor {
+              width: 80%;
+              height: 4rpx;
+              background-color: #55A4FF;
+              position: absolute;
+              bottom: 4rpx;
+              left: 10%;
+            }
           }
         }
       }
@@ -1884,7 +2100,7 @@ const onswiperchange = (e) => {
 
       .work_del_btn {
         width: 100%;
-        height: 42rpx;
+        min-height: 2rpx;
         display: flex;
         justify-content: flex-end;
         align-items: center;
@@ -1931,32 +2147,92 @@ const onswiperchange = (e) => {
           font-size: 24rpx;
           color: #000000;
         }
+
+
       }
 
-      :deep(.wd-select-picker) {
-        padding: 0 !important;
+      .inp_item {
+        width: 100%;
+        height: 60rpx;
+        padding: 12rpx 0;
+        display: flex;
+        align-items: center;
         border-bottom: 2rpx solid #EFEFEF;
 
-        .wd-select-picker__field {
-          height: 100%;
-        }
-
-        .wd-select-picker__cell {
-          padding-left: 0;
-          padding-right: 0;
-        }
-
-        .wd-select-picker__label {
-          font-size: 24rpx;
-          color: #AAAAAA;
-        }
-
-        .wd-select-picker__value--placeholder {
+        .inp_value {
           font-size: 24rpx;
           color: #000000;
+          flex: 1;
+          box-sizing: border-box;
+          // padding-right: 50rpx;
+
+          display: flex;
+          align-items: center;
+
+          .select_icon {
+            width: 24rpx;
+            height: 13rpx;
+            flex-shrink: 0;
+            padding-right: 12rpx;
+          }
+
+          .val {
+            text-align: right;
+            flex: 1;
+            box-sizing: border-box;
+            padding-right: 10rpx;
+            //溢出显示省略号
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+
+        .inp_box {
+          display: flex;
+          align-items: center;
+
+          .bluetooth_box {
+            width: 160rpx;
+            height: 42rpx;
+            background: #4099FF;
+            border-radius: 7rpx 7rpx 7rpx 7rpx;
+            font-size: 24rpx;
+            color: #FFFFFF;
+            text-align: center;
+            margin: 0 10rpx 0 6rpx;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .bluetooth_img {
+              width: 16rpx;
+              height: 28rpx;
+              margin-right: 8rpx;
+            }
+          }
+
+          .input_val {
+            text-align: right;
+            font-size: 24rpx;
+            color: #000000;
+            flex: 1;
+            box-sizing: border-box;
+            padding-right: 50rpx;
+
+            .input-placeholder {
+              font-size: 24rpx;
+              color: #000000;
+            }
+
+
+          }
+
         }
 
       }
+
 
       .upImg_box {
         margin: 20rpx 0 0 0;
@@ -2041,6 +2317,42 @@ const onswiperchange = (e) => {
             }
           }
         }
+      }
+
+      .RFID_box {
+        width: 100%;
+        height: 68rpx;
+        margin-top: 10rpx;
+        background: linear-gradient(87deg, #4557D1 0%, #72D2EB 93%, #75DBED 100%);
+        border-radius: 14rpx 14rpx 14rpx 14rpx;
+
+        box-sizing: border-box;
+        padding: 0 20rpx;
+        display: flex;
+        align-items: center;
+
+        .icon {
+          width: 7rpx;
+          height: 34rpx;
+          background: #FFFFFF;
+          border-radius: 7rpx 7rpx 7rpx 7rpx;
+          margin-right: 20rpx;
+        }
+
+        .tit {
+          font-size: 30rpx;
+          color: #ffffff;
+          line-height: 34rpx;
+        }
+
+        .tag_img {
+          width: 12rpx;
+          height: 24rpx;
+          margin-left: 40rpx;
+          margin-top: 4 rpx;
+        }
+
+
       }
     }
 
