@@ -1564,8 +1564,8 @@ const bluetoothBtn = (item) => {
             </swiper-item>
           </swiper>
 
-          <swiper class="my_swiper" :current="workCurrent" @animationfinish="animationfinish" @change="onswiperchange"
-            v-if="workHandle.orderType == 3">
+          <swiper :disable-touch="postForm.applyInfo.length <= 1" class="my_swiper" :current="workCurrent"
+            @animationfinish="animationfinish" @change="onswiperchange" v-if="workHandle.orderType == 3">
             <swiper-item class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx"
               :class="{ ios: isIos }">
               <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
