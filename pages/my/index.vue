@@ -102,13 +102,13 @@ const itemClick = (item) => {
         <view class="active_info_left">
           <image v-if="userInfo.active" :src="userInfo.active" mode="scaleToFill" />
           <view v-else class="avatar_text">{{
-            userInfo.nickName ? userInfo.nickName.charAt(0).toUpperCase() : userInfo.phone ?
+            userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : userInfo.phone ?
               userInfo.phone.charAt(0).toUpperCase() : ""
           }}</view>
         </view>
-        <view class="active_info_right" v-if="userInfo.nickName || userInfo.phone">
+        <view class="active_info_right" v-if="userInfo.userName || userInfo.phone">
           <view class="title_box">
-            <text class="title">{{ userInfo.nickName ? userInfo.nickName : userInfo.phone }}</text>
+            <text class="title">{{ userInfo.userName ? userInfo.userName : userInfo.phone }}</text>
             <view class="type_box" v-if="userInfo.roleName">【{{ userInfo.roleName }}】</view>
             <view class="tag_box" v-if="userInfo.tags && userInfo.tags.length > 0">
               <text class="tag" v-for="(item, idx) in userInfo.tags" :key="idx">{{ item }}</text>

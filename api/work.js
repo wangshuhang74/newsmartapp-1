@@ -5,8 +5,8 @@ export const getAppTodoNum = () => {
     return http.post("/order/getAppTodoNum", {}, {});
 }
 
-// /flowable/task/todoList?pageNum=1&pageSize=10&type=5
-export const getList = (params) => { // 获取工单列表
+// /flowable/task/todoList // 获取工单列表
+export const getList = (params) => {
     return http.post("/flowable/task/todoList", params, {});
 }
 // /order/acceptOrder?orderId=
@@ -29,8 +29,8 @@ export const complete = (params) => {
     return http.post("/flowable/task/complete", params, {});
 }
 
-// /user/getWorkUser
-export const getWorkUser = () => { // 获取联系人选项
+// /user/getWorkUser // 获取联系人选项
+export const getWorkUser = () => {
     return http.post("/user/getWorkUser",);
 }
 
@@ -49,8 +49,8 @@ export const appDisposeOrder = (params) => {
     return http.post("/order/appDisposeOrder", params, {});
 }
 
-// /account/getWorkerList // 运维工程师
-export const getWorkerList = () => { // 获取运维工程师
+// /account/getWorkerList // 获取运维工程师
+export const getWorkerList = () => {
     return http.post("/account/getWorkerList",);
 }
 
@@ -69,7 +69,7 @@ export const getBySerial = (key, params) => {
     return http.get("/driveRecord/getBySerial?" + key + "=" + params, {}, {});
 }
 
-///driveRecord/update
+///driveRecord/update 行车记录仪更新
 export const update = (params) => {
     return http.post("/driveRecord/update", params, {});
 }

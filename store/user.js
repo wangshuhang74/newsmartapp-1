@@ -41,6 +41,7 @@ export const useUserStore = defineStore(
 
     const loginInfo = async (postForm) => {
       const { code, data, msg } = await login(postForm)
+      console.log("🚀 ~ loginInfo ~ data:", data)
       if (code == 0) {
         userInfo.value = data
         userInfo.value.phone = postForm.phone

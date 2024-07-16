@@ -17,7 +17,7 @@ export const useWorkStore = defineStore(
         }
     },
     {
-        persist: true,
+        persist: true, // 本地持久化
     },
 )
 

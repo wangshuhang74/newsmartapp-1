@@ -59,7 +59,7 @@ onMounted(() => {
   } else {
     Toast.warning('未获取到工单Id')
   }
-  personnel.value = userInfo.value.nickName + "-" + userInfo.value.phone
+  personnel.value = userInfo.value.userName + "-" + userInfo.value.phone
 })
 
 

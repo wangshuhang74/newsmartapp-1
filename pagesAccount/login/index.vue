@@ -54,7 +54,6 @@ const loginBtn = async () => {
     Toast.close()
   }, 10000)
   const { code, data, msg } = await userStore.loginInfo(postForm.value)
-  console.log("🚀 ~ loginBtn ~ code:", code)
   if (code != 0) return Toast.warning(msg)
   Toast.close()
 }

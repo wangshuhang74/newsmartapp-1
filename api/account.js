@@ -44,8 +44,8 @@ export const getUserArchive = () => {
     return http.post("/account/getUserArchive",);
 };
 
-// /account/removeUserTag?tagId=1
-export const removeUserTag = (tagId) => {
+// /account/removeUserTag?tagId=1 // 删除用户标签
+export const removeUserTag = (tagId) => { 
     return http.post(`/account/removeUserTag${tagId ? '?tagId=' + tagId : ''}`,);
 };
 
