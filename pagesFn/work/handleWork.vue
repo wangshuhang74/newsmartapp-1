@@ -5,7 +5,7 @@ import QreviewImage from '../../pages/components/q-previewImage.vue'
 import { baseURL } from '@/utils/http'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { useWorkStore, useUserStore } from '@/store'
-import { appDisposeOrder, complete, appDisposeOrderInfo } from '@/api'
+import { appSavePreOrder, appDisposeOrder, complete, appDisposeOrderInfo } from '@/api'
 import { pathToBase64, base64ToPath } from "@/utils/tools.js"; // 图片转base64
 import dayjs from "dayjs";
 
@@ -37,6 +37,9 @@ const variableXZ = { //新装
   beforeApplyPic: [], // 维护前照片 ,
   deviceBrand: null,//设备品牌 ,
   deviceSerial: null,//设备序列号 ,
+  tpmId: null,//设备安全芯片ID 
+  tpmTime: null,//设备安全芯片时间
+  verifyCode: null,//设备安全芯片验证码
   deviceModel: null, // 设备型号
   simNum: null,//sim卡号
   channelType: [],//通道类型 , 
@@ -45,13 +48,13 @@ const variableXZ = { //新装
   remark: null, //备注
   // ---------------------------- 附件 ----------------------------
   drivingLicense: [],//行驶证 ,
+  recPic: [],// 驾驶证照片
   driverLicense: [], // 驾驶证 ,
   managerFile: [], // 管理员信息附件 ,
   electricalFile: [],// 电气附件 ,
   busFile: [],//总线附件
   hostPic: [],//主机照片 ,
   attachment: [], //附件检查 ,
-  tpmId: null,//设备安全芯片ID 
 
 }
 const variableWH = {//维护
@@ -220,6 +223,7 @@ const selectClose = (val) => {
       case 'deviceType': //车辆类型改变
         if (val.value != '汽车行驶记录仪') {
           item.drivingLicense = []
+          item.recPic = []
           item.driverLicense = []
           item.managerFile = []
           item.electricalFile = []
@@ -301,9 +305,9 @@ const appDisposeOrderInfoFn = async () => {
   } else {
     uni.hideToast()
     console.log("data", data);
-    postForm.value.addressInfo.storePic = data.addressInfo.storePic ? data.addressInfo.storePic : []
-    postForm.value.applyInfo = data.applyInfo
-    postForm.value.signInfo = data.signInfo
+    postForm.value.addressInfo.storePic = data.addressInfo.storePic ? data.addressInfo.storePic : postForm.value.addressInfo.storePic
+    postForm.value.applyInfo = data.applyInfo ? data.applyInfo : postForm.value.applyInfo
+    postForm.value.signInfo = data.signInfo ? data.signInfo : postForm.value.signInfo
     getLocation()
   }
 }
@@ -336,7 +340,10 @@ const submitBtn = async () => { // 提交工单
 }
 
 const appDisposeOrderFn = async (value) => {
-  const { code, data, msg } = await appDisposeOrder(postForm.value)
+  const { code, data, msg } = await appSavePreOrder({
+    orderId: workHandle.value.orderId,
+    applyInfo: JSON.parse(JSON.stringify(postForm.value.applyInfo))
+  })
   if (code != 0) {
     verifyErr(msg)
   }
@@ -403,15 +410,15 @@ const getLocation = (type) => {
   });
 };
 
-const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => { // 计算两点之间的距离
-  console.log(lat1, lon1, lat2, lon2);
+const getDistanceFromLatLonInM = (lat1, lng1, lat2, lng2) => { // 计算两点之间的距离
+  console.log(lat1, lng1, lat2, lng2);
   if (!lat2 || !lat2) return verifyErr("未获取到工单位置信息!")
   Number.prototype.deg2rad = function (deg) {
     return deg * (Math.PI / 180);
   };
   var R = 6371; // // 是地球半径，单位是千米，这里的6371是千米
   var dLat = (0).deg2rad(lat2 - lat1); // deg2rad below
-  var dLon = (0).deg2rad(lon2 - lon1);
+  var dLon = (0).deg2rad(lng2 - lng1);
   var a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((0).deg2rad(lat1)) *
@@ -450,7 +457,7 @@ const getAddress = (lat, lng) => {
 const upBtn = (type, idx) => {
   upType.value = type // 当前上传类型
   upIdx.value = idx
-  const typeList = ['drivingLicense', 'driverLicense',
+  const typeList = ['drivingLicense', 'driverLicense', "recPic",
     'managerFile', 'electricalFile', 'busFile', 'hostPic', 'attachment']
 
   if (typeList.includes(type)) { // 如果是附件上传 可以选择性上传
@@ -680,13 +687,15 @@ const uploadFileApi = async (path) => { //上传图片接口
       fileName: "工单图片",
     },
     success: (uploadFileRes) => {
-      const typeList = ['beforeApplyPic', 'afterApplyPic', 'drivingLicense', 'driverLicense',
+      const typeList = ['beforeApplyPic', 'afterApplyPic', 'drivingLicense', 'recPic', 'driverLicense',
         'managerFile', 'electricalFile', 'busFile', 'hostPic', 'attachment']
       const { data } = JSON.parse(uploadFileRes.data);
-      console.log("🚀 ~ uploadFileApi ~ data:", data)
       if (upType.value == "storePic") { //  门店图片
         postForm.value.addressInfo.storePic.push(data.url)
       } else if (typeList.includes(upType.value)) { // 施工信息图片
+        if (!Array.isArray(postForm.value.applyInfo[upIdx.value][upType.value])) {
+          postForm.value.applyInfo[upIdx.value][upType.value] = []
+        }
         postForm.value.applyInfo[upIdx.value][upType.value].push(data.url)
       }
     },
@@ -1185,11 +1194,11 @@ const verifyForm = () => {
         return true
       }
 
-      if (!item.carPlate) {
-        verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码/VIN码!`)
-        workCurrent.value = idx
-        return true
-      }
+      //if (!item.carPlate) {
+      //  verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码/VIN码!`)
+      //  workCurrent.value = idx
+      //  return true
+      //}
 
       if (!item.carType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择车辆类型!`)
@@ -1582,7 +1591,7 @@ const bluetoothBtn = (item) => {
                       mode="scaleToFill" />
                   </view>
                 </view>
-                <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
+                <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
 
                 <view class="inp_item">
                   <view class="label">车辆类型:</view>
@@ -1629,6 +1638,16 @@ const bluetoothBtn = (item) => {
                 </view>
 
                 <wd-input type="text" v-else v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+                <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.tpmId"
+                  label="设备安全芯片ID:" placeholder="请输入" required />
+
+                <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.tpmTime"
+                  label="安全芯片时间:" placeholder="请输入" required />
+
+                <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.verifyCode"
+                  label="实时验证码:" placeholder="请输入" required />
+
+
 
                 <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
                 <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
@@ -1651,6 +1670,7 @@ const bluetoothBtn = (item) => {
                     <textarea v-model="item.xzContent" placeholder="请输入新装内容"></textarea>
                   </view>
                 </view>
+
                 <view class="upImg_box" v-if="item.deviceType && item.deviceType != '汽车行驶记录仪'">
                   <view class="label">施工后照片:</view>
                   <view class="img_box"> <!-- afterApplyPic -->
@@ -1664,7 +1684,24 @@ const bluetoothBtn = (item) => {
                   </view>
                 </view>
 
+
                 <view class="up_list" v-if="item.deviceType == '汽车行驶记录仪'">
+
+                  <view class="upImg_box">
+                    <view class="label requiredLabel">行驶证图片:<text class="up_tip">含设备序列号、安全芯片ID、安全芯片时间、实时验证码。</text>
+                    </view>
+                    <view class="img_box">
+                      <view class="img_item" v-for="(img, index) in item.recPic"
+                        @tap="lookover(item.recPic, index, idx, 'recPic')">
+                        <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
+                      </view>
+                      <view class="img_item up_btn" @tap="upBtn('recPic', idx)">
+                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                          mode="scaleToFill" />
+                      </view>
+                    </view>
+                  </view>
+
                   <view class="upImg_box">
                     <view class="label requiredLabel">行驶证附件:</view>
                     <view class="img_box">
@@ -1787,7 +1824,7 @@ const bluetoothBtn = (item) => {
                   </view>
                 </view>
 
-                <view class="RFID_box" @tap="bluetoothBtn(item)">
+                <view class="RFID_box" @tap="bluetoothBtn(item)" v-if="item.deviceType == '汽车行驶记录仪'">
                   <view class="icon"></view>
                   <view class="tit">电子标识连接</view>
                   <image class="tag_img" src="http://116.62.107.90:8673/images/icons/item_arrow_f.png"

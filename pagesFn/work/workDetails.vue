@@ -269,7 +269,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
             <view class="info_item">
               <view class="label">设备品牌:</view>
               <view class="value">
-                <text>{{ item?.terminalBrand ? item?.terminalBrand : '-' }}</text>
+                <text>{{ item?.deviceBrand ? item?.deviceBrand : '-' }}</text>
               </view>
             </view>
 
@@ -277,21 +277,21 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
             <view class="info_item">
               <view class="label">设备序列号:</view>
               <view class="value">
-                <text>{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</text>
+                <text>{{ item?.deviceSerial ? item?.deviceSerial : '-' }}</text>
               </view>
             </view>
 
             <view class="info_item">
               <view class="label">设备型号:</view>
               <view class="value">
-                <text>{{ item?.terminalModel ? item?.terminalModel : '-' }}</text>
+                <text>{{ item?.deviceModel ? item?.deviceModel : '-' }}</text>
               </view>
             </view>
 
             <view class="info_item">
               <view class="label">Sim卡号:</view>
               <view class="value">
-                <text>{{ item?.simNo ? item?.simNo : '-' }}</text>
+                <text>{{ item?.simNum ? item?.simNum : '-' }}</text>
               </view>
             </view>
 
@@ -330,7 +330,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
             <view class="info_item">
               <view class="label">设备品牌:</view>
               <view class="value">
-                <text>{{ item?.terminalBrand ? item?.terminalBrand : '-' }}</text>
+                <text>{{ item?.deviceBrand ? item?.deviceBrand : '-' }}</text>
               </view>
             </view>
 
@@ -338,14 +338,14 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
             <view class="info_item">
               <view class="label">设备序列号:</view>
               <view class="value">
-                <text>{{ item?.terminalSerial ? item?.terminalSerial : '-' }}</text>
+                <text>{{ item?.deviceSerial ? item?.deviceSerial : '-' }}</text>
               </view>
             </view>
 
             <view class="info_item">
               <view class="label">设备型号:</view>
               <view class="value">
-                <text>{{ item?.terminalModel ? item?.terminalModel : '-' }}</text>
+                <text>{{ item?.deviceModel ? item?.deviceModel : '-' }}</text>
               </view>
             </view>
 
@@ -353,7 +353,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
             <view class="info_item">
               <view class="label">Sim卡号:</view>
               <view class="value">
-                <text>{{ item?.simNo ? item?.simNo : '-' }}</text>
+                <text>{{ item?.simNum ? item?.simNum : '-' }}</text>
               </view>
             </view>
 
@@ -397,7 +397,10 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
               <view class="time">{{ item?.createTime ? item?.createTime : '-' }}</view>
             </view>
             <view class="flow_center">
-              <view class="center">{{ item?.recordInfo ? item?.recordInfo : '-' }}</view>
+              <view class="center">
+                <!-- <span class="work_style">客服主管-张三</span> -->
+                <span>{{ item?.recordInfo ? item?.recordInfo : '-' }}</span>
+              </view>
             </view>
 
           </view>
@@ -538,7 +541,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
           width: 100%;
           min-height: 120rpx;
 
-          &:last-child {
+          &:first-child {
             .flow_top {
               .tit {
                 color: #1082FF !important;
@@ -549,10 +552,13 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
               }
             }
 
+          }
+          &:last-child {
             .flow_center {
               border-left: none;
             }
           }
+
 
           .flow_top {
             width: 100%;
@@ -604,7 +610,21 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
               font-size: 24rpx;
               color: #272727;
 
+              .work_style {
+                display: inline-block;
+                padding: 0rpx 16rpx;
+                background: #F5FAFF;
+                border-radius: 5rpx 5rpx 5rpx 5rpx;
+                border: 1px solid #1082FF;
+                color: #1082FF;
+                font-size: 26rpx;
+                color: #1082FF;
+                margin: 2rpx 6rpx;
+              }
+
             }
+
+
           }
 
         }

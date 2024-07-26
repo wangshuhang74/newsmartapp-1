@@ -44,10 +44,6 @@ export const getClientOption = () => {
     return http.post("/client/getClientOption",);
 }
 
-// /order/appDisposeOrder //处理工单
-export const appDisposeOrder = (params) => {
-    return http.post("/order/appDisposeOrder", params, {});
-}
 
 // /account/getWorkerList // 获取运维工程师
 export const getWorkerList = () => {
@@ -57,6 +53,15 @@ export const getWorkerList = () => {
 // /order/getAppOrderInfo?orderId=2081 // 获取工单详情
 export const getAppOrderInfo = (orderId) => {
     return http.post(`/order/getAppOrderInfo${orderId ? "?orderId=" + orderId : ''}`,);
+}
+// /order/appDisposeOrder //处理工单
+export const appDisposeOrder = (params) => {
+    return http.post("/order/appDisposeOrder", params, {});
+}
+
+// /order/appSavePreOrder 暂存
+export const appSavePreOrder = (params) => {
+    return http.post("/order/appSavePreOrder", params, {});
 }
 
 // /order/appDisposeOrderInfo // 处理详情-回显
