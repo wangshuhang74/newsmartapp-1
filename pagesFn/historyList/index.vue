@@ -29,7 +29,7 @@ const showLoadmore = ref(false) // 是否显示加载更多
 
 const orderTypeList = ref([ // 工单类型
   { label: '全部', value: null },
-  { label: '维护车辆', value: 2 },
+  { label: '车辆维护', value: 2 },
   { label: '车辆新装', value: 3 },
   { label: '行车记录仪新装', value: 4 }
 ])

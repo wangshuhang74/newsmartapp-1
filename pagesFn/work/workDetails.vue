@@ -173,11 +173,16 @@ const copyBtn = (val) => {
 }
 
 
-const checkRules = (userInfo, item) => {// 处理按钮权限
+const checkRules = (userinfo, item) => {// 处理按钮权限
+  console.log("🚀 ~ checkRules ~ userinfo:", userinfo)
+  
   return (
-    ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
-    ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
+    item.isAccept == 1 && item.assigneeId == userinfo?.userId && [5, 6].some(rule => userinfo?.rules.includes(rule)) && !item.isAssignTask && !item.isAuditTask
+    // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
   );
+  // return (item.isAccept == 1 && ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
+  //   ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
+  // );
 }
 
 
@@ -409,17 +414,14 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
 
       </scroll-view>
       <!-- 如果 records.length 是空的 说明这个工单不是待办的工单 只能显示在指派和审核中 -->
-      <view class="foot_box" v-if="records.length">
+      <view class="foot_box">
         <button class="footBtn" @tap="returnBtn(workInfo)"
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">返还</button>
         <button class="footBtn" @tap="takeOrders(workInfo)"
-          v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">接单</button>
-        <button class="footBtn cl" v-if="checkRules(userInfo, workInfo)" @tap="handleWork(workInfo)">处理</button>
-      </view>
-      <view class="foot_box" v-if="workInfo.isAssignTask || workInfo.isAuditTask">
-        <button class="footBtn cl" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>
-        <button class="footBtn cl" v-if="workInfo.isAuditTask" @tap="auditBtn(workInfo)">审核
-        </button>
+          v-if="workInfo.isAccept == 0 && [5, 6].some(rule => userinfo.rules.includes(rule))">接单</button>
+        <button class="footBtn" v-if="checkRules(userInfo, workInfo)" @tap="handleWork(workInfo)">处理</button>
+        <button class="footBtn" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>
+        <button class="footBtn" v-if="workInfo.isAuditTask" @tap="auditBtn(workInfo)">审核</button>
       </view>
 
     </view>
@@ -553,6 +555,7 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
             }
 
           }
+
           &:last-child {
             .flow_center {
               border-left: none;
@@ -621,16 +624,10 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
                 color: #1082FF;
                 margin: 2rpx 6rpx;
               }
-
             }
-
-
           }
-
         }
       }
-
-
     }
 
     .foot_box {
@@ -639,23 +636,18 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
       margin-bottom: 20rpx;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: space-around;
 
       .footBtn {
-        width: 45%;
+        flex: 1;
         height: 88rpx;
-        margin: 20rpx 0 40rpx 0;
+        margin: 20rpx 20rpx 40rpx 20rpx;
         background: linear-gradient(90deg, #1082FF 0%, #5FA9FF 100%);
         border-radius: 14rpx 14rpx 14rpx 14rpx;
         font-size: 36rpx;
         color: #FFFFFF;
         text-align: center;
         line-height: 88rpx;
-      }
-
-      .cl {
-        width: 100%;
-        margin: 20rpx auto 40rpx auto;
       }
     }
   }

@@ -39,7 +39,7 @@ const fnList = ref([
   },
   {
     id: '2',
-    name: '维护车辆',
+    name: '车辆维护',
     icon: oldCar,
     msgNum: 0,
     path: '/pagesFn/oldMaintain/index',

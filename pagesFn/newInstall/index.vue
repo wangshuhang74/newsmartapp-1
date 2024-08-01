@@ -142,10 +142,10 @@ const handleWork = (item) => {
   })
 }
 
-const checkRules = (userInfo, item) => {// 处理按钮权限
+const checkRules = (userinfo, item) => {// 处理按钮权限
   return (
-    ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
-    ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
+    item.isAccept == 1 && item.assigneeId == userinfo.userId && [5, 6].some(rule => userinfo.rules.includes(rule))
+    // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
   );
 }
 
@@ -233,7 +233,8 @@ const checkRules = (userInfo, item) => {// 处理按钮权限
         <view class="btn_box">
           <view class="btn" @tap.stop="returnBtn(item)" v-if="item.isAccept == 0 && userInfo.rules.includes(6)">返还
           </view>
-          <view class="btn" @tap.stop="takeOrders(item)" v-if="item.isAccept == 0 && userInfo.rules.includes(6)">接单
+          <view class="btn" v-if="item.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
+            @tap.stop="takeOrders(item)">接单
           </view>
           <view class="btn" v-if="checkRules(userInfo, item)" @tap.stop="handleWork(item)">处理</view>
         </view>

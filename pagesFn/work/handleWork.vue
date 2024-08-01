@@ -1372,7 +1372,7 @@ const bluetoothBtn = (item) => {
             <view class="currentIndex" v-for="(item, idx) in postForm.applyInfo" :key="idx"
               :class="{ active: workCurrent == idx }" @tap="workCurrent = idx">
               {{ '施工信息-' + (idx + 1) }}
-              <view class="bor"></view>
+              <!-- <view class="bor"></view> -->
             </view>
           </view>
           <swiper :disable-touch="postForm.applyInfo.length <= 1" class="my_swiper" :current="workCurrent"
@@ -1646,8 +1646,6 @@ const bluetoothBtn = (item) => {
 
                 <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.verifyCode"
                   label="实时验证码:" placeholder="请输入" required />
-
-
 
                 <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
                 <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
