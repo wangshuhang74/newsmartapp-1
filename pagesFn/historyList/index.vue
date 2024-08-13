@@ -52,6 +52,7 @@ const getListFn = async () => {
   if (code != 0) return Toast.error(msg)
   total.value = data.total
   if (isTriggered.value) isTriggered.value = false
+  showLoadmore.value = false
   workList.value = [...workList.value, ...data.records]
 }
 
@@ -120,7 +121,7 @@ const scrollBottom = () => { // 上拉加载
     listState.value = 'finished' // 加载完成
     setTimeout(() => {
       showLoadmore.value = false
-    }, 1500);
+    }, 1200);
   }
 }
 
@@ -170,6 +171,7 @@ function handleChange4({ value }) {
 }
 
 const clickItem = (item) => {
+  item.isHistory = true
   workDetail.value = item
   uni.navigateTo({
     url: "/pagesFn/work/workDetails",

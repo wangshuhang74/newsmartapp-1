@@ -42,6 +42,7 @@ const getListFn = async () => {
   if (code != 0) return Toast.error(msg)
   total.value = data.total
   if (isTriggered.value) isTriggered.value = false
+  showLoadmore.value = false
   workList.value = [...workList.value, ...data.records]
 }
 
@@ -71,7 +72,7 @@ const scrollBottom = () => { // 上拉加载
     listState.value = 'finished' // 加载完成
     setTimeout(() => {
       showLoadmore.value = false
-    }, 1500);
+    }, 1200);
   }
 }
 
@@ -139,13 +140,6 @@ const handleWork = (item) => {
   uni.navigateTo({
     url: "/pagesFn/work/handleWork",
   })
-}
-
-const checkRules = (userinfo, item) => { // 处理按钮权限
-  return (
-    item.isAccept == 1 && item.assigneeId == userinfo.userId && [5, 6].some(rule => userinfo.rules.includes(rule))
-    // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
-  );
 }
 
 </script>
@@ -235,7 +229,8 @@ const checkRules = (userinfo, item) => { // 处理按钮权限
           <view class="btn" v-if="item.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
             @tap.stop="takeOrders(item)">接单
           </view>
-          <view class="btn" v-if="checkRules(userInfo, item)" @tap.stop="handleWork(item)">处理</view>
+          <view class="btn" v-if="item.isAccept == 1 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
+            @tap.stop="handleWork(item)">处理</view>
         </view>
       </view>
       <wd-status-tip v-if="workList.length == 0" image="content" tip="暂无工单" />

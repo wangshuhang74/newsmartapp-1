@@ -51,13 +51,13 @@ const fnList = [
     icon: about_icon,
     type: 'navigateTo'
   },
-  {
-    id: 7,
-    title: '切换语言',
-    path: '/pagesMy/i18n/index',
-    icon: qh_icon,
-    type: 'navigateTo'
-  },
+  //{
+  //  id: 7,
+  //  title: '切换语言',
+  //  path: '/pagesMy/i18n/index',
+  //  icon: qh_icon,
+  //  type: 'navigateTo'
+  //},
   {
     id: 5,
     title: '修改密码',

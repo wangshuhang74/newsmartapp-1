@@ -37,6 +37,7 @@ onShow(() => {
   if (workDetail.value) {
     workDetail.value.isAssignTask = workDetail.value.isAssignTask ? true : false // 是否是指派页面进入的详情页
     workDetail.value.isAuditTask = workDetail.value.isAuditTask ? true : false // 是否是审核页面进入的详情页
+    workDetail.value.isHistory = workDetail.value.isHistory ? true : false // 是否是历史记录页面进入的详情页
     workInfo.value = { ...workDetail.value }
     getWork.value.orderId = workDetail.value.orderId
     getWork.value.type = workDetail.value.orderType == 2 ? 3 : workDetail.value.orderType == 3 ? 4 : null // orderType == 4 ? 5 : null //新车记录仪
@@ -73,6 +74,7 @@ const getOrderInfo = async () => {
   } else {
     Toast.close()
     workInfoApi.value = data
+    console.log("🚀 ~ getOrderInfo ~ data:", data)
   }
 
 }
@@ -174,12 +176,9 @@ const copyBtn = (val) => {
 
 
 const checkRules = (userinfo, item) => {// 处理按钮权限
-  console.log("🚀 ~ checkRules ~ userinfo:", userinfo)
-  
-  return (
-    item.isAccept == 1 && item.assigneeId == userinfo?.userId && [5, 6].some(rule => userinfo?.rules.includes(rule)) && !item.isAssignTask && !item.isAuditTask
-    // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
-  );
+  return item.isAccept == 1 && !item.isAssignTask && !item.isAuditTask && (userinfo.rules.includes(5) || userinfo.rules.includes(6))
+
+  // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
   // return (item.isAccept == 1 && ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
   //   ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
   // );
@@ -233,7 +232,8 @@ const checkRules = (userinfo, item) => {// 处理按钮权限
           <view class="info_item">
             <view class="label">所属区域:</view>
             <view class="value">
-              <text>{{ workInfoApi?.area ? workInfoApi?.area : '-' }}</text>
+              <text>{{ workInfoApi?.areaStr ? workInfoApi?.areaStr : workInfoApi?.area ? workInfoApi?.area : '-'
+                }}</text>
             </view>
           </view>
 
@@ -407,18 +407,16 @@ const checkRules = (userinfo, item) => {// 处理按钮权限
                 <span>{{ item?.recordInfo ? item?.recordInfo : '-' }}</span>
               </view>
             </view>
-
           </view>
-
         </view>
 
       </scroll-view>
       <!-- 如果 records.length 是空的 说明这个工单不是待办的工单 只能显示在指派和审核中 -->
-      <view class="foot_box">
+      <view class="foot_box" v-if="!workInfo.isHistory">
         <button class="footBtn" @tap="returnBtn(workInfo)"
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">返还</button>
         <button class="footBtn" @tap="takeOrders(workInfo)"
-          v-if="workInfo.isAccept == 0 && [5, 6].some(rule => userinfo.rules.includes(rule))">接单</button>
+          v-if="workInfo.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6)) && !workInfo.isAssignTask && !workInfo.isAuditTask">接单</button>
         <button class="footBtn" v-if="checkRules(userInfo, workInfo)" @tap="handleWork(workInfo)">处理</button>
         <button class="footBtn" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>
         <button class="footBtn" v-if="workInfo.isAuditTask" @tap="auditBtn(workInfo)">审核</button>
@@ -641,7 +639,7 @@ const checkRules = (userinfo, item) => {// 处理按钮权限
       .footBtn {
         flex: 1;
         height: 88rpx;
-        margin: 20rpx 20rpx 40rpx 20rpx;
+        margin: 20rpx 10rpx 40rpx 10rpx;
         background: linear-gradient(90deg, #1082FF 0%, #5FA9FF 100%);
         border-radius: 14rpx 14rpx 14rpx 14rpx;
         font-size: 36rpx;

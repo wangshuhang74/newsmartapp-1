@@ -39,8 +39,7 @@ watch(() => {
   if (newUserInfo) {
     getListFn()
   };
-},
-)
+})
 
 onShow(() => {
   const isLogin = userStore.isLoginFn()

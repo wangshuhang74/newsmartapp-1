@@ -48,7 +48,7 @@ const variableXZ = { //新装
   remark: null, //备注
   // ---------------------------- 附件 ----------------------------
   drivingLicense: [],//行驶证 ,
-  recPic: [],// 驾驶证照片
+  recPic: [],// 新车记录仪图片
   driverLicense: [], // 驾驶证 ,
   managerFile: [], // 管理员信息附件 ,
   electricalFile: [],// 电气附件 ,
@@ -100,6 +100,8 @@ const postForm = ref({
   addressInfo: { // 地址核查
     isLocation: 1, // 是否到达现场 0 到达 1 未到达
     address: null, // 地址
+    area: null, // 行政区域编码
+    areaStr: null, // 行政区域名称(浙江省杭州市西湖区)
     storePic: [] // 门店图片
   },
   applyInfo: [], // 施工信息
@@ -372,6 +374,8 @@ const delWorkBtn = (idx) => { // 删除施工信息
 // 获取当前位置
 const getLocation = (type) => {
   postForm.value.addressInfo.address = null
+  postForm.value.addressInfo.areaStr = null
+  postForm.value.addressInfo.area = null
   //Toast.loading("定位中...");
   uni.getLocation({
     // type: "wgs84",
@@ -398,7 +402,10 @@ const getLocation = (type) => {
         if (type) verifyErr(`校验到您可能未到达现场,距离工单处理现场仍有${isLocation}米!`);
       }
       getAddress(res.latitude, res.longitude).then((res) => {
-        postForm.value.addressInfo.address = res.data.regeocode.formatted_address
+        const addressInfo = res.data.regeocode
+        postForm.value.addressInfo.address = addressInfo.formatted_address
+        postForm.value.addressInfo.area = addressInfo.addressComponent.adcode
+        postForm.value.addressInfo.areaStr = addressInfo.addressComponent.province + addressInfo.addressComponent.city + addressInfo.addressComponent.district
       })
     },
     fail: (err) => {
@@ -1166,6 +1173,7 @@ const verifyForm = () => {
           workCurrent.value = idx
           return true
         }
+
         if (!item.deviceModel) {
           verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
           workCurrent.value = idx
@@ -1216,6 +1224,7 @@ const verifyForm = () => {
         workCurrent.value = idx
         return true
       }
+
       if (!item.deviceModel) {
         verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
         workCurrent.value = idx
@@ -1228,6 +1237,32 @@ const verifyForm = () => {
       }
 
       if (item.deviceType == '汽车行驶记录仪') {
+        if (!item.tpmId) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择设备安全芯片ID!`)
+          workCurrent.value = idx
+          return true
+        }
+        if (!item.tpmTime) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择设备安全芯片时间!`)
+          workCurrent.value = idx
+          return true
+        }
+        if (!item.verifyCode) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择实时验证码!`)
+          workCurrent.value = idx
+          return true
+        }
+        if (!item.recPic || item.recPic.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传新车记录仪图片!`)
+          workCurrent.value = idx
+          return true
+        }
+
+        if (!item.recPic || item.recPic.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传行驶证图片!`)
+          workCurrent.value = idx
+          return true
+        }
         if (!item.drivingLicense || item.drivingLicense.length == 0) {
           verifyErr(`施工信息 ${idx + 1} - 请上传行驶证附件!`)
           workCurrent.value = idx
@@ -1263,6 +1298,13 @@ const verifyForm = () => {
           workCurrent.value = idx
           return true
         }
+
+        if (!item.afterApplyPic || item.afterApplyPic.length == 0) {
+          verifyErr(`施工信息 ${idx + 1} - 请上传施工后照片!`)
+          workCurrent.value = idx
+          return true
+        }
+
       }
 
     })
@@ -1686,7 +1728,7 @@ const bluetoothBtn = (item) => {
                 <view class="up_list" v-if="item.deviceType == '汽车行驶记录仪'">
 
                   <view class="upImg_box">
-                    <view class="label requiredLabel">行驶证图片:<text class="up_tip">含设备序列号、安全芯片ID、安全芯片时间、实时验证码。</text>
+                    <view class="label requiredLabel">新车记录仪图片:<text class="up_tip">含设备序列号、安全芯片ID、安全芯片时间、实时验证码。</text>
                     </view>
                     <view class="img_box">
                       <view class="img_item" v-for="(img, index) in item.recPic"
@@ -2356,10 +2398,10 @@ const bluetoothBtn = (item) => {
 
       .RFID_box {
         width: 100%;
-        height: 68rpx;
+        height: 60rpx;
         margin-top: 10rpx;
         background: linear-gradient(87deg, #4557D1 0%, #72D2EB 93%, #75DBED 100%);
-        border-radius: 14rpx 14rpx 14rpx 14rpx;
+        border-radius: 12rpx;
 
         box-sizing: border-box;
         padding: 0 20rpx;
@@ -2375,7 +2417,7 @@ const bluetoothBtn = (item) => {
         }
 
         .tit {
-          font-size: 30rpx;
+          font-size: 28rpx;
           color: #ffffff;
           line-height: 34rpx;
         }
