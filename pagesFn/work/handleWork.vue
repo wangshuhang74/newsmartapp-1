@@ -289,7 +289,7 @@ onMounted(() => {
 //页面销毁时
 onUnmounted(() => {
   uni.$off('sign')
-  appDisposeOrderFn(postForm.value) // 页面销毁时保存工单
+  if (isSubmitted.value == false) appDisposeOrderFn(postForm.value) // 页面销毁时保存工单
 })
 
 const appDisposeOrderInfoFn = async () => {
@@ -319,6 +319,9 @@ const submitBtn = async () => { // 提交工单
   const verify = verifyForm()
   if (!verify) return
   Toast.loading("提交中...");
+  const DisposeFlag = await appDisposeOrderFn()
+  console.log("🚀 ~ submitBtn ~ DisposeFlag:", DisposeFlag)
+  if (!DisposeFlag) return
   const { code, data, msg } = await appDisposeOrder(postForm.value)
   if (code != 0) {
     verifyErr(msg)
@@ -331,6 +334,7 @@ const submitBtn = async () => { // 提交工单
     } else {
       Toast.success("提交成功")
       Toast.close()
+
       setTimeout(() => {
         console.log("🚀 ~ appDisposeOrderInfoFn ~ data:", data)
         uni.navigateBack({
@@ -340,15 +344,21 @@ const submitBtn = async () => { // 提交工单
     }
   }
 }
-
+const isSubmitted = ref(false) // 是否是提交过
 const appDisposeOrderFn = async (value) => {
-  const { code, data, msg } = await appSavePreOrder({
-    orderId: workHandle.value.orderId,
-    applyInfo: JSON.parse(JSON.stringify(postForm.value.applyInfo))
-  })
-  if (code != 0) {
-    verifyErr(msg)
-  }
+  isSubmitted.value = true // 如果为 isSubmitted  true 页面销毁时 不会再调 appDisposeOrderFn 接口
+  return new Promise(async (resolve, reject) => {
+    const { code, data, msg } = await appSavePreOrder({
+      orderId: workHandle.value.orderId,
+      applyInfo: JSON.parse(JSON.stringify(postForm.value.applyInfo))
+    })
+    if (code != 0) {
+      verifyErr(msg)
+      reject(false);
+    } else {
+      resolve(true);
+    }
+  });
 }
 
 const addWorkBtn = () => { // 添加施工信息

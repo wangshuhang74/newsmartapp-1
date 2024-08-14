@@ -176,7 +176,7 @@ const copyBtn = (val) => {
 
 
 const checkRules = (userinfo, item) => {// 处理按钮权限
-  return item.isAccept == 1 && !item.isAssignTask && !item.isAuditTask && (userinfo.rules.includes(5) || userinfo.rules.includes(6))
+  return item.isAccept == 1 && item.isDealOrder == 0 && !item.isAssignTask && !item.isAuditTask && (userinfo.rules.includes(5) || userinfo.rules.includes(6))
 
   // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
   // return (item.isAccept == 1 && ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||

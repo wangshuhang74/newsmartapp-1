@@ -16,9 +16,7 @@ const leftBtn = () => {
 }
 // 获取导航栏信息
 const { globalData, custom } = reactive(getdeviceInfo());
-onMounted(() => {
-})
-
+onMounted(() => { })
 
 </script>
 <template>

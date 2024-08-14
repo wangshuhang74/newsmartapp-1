@@ -229,7 +229,8 @@ const handleWork = (item) => {
           <view class="btn" v-if="item.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
             @tap.stop="takeOrders(item)">接单
           </view>
-          <view class="btn" v-if="item.isAccept == 1 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
+          <view class="btn"
+            v-if="item.isAccept == 1 && item.isDealOrder == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
             @tap.stop="handleWork(item)">处理</view>
         </view>
       </view>

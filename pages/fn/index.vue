@@ -20,12 +20,14 @@ onShow(() => {
 })
 const getAppTodoNumFn = async () => {
   const { code, data, msg } = await getAppTodoNum()
-  // xzNum 新装  // whNum 维护  // zpNum 指派  // shNum 审核  // xcNum 行车记录仪
+  // xzNum 新装  // whNum 维护  // zpNum 指派  // shNum 审核  // xcNum 行车记录仪 // appZpNum app指派数量
   if (code != 0) return
   fnList.value[0].msgNum = data.xzNum ? data.xzNum : 0
   fnList.value[1].msgNum = data.whNum ? data.whNum : 0
-  fnList.value[2].msgNum = data.zpNum ? data.zpNum : 0
+  // fnList.value[2].msgNum = data.zpNum ? data.zpNum : 0
+  fnList.value[2].msgNum = data.appZpNum ? data.appZpNum : 0
   fnList.value[3].msgNum = data.shNum ? data.shNum : 0
+  // appZpNum
 }
 
 const fnList = ref([

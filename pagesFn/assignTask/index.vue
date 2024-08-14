@@ -14,7 +14,7 @@ const getForm = ref({
   search: null,
   pageNum: 1,
   pageSize: 10,
-  type: 1
+  type: 8 // 类型 1pc待指派 2app、pc待审核 3app车辆新装 4app车辆维护 5app行车记录仪新装 6pc待运维 7待评价 8app待指派
 })
 
 const postForm = ref({
@@ -43,11 +43,11 @@ onMounted(() => {
 
 const getListFn = async () => {
   const { code, data, msg } = await getList(getForm.value)
-  if (code != 0) Toast.error(msg)
-  total.value = data.total
+  if (code != 0) return Toast.error(msg)
+  total.value = data?.total ? data?.total : 0
   if (isTriggered.value) isTriggered.value = false
   showLoadmore.value = false
-  workList.value = [...workList.value, ...data.records]
+  workList.value = [...workList.value, ...data?.records]//.filter(item => item.isApproval == 0)
 }
 
 const onRefresherrefresh = () => { // 下拉刷新
@@ -109,6 +109,7 @@ const allHandleChange = (val) => {
 const oneKeyHandle = () => {
   console.log("一键指派");
   assignInfo.value = workList.value.filter(item => postForm.value.checkWorks.includes(item.orderId))
+  console.log("🚀 ~ oneKeyHandle ~ assignInfo.value:", assignInfo.value)
   assignShow.value = true
 }
 

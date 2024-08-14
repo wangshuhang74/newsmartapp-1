@@ -70,6 +70,7 @@ const getAppOrderManagerFn = async (id) => {
   superior.value.personnel = data.userName + "-" + data.phone
   superior.value.userName = data.userName
   superior.value.phone = data.phone
+  postForm.value.variables.approval = data.userId
 }
 
 const isOkBtn = async () => {
