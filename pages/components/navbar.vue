@@ -25,7 +25,7 @@ onMounted(() => { })
   <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 10 + 'px', height: `${safeAreaInsets.top + 50}px` }">
     <view class="left" @tap="leftBtn">
       <!-- <wd-icon name="thin-arrow-left" class="left_icon" size="20px"></wd-icon> -->
-      <image src="http://116.62.107.90:8673/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
+      <image src="../../static/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
     </view>
     <view class="title">{{ title }}</view>
     <view class="right"></view>
@@ -36,7 +36,7 @@ onMounted(() => { })
   <view class="navbar" :style="{ paddingTop: globalData.customTop + 'px', height: `${globalData.navHeight}px` }">
     <view class="left" @tap="leftBtn">
       <!-- <wd-icon name="thin-arrow-left" class="left_icon" size="20px"></wd-icon> -->
-      <image src="http://116.62.107.90:8673/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
+      <image src="../../static/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
     </view>
     <view class="title">{{ title }}</view>
     <view class="right"></view>

@@ -68,7 +68,7 @@ const getWorkUserFn = async () => {
       id: item.userId,
       username: item.userName ? item.userName : '个人',
       deptName: item.phone,
-      avatar: "http://116.62.107.90:8673/images/my/personal.png",
+      avatar: "../../static/images/my/personal.png",
     }
   })
   console.log("🚀 ~ getWorkUserFn ~ dataList:", dataList)
@@ -137,7 +137,7 @@ const handlePopupsClose = (val) => {
 
       <view class="top_tit">
         <text>指派</text>
-        <image class="img_close" @tap="handlePopupsClose" src="http://116.62.107.90:8673/images/logins/close46.png"
+        <image class="img_close" @tap="handlePopupsClose" src="../../static/images/logins/close46.png"
           mode="scaleToFill" />
       </view>
 
@@ -149,7 +149,7 @@ const handlePopupsClose = (val) => {
               assignData?.deptName }}</view>
             <view class="placehold" v-else>请选择</view>
 
-            <image class="placehold_img" src="http://116.62.107.90:8673/images/tips/arrow_default.png"
+            <image class="placehold_img" src="../../static/images/tips/arrow_default.png"
               mode="scaleToFill" />
           </view>
         </view>

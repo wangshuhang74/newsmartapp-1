@@ -1167,7 +1167,7 @@ const verifyForm = () => {
     <view class="details_center">
       <view class="top_segmented">
         <view class="operate_box" v-if="segmented == 1">
-          <image class="operate_img" @tap="addWorkBtn" src="http://116.62.107.90:8673/images/icons/addWork.png"
+          <image class="operate_img" @tap="addWorkBtn" src="../../static/images/icons/addWork.png"
             mode="scaleToFill" />
         </view>
         <wd-tabs v-model="segmented" @change="tabChange">
@@ -1197,7 +1197,7 @@ const verifyForm = () => {
           <view class="correct_text" v-if="postForm.addressInfo.isLocation == 1">
             <view class="label requiredLabel">正确地址：</view>
             <view class="textarea_box">
-              <image class="address_img" src="http://116.62.107.90:8673/images/icons/address.png" mode="scaleToFill" />
+              <image class="address_img" src="../../static/images/icons/address.png" mode="scaleToFill" />
               <textarea v-model="postForm.addressInfo.address" placeholder="请输入正确的地址"></textarea>
             </view>
           </view>
@@ -1210,7 +1210,7 @@ const verifyForm = () => {
                 <image class="img" :src="baseURL + img" :key="idx" mode="scaleToFill" />
               </view>
               <view class="img_item up_btn" @tap.stop="upBtn('storePic', 0)">
-                <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
               </view>
             </view>
             <view class="up_tip">请打开手机「隐私权限」</view>
@@ -1221,7 +1221,7 @@ const verifyForm = () => {
           <view class="forms" v-if="workHandle.orderType == 2">
             <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
               <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
-                src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+                src="../../static/images/icons/delWork1.png" mode="scaleToFill" />
               <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
               <wd-select-picker filterable type="radio" label="车辆类型" :columns="vehicleTypeList" v-model="item.carType"
                 align-right />
@@ -1233,7 +1233,7 @@ const verifyForm = () => {
                     <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                   </view>
                   <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
-                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                   </view>
                 </view>
               </view>
@@ -1347,7 +1347,7 @@ const verifyForm = () => {
                     <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                   </view>
                   <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
-                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                   </view>
                 </view>
               </view>
@@ -1363,7 +1363,7 @@ const verifyForm = () => {
           <view class="forms" v-if="workHandle.orderType == 3">
             <view class="form_center" v-for="(item, idx) in postForm.applyInfo" :key="idx" :class="{ ios: isIos }">
               <image class="operate_img" @tap="delWorkBtn" v-if="postForm.applyInfo.length > 1"
-                src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+                src="../../static/images/icons/delWork1.png" mode="scaleToFill" />
               <wd-select-picker filterable type="radio" label="设备类型" :columns="carTypeList" v-model="item.deviceType"
                 align-right @change="carTypeChange(item)" required />
               <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" required />
@@ -1378,7 +1378,7 @@ const verifyForm = () => {
                     <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                   </view>
                   <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
-                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                   </view>
                 </view>
               </view>
@@ -1405,7 +1405,7 @@ const verifyForm = () => {
                     <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                   </view>
                   <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
-                    <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                    <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                   </view>
                 </view>
               </view>
@@ -1419,7 +1419,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('drivingLicense', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1432,7 +1432,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('driverLicense', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1445,7 +1445,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('managerFile', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1458,7 +1458,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('electricalFile', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1471,7 +1471,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('busFile', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1484,7 +1484,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('hostPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1497,7 +1497,7 @@ const verifyForm = () => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('attachment', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>

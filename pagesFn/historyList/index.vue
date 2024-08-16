@@ -187,7 +187,7 @@ const clickItem = (item) => {
       <view class="title_box">
         <view class="left" @tap="leftBtn">
           <!-- <wd-icon name="thin-arrow-left" class="left_icon" size="20px"></wd-icon> -->
-          <image src="http://116.62.107.90:8673/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
+          <image src="../../static/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
         </view>
         <text class="title">历史记录</text>
         <view class="right"></view>
@@ -195,9 +195,9 @@ const clickItem = (item) => {
       </view>
       <view class="search_box">
         <view class="search">
-          <image class="search_img" src="http://116.62.107.90:8673/images/homeMap/search.png" mode="scaleToFill" />
+          <image class="search_img" src="../../static/images/homeMap/search.png" mode="scaleToFill" />
           <input type="text" v-model="getForm.search" placeholder="搜索" @input="searchInput">
-          <image class="qr_img" src="http://116.62.107.90:8673/images/fns/qr_img.png" @tap="scanBtn"
+          <image class="qr_img" src="../../static/images/fns/qr_img.png" @tap="scanBtn"
             mode="scaleToFill" />
         </view>
       </view>
@@ -226,7 +226,7 @@ const clickItem = (item) => {
       @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
       <view class="work_item" v-for="(item, idx) in workList" :key="idx">
         <view class="work_top">
-          <image src="http://116.62.107.90:8673/images/fns/map.png" class="work_icon" mode="scaleToFill" />
+          <image src="../../static/images/fns/map.png" class="work_icon" mode="scaleToFill" />
           <view class="work_title">
             <text class="tit">{{ item?.clientName ? item?.clientName : '-' }}-{{ item?.carPlate ? item?.carPlate :
               '-' }}</text>
@@ -234,7 +234,7 @@ const clickItem = (item) => {
             <!-- <text class="tags tag2">待新装</text> -->
             <!-- <text class="tags tag3">待运维</text> -->
           </view>
-          <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
+          <image src="../../static/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
         </view>
         <view class="work_center" @tap.stop="clickItem(item)">
           <view class="work_it">
@@ -246,7 +246,7 @@ const clickItem = (item) => {
             <view class="label">联系电话:</view>
             <view class="value isImg">
               <text>{{ item?.contactPhone ? item?.contactPhone : '-' }}</text>
-              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
+              <image class="position_img" src="../../static/images/homeMap/phone.png"
                 @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
             </view>
           </view>
@@ -264,7 +264,7 @@ const clickItem = (item) => {
             <view class="label">地址:</view>
             <view class="value isImg">
               <text>{{ item?.address ? item?.address : '-' }}</text>
-              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
+              <image class="position_img" src="../../static/images/homeMap/address.png"
                 @tap.stop="toNavigation(item)" mode="scaleToFill" />
             </view>
           </view>

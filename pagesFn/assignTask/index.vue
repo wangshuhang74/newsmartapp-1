@@ -138,7 +138,7 @@ const clickItem = (item) => {
               <text class="tags tag1" v-if="item.orderTypeDetail">{{ item.orderTypeDetail }}</text>
               <!-- <text class="tags tag2" v-if="item.orderStatus">{{ item.orderStatus }}</text> -->
             </wd-checkbox>
-            <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
+            <image src="../../static/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
           </view>
           <view class="work_center" @tap.stop="clickItem(item)">
             <view class="work_it">
@@ -150,7 +150,7 @@ const clickItem = (item) => {
               <view class="label">联系电话:</view>
               <view class="value isImg">
                 <text>{{ item?.contactPhone ? item?.contactPhone : '-' }}</text>
-                <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
+                <image class="position_img" src="../../static/images/homeMap/phone.png"
                   @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
               </view>
             </view>
@@ -168,7 +168,7 @@ const clickItem = (item) => {
               <view class="label">地址:</view>
               <view class="value isImg">
                 <text>{{ item?.address ? item?.address : '-' }}</text>
-                <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
+                <image class="position_img" src="../../static/images/homeMap/address.png"
                   @tap.stop="toNavigation(item)" mode="scaleToFill" />
               </view>
             </view>

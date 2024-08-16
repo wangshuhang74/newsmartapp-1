@@ -207,10 +207,10 @@ const clickItem = (item) => {
       <view class="title">首页</view>
       <view class="search_box">
         <view class="search">
-          <image class="search_img" src="http://116.62.107.90:8673/images/homeMap/search.png" mode="scaleToFill" />
+          <image class="search_img" src="../../static/images/homeMap/search.png" mode="scaleToFill" />
           <input type="text" placeholder="查线路，地点">
         </view>
-        <image class="announcementIcon" src="http://116.62.107.90:8673/images/homeMap/announcement.png"
+        <image class="announcementIcon" src="../../static/images/homeMap/announcement.png"
           mode="scaleToFill" />
       </view>
     </view>
@@ -219,11 +219,11 @@ const clickItem = (item) => {
         :latitude="userMap.latitude" :markers="markers" @markertap="onMarkerTap">
       </map>
       <cover-view class="right_box">
-        <cover-image class=right_location src="http://116.62.107.90:8673/images/homeMap/right_location.png"
+        <cover-image class=right_location src="../../static/images/homeMap/right_location.png"
           @tap="getLocation" />
         <cover-view class="scan_box">
           <!-- fns/qr_img.png -->
-          <cover-image class="scan" src="http://116.62.107.90:8673/images/homeMap/scan.png" @tap="scanBtn" />
+          <cover-image class="scan" src="../../static/images/homeMap/scan.png" @tap="scanBtn" />
         </cover-view>
       </cover-view>
 
@@ -257,7 +257,7 @@ const clickItem = (item) => {
           <cover-view class="item">
             <cover-view class="label">联系电话：</cover-view>
             <cover-view class="val">{{ wordcard?.contactPhone ? wordcard?.contactPhone : '-' }}</cover-view>
-            <cover-image class="image" src="http://116.62.107.90:8673/images/homeMap/phone.png"
+            <cover-image class="image" src="../../static/images/homeMap/phone.png"
               @tap="makePhoneCall(wordcard?.contactPhone)" />
           </cover-view>
 
@@ -271,7 +271,7 @@ const clickItem = (item) => {
           <cover-view class="item">
             <cover-view class="label">地址：</cover-view>
             <cover-view class="val">{{ wordcard?.address ? wordcard?.address : '-' }}</cover-view>
-            <cover-image class="image" src="http://116.62.107.90:8673/images/homeMap/address.png"
+            <cover-image class="image" src="../../static/images/homeMap/address.png"
               @tap="toNavigation(wordcard)" />
           </cover-view>
 

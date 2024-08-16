@@ -91,7 +91,7 @@ const handlePopupsClose = (val) => {
 
       <view class="top_tit">
         <text>审核</text>
-        <image class="img_close" @tap="handlePopupsClose" src="http://116.62.107.90:8673/images/logins/close46.png"
+        <image class="img_close" @tap="handlePopupsClose" src="../../static/images/logins/close46.png"
           mode="scaleToFill" />
       </view>
 

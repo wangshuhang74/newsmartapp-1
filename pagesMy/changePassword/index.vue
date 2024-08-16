@@ -83,35 +83,35 @@ const SendCodeFn = async () => {
     <view class="personal_flow">
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/mm_icon.png"></image>
         </view>
         <input v-model="postForm.oldPassword" type="text" class="input" placeholder="请输入原密码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/mm_icon.png"></image>
         </view>
         <input v-model="postForm.password" type="text" class="input" placeholder="请设置新密码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/mm_icon.png"></image>
         </view>
         <input v-model="postForm.repeatPwd" type="text" class="input" placeholder="请再次确认新密码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/phone_icon.png"></image>
+          <image src="../../static/images/icons/phone_icon.png"></image>
         </view>
         <input v-model="postForm.phone" type="text" class="input" maxlength="11" disabled placeholder="请输入手机号" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/yzm_icon.png"></image>
+          <image src="../../static/images/icons/yzm_icon.png"></image>
         </view>
         <input v-model="postForm.captcha" type="text" class="input" placeholder="请输入验证码" />
         <view class="code_box" @tap="SendCodeFn">

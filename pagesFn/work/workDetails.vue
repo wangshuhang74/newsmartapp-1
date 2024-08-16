@@ -7,7 +7,7 @@ import AuditPopup from '../components/AuditPopup.vue'
 import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import { useUserStore, useWorkStore } from '@/store'
-import { acceptOrder, getAppOrderInfo, getList } from '@/api'
+import { acceptOrder, complete, getAppOrderInfo, getList } from '@/api'
 
 const { workDetail, workHandle, assignRefresh, auditRefresh } = storeToRefs(useWorkStore())
 const Toast = useToast()
@@ -32,6 +32,20 @@ const getWork = ref({
   orderId: null,
 })
 const records = ref([])
+
+const postForm = ref({
+  comment: 1,
+  procInsId: null,
+  instanceId: null,
+  deployId: null,
+  taskId: null,
+  variables: {
+    comment: 1,
+    approval: null,
+    remark: null
+  },
+  executionId: null
+})
 
 onShow(() => {
   if (workDetail.value) {
@@ -145,12 +159,22 @@ const takeOrders = (item) => {
     cancelButtonText: "暂不接单",
   })
     .then(async () => {
-      const { code, data, msg } = await acceptOrder(item.orderId)
-      console.log("🚀 ~ .then ~ data:", data)
-      if (code != 0) return Toast.error(msg)
-      Toast.success(msg)
-      // resetBtn() 
-      getWorkFn()
+      postForm.value.procInsId = item.procInsId;
+      postForm.value.instanceId = item.procInsId;
+      postForm.value.deployId = item.deployId;
+      postForm.value.taskId = item.taskId;
+      postForm.value.executionId = item.executionId;
+      postForm.value.variables.approval = userInfo.value.userId;
+      const { code, msg } = await complete(postForm.value)
+      if (code == 0) {
+        const { code, data, msg } = await acceptOrder(item.orderId)
+        console.log("🚀 ~ .then ~ data:", data)
+        if (code != 0) return Toast.error(msg)
+        Toast.success(msg)
+        getWorkFn()
+      } else {
+        return Toast.error(msg)
+      }
     })
     .catch(() => { });
 }
@@ -174,14 +198,8 @@ const copyBtn = (val) => {
   })
 }
 
-
-const checkRules = (userinfo, item) => {// 处理按钮权限
-  return item.isAccept == 1 && item.isDealOrder == 0 && !item.isAssignTask && !item.isAuditTask && (userinfo.rules.includes(5) || userinfo.rules.includes(6))
-
-  // && (userinfo.rules.includes(item.groupId) || [6,].some(rule => userinfo.rules.includes(rule)))
-  // return (item.isAccept == 1 && ([5,].some(rule => userInfo.rules.includes(rule)) && userInfo.rules.includes(item.groupId)) ||
-  //   ([6,].some(rule => userInfo.rules.includes(rule)) && item.isAccept == 1 && item.assigneeId == userInfo.userId)
-  // );
+const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
+  return item.isAccept == 1 && workInfo.isDealOrder == 0 && !item.isAssignTask && !item.isAuditTask && (userinfo.rules.includes(5) || userinfo.rules.includes(6))
 }
 
 
@@ -201,7 +219,7 @@ const checkRules = (userinfo, item) => {// 处理按钮权限
             <view class="value">
               <text>{{ workInfoApi?.orderId ? workInfoApi?.orderId : '-' }}</text>
               <image @tap="copyBtn(workInfoApi?.orderId)" class="copy"
-                src="http://116.62.107.90:8673/images/icons/copy.png" mode="scaleToFill" />
+                src="../../static/images/icons/copy.png" mode="scaleToFill" />
             </view>
           </view>
 
@@ -417,7 +435,8 @@ const checkRules = (userinfo, item) => {// 处理按钮权限
           v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">返还</button>
         <button class="footBtn" @tap="takeOrders(workInfo)"
           v-if="workInfo.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6)) && !workInfo.isAssignTask && !workInfo.isAuditTask">接单</button>
-        <button class="footBtn" v-if="checkRules(userInfo, workInfo)" @tap="handleWork(workInfo)">处理</button>
+        <button class="footBtn" v-if="checkRules(userInfo, workInfo, workInfoApi)"
+          @tap="handleWork(workInfo)">处理</button>
         <button class="footBtn" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>
         <button class="footBtn" v-if="workInfo.isAuditTask" @tap="auditBtn(workInfo)">审核</button>
       </view>

@@ -87,22 +87,22 @@ const visibleBtn = () => {
   <wd-toast></wd-toast>
   <view class="login_box">
     <view class="top_box" :style="{ paddingTop: safeAreaInsets?.top + 'px', height: safeAreaInsets?.top + 250 + 'px' }">
-      <image class="logo" src="http://116.62.107.90:8673/images/logins/logo.png" mode="scaleToFill" />
+      <image class="logo" src="../../static/images/logins/logo.png" mode="scaleToFill" />
       <view class="title">智慧运维</view>
     </view>
 
     <view class="forms">
       <view class="input_item">
-        <image src="http://116.62.107.90:8673/images/icons/user.png" mode="scaleToFill" class="input_icon" />
+        <image src="../../static/images/icons/user.png" mode="scaleToFill" class="input_icon" />
         <input v-model="postForm.phone" placeholder="请输入用户名/手机号" />
-        <image v-if="postForm.phone" src="http://116.62.107.90:8673/images/icons/clear.png" mode="scaleToFill"
+        <image v-if="postForm.phone" src="../../static/images/icons/clear.png" mode="scaleToFill"
           class="input_icon" @tap="postForm.phone = ''" />
       </view>
       <view class="input_item">
-        <image src="http://116.62.107.90:8673/images/icons/password.png" mode="scaleToFill" class="input_icon" />
+        <image src="../../static/images/icons/password.png" mode="scaleToFill" class="input_icon" />
         <input v-if="visible" type="text" v-model="postForm.password" placeholder="请输入登录密码" />
         <input v-else type="password" v-model="postForm.password" placeholder="请输入登录密码" />
-        <image v-if="postForm.password" src="http://116.62.107.90:8673/images/icons/clear.png" mode="scaleToFill"
+        <image v-if="postForm.password" src="../../static/images/icons/clear.png" mode="scaleToFill"
           class="input_icon" @tap="postForm.password = ''" />
         <image v-if="postForm.password" :src="visible ? zhengyan : biyan" mode="scaleToFill" class="input_visible"
           @tap="visibleBtn" />
@@ -206,7 +206,7 @@ const visibleBtn = () => {
     height: 550rpx;
     margin-bottom: 80rpx;
     background: linear-gradient(90deg, #4557D1 0%, #75DBED 100%);
-    background: url('http://116.62.107.90:8673/images/logins/login_top.png') no-repeat;
+    background: url('../../static/images/logins/login_top.png') no-repeat;
     background-size: 100% 100%;
 
     .logo {

@@ -94,14 +94,14 @@ const handlePopupsClose = (val) => {
 
       <view class="top_tit">
         <text>返还</text>
-        <image class="img_close" @tap="handlePopupsClose" src="http://116.62.107.90:8673/images/logins/close46.png"
+        <image class="img_close" @tap="handlePopupsClose" src="../../static/images/logins/close46.png"
           mode="scaleToFill" />
       </view>
 
       <view class="input_box">
         <view class="input_phone">
           <text>上级主管: {{ superior.personnel ? superior.personnel : '未获取到上级信息!' }}</text>
-          <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
+          <image class="position_img" src="../../static/images/homeMap/phone.png"
             @tap="makePhoneCall(superior.phone)" mode="scaleToFill" v-if="superior.personnel" />
         </view>
 

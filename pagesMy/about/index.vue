@@ -26,7 +26,7 @@ onLoad(() => {
     <navbar :title="'关于我们'" />
     <view class="about_flow">
       <view class="logo_box">
-        <image class="logo_img" src="http://116.62.107.90:8673/images/logins/logo.png" mode="scaleToFill" />
+        <image class="logo_img" src="../../static/images/logins/logo.png" mode="scaleToFill" />
       </view>
 
       <view class="about_name">{{ Equipment?.appName ? Equipment?.appName : '智慧运维' }}</view>

@@ -156,14 +156,14 @@ const SendCodeApi = async () => {
     <view class="firm_flow">
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/phone_icon.png"></image>
+          <image src="../../static/images/icons/phone_icon.png"></image>
         </view>
         <input v-model="postForm.phone" type="text" class="input" maxlength="11" placeholder="请输入手机号" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/yzm_icon.png"></image>
+          <image src="../../static/images/icons/yzm_icon.png"></image>
         </view>
         <input v-model="postForm.captcha" type="text" class="input" placeholder="请输入验证码" />
         <view class="code_box" @tap="SendCodeFn">
@@ -174,56 +174,56 @@ const SendCodeApi = async () => {
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/mm_icon.png"></image>
         </view>
         <input v-model="postForm.password" type="text" class="input" placeholder="登陆密码，8-16位字母或者数字" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/mm_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/mm_icon.png"></image>
         </view>
         <input v-model="postForm.repeatPwd" type="text" class="input" placeholder="请再次输入密码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/dm_icon.png"></image>
+          <image src="../../static/images/icons/dm_icon.png"></image>
         </view>
         <input v-model="postForm.creditCode" type="text" class="input" placeholder="请输入统一信用代码" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/qy_icon.png"></image>
+          <image src="../../static/images/icons/qy_icon.png"></image>
         </view>
         <input v-model="postForm.orgName" type="text" class="input" placeholder="请输入企业名称" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image src="http://116.62.107.90:8673/images/icons/qy_icon.png"></image>
+          <image src="../../static/images/icons/qy_icon.png"></image>
         </view>
         <input v-model="postForm.orgShortName" type="text" class="input" placeholder="请输入企业简称" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 45rpx; height: 45rpx" src="http://116.62.107.90:8673/images/icons/lxr_icon.png"></image>
+          <image style="width: 45rpx; height: 45rpx" src="../../static/images/icons/lxr_icon.png"></image>
         </view>
         <input v-model="postForm.dutyUser" type="text" class="input" placeholder="请输入联系人" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/yx_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/yx_icon.png"></image>
         </view>
         <input v-model="postForm.email" type="text" class="input" placeholder="请输入电子邮箱" />
       </view>
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 40rpx; height: 43rpx" src="http://116.62.107.90:8673/images/icons/dw_icon.png"></image>
+          <image style="width: 40rpx; height: 43rpx" src="../../static/images/icons/dw_icon.png"></image>
         </view>
         <view class="input">
           <wd-col-picker v-model="areaValue" :columns="area" placeholder="请选择所属区域" custom-class="add_picker"
@@ -236,7 +236,7 @@ const SendCodeApi = async () => {
 
       <view class="input_item">
         <view class="left_icon">
-          <image style="width: 35rpx; height: 35rpx" src="http://116.62.107.90:8673/images/icons/dw_icon.png"></image>
+          <image style="width: 35rpx; height: 35rpx" src="../../static/images/icons/dw_icon.png"></image>
         </view>
         <input v-model="postForm.address" type="text" class="input" placeholder="请输入详细地址" />
       </view>
@@ -245,7 +245,7 @@ const SendCodeApi = async () => {
         <view class="title">请上传营业执照：</view>
         <view class="up_box" @tap="handleUploadLicense">
           <image v-if="postForm.license" :src="baseURL + postForm.license" class="license" mode="scaleToFill" />
-          <image v-else src="http://116.62.107.90:8673/images/icons/add_icon.png" class="add_icon" mode="scaleToFill" />
+          <image v-else src="../../static/images/icons/add_icon.png" class="add_icon" mode="scaleToFill" />
         </view>
       </view>
 

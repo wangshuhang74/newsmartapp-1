@@ -256,9 +256,9 @@ onMounted(() => {
     postLcForm.value.instanceId = workHandle.value.procInsId
     postLcForm.value.taskId = workHandle.value.taskId
     postLcForm.value.deployId = workHandle.value.deployId
-    if ([5,].some(rule => userInfo.value.rules.includes(rule))) {
-      postLcForm.value.variables.isManager = 1
-    }
+    // if ([5,].some(rule => userInfo.value.rules.includes(rule))) { //如果是运维主管提交 就传 isManager = 1
+    //   postLcForm.value.variables.isManager = 1
+    // }
 
 
     console.log("🚀 ~ onMounted ~ workHandle.value.orderType:", workHandle.value)
@@ -325,18 +325,16 @@ const submitBtn = async () => { // 提交工单
   const { code, data, msg } = await appDisposeOrder(postForm.value)
   if (code != 0) {
     verifyErr(msg)
-    Toast.close()
+      setTimeout(Toast.close(), 1000)
   } else {
     const { code, data, msg } = await complete(postLcForm.value)
     if (code != 0) {
       verifyErr(msg)
-      Toast.close()
+      setTimeout(Toast.close(), 1000)
     } else {
       Toast.success("提交成功")
-      Toast.close()
-
       setTimeout(() => {
-        console.log("🚀 ~ appDisposeOrderInfoFn ~ data:", data)
+        Toast.close()
         uni.navigateBack({
           delta: 1
         })
@@ -1369,7 +1367,7 @@ const bluetoothBtn = (item) => {
     <view class="details_center">
       <view class="top_segmented">
         <view class="operate_box" v-if="segmented == 1">
-          <image class="operate_img" @tap="addWorkBtn" src="http://116.62.107.90:8673/images/icons/addWork.png"
+          <image class="operate_img" @tap="addWorkBtn" src="../../static/images/icons/addWork.png"
             mode="scaleToFill" />
         </view>
         <wd-tabs v-model="segmented" @change="tabChange">
@@ -1399,7 +1397,7 @@ const bluetoothBtn = (item) => {
           <view class="correct_text" v-if="postForm.addressInfo.isLocation == 1">
             <view class="label requiredLabel">正确地址：</view>
             <view class="textarea_box">
-              <image class="address_img" src="http://116.62.107.90:8673/images/icons/address.png" mode="scaleToFill" />
+              <image class="address_img" src="../../static/images/icons/address.png" mode="scaleToFill" />
               <textarea v-model="postForm.addressInfo.address" placeholder="请输入正确的地址"></textarea>
             </view>
           </view>
@@ -1412,7 +1410,7 @@ const bluetoothBtn = (item) => {
                 <image class="img" :src="baseURL + img" :key="idx" mode="scaleToFill" />
               </view>
               <view class="img_item up_btn" @tap.stop="upBtn('storePic', 0)">
-                <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
               </view>
             </view>
             <view class="up_tip">请打开手机「隐私权限」</view>
@@ -1434,14 +1432,14 @@ const bluetoothBtn = (item) => {
               <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
                 <view class="work_del_btn">
                   <image class="operate_img" @tap="delWorkBtn(idx)" v-if="postForm.applyInfo.length > 1"
-                    src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+                    src="../../static/images/icons/delWork1.png" mode="scaleToFill" />
                 </view>
                 <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
                 <view class="inp_item">
                   <view class="label">车辆类型:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'carType')">
                     <view class="val">{{ item.carType ? item.carType : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1453,7 +1451,7 @@ const bluetoothBtn = (item) => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1461,7 +1459,7 @@ const bluetoothBtn = (item) => {
                   <view class="label requiredLabel">故障分类:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'faultType')">
                     <view class="val">{{ item.faultType ? item.faultType : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1469,7 +1467,7 @@ const bluetoothBtn = (item) => {
                   <view class="label requiredLabel">故障原因:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'faultReason')">
                     <view class="val">{{ item.faultReason ? item.faultReason : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1477,7 +1475,7 @@ const bluetoothBtn = (item) => {
                   <view class="label requiredLabel">维护方式:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'whType')">
                     <view class="val">{{ item.whType ? item.whType : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1572,7 +1570,7 @@ const bluetoothBtn = (item) => {
                     <view class="label requiredLabel">更换部件:</view>
                     <view class="inp_value" @tap="openSelect(item, idx, 'replacePart')">
                       <view class="val">{{ item.replacePart ? item.replacePart : '请选择' }}</view>
-                      <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      <image class="select_icon" src="../../static/images/icons/select_icon.png"
                         mode="scaleToFill" />
                     </view>
                   </view>
@@ -1580,7 +1578,7 @@ const bluetoothBtn = (item) => {
                     <view class="label requiredLabel">设备品牌:</view>
                     <view class="inp_value" @tap="openSelect(item, idx, 'deviceBrand')">
                       <view class="val">{{ item.deviceBrand ? item.deviceBrand : '请选择' }}</view>
-                      <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      <image class="select_icon" src="../../static/images/icons/select_icon.png"
                         mode="scaleToFill" />
                     </view>
                   </view>
@@ -1595,7 +1593,7 @@ const bluetoothBtn = (item) => {
                         item.channelType.length ?
                         item.channelType.join(',') : '请选择'
                         }}</view>
-                      <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                      <image class="select_icon" src="../../static/images/icons/select_icon.png"
                         mode="scaleToFill" />
                     </view>
                   </view>
@@ -1610,7 +1608,7 @@ const bluetoothBtn = (item) => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1632,14 +1630,14 @@ const bluetoothBtn = (item) => {
               <scroll-view scroll-y :show-scrollbar="false" style="width: 100%;height: 100%;position: relative;">
                 <view class="work_del_btn">
                   <image class="operate_img" @tap="delWorkBtn(idx)" v-if="postForm.applyInfo.length > 1"
-                    src="http://116.62.107.90:8673/images/icons/delWork1.png" mode="scaleToFill" />
+                    src="../../static/images/icons/delWork1.png" mode="scaleToFill" />
                 </view>
 
                 <view class="inp_item">
                   <view class="label requiredLabel">设备类型:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'deviceType')">
                     <view class="val">{{ item.deviceType ? item.deviceType : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1649,7 +1647,7 @@ const bluetoothBtn = (item) => {
                   <view class="label">车辆类型:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'carType')">
                     <view class="val">{{ item.carType ? item.carType : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1662,7 +1660,7 @@ const bluetoothBtn = (item) => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('beforeApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1671,7 +1669,7 @@ const bluetoothBtn = (item) => {
                   <view class="label requiredLabel">设备品牌:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'deviceBrand')">
                     <view class="val">{{ item.deviceBrand ? item.deviceBrand : '请选择' }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1681,7 +1679,7 @@ const bluetoothBtn = (item) => {
                   <view class="label requiredLabel">设备序列号:</view>
                   <view class="inp_value inp_box">
                     <view class="bluetooth_box" @tap="bluetoothBtn(item)">
-                      <image class="bluetooth_img" src="http://116.62.107.90:8673/images/icons/bluetooth.png"
+                      <image class="bluetooth_img" src="../../static/images/icons/bluetooth.png"
                         mode="scaleToFill" />
                       <text>蓝牙连接</text>
                     </view>
@@ -1709,7 +1707,7 @@ const bluetoothBtn = (item) => {
                       item.channelType.length ?
                       item.channelType.join(',') : '请选择'
                       }}</view>
-                    <image class="select_icon" src="http://116.62.107.90:8673/images/icons/select_icon.png"
+                    <image class="select_icon" src="../../static/images/icons/select_icon.png"
                       mode="scaleToFill" />
                   </view>
                 </view>
@@ -1729,7 +1727,7 @@ const bluetoothBtn = (item) => {
                       <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                     </view>
                     <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
-                      <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png" mode="scaleToFill" />
+                      <image class="up_img" src="../../static/images/fns/up_img.png" mode="scaleToFill" />
                     </view>
                   </view>
                 </view>
@@ -1746,7 +1744,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('recPic', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1760,7 +1758,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('drivingLicense', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1774,7 +1772,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('driverLicense', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1788,7 +1786,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('managerFile', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1802,7 +1800,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('electricalFile', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1816,7 +1814,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('busFile', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1830,7 +1828,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('hostPic', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1844,7 +1842,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('attachment', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1859,7 +1857,7 @@ const bluetoothBtn = (item) => {
                         <image class="img" :src="baseURL + img" :key="index" mode="scaleToFill" />
                       </view>
                       <view class="img_item up_btn" @tap="upBtn('afterApplyPic', idx)">
-                        <image class="up_img" src="http://116.62.107.90:8673/images/fns/up_img.png"
+                        <image class="up_img" src="../../static/images/fns/up_img.png"
                           mode="scaleToFill" />
                       </view>
                     </view>
@@ -1877,7 +1875,7 @@ const bluetoothBtn = (item) => {
                 <view class="RFID_box" @tap="bluetoothBtn(item)" v-if="item.deviceType == '汽车行驶记录仪'">
                   <view class="icon"></view>
                   <view class="tit">电子标识连接</view>
-                  <image class="tag_img" src="http://116.62.107.90:8673/images/icons/item_arrow_f.png"
+                  <image class="tag_img" src="../../static/images/icons/item_arrow_f.png"
                     mode="scaleToFill" />
                 </view>
               </scroll-view>

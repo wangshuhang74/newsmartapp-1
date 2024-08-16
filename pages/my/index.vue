@@ -151,7 +151,7 @@ const itemClick = (item) => {
     width: 100%;
     height: 550rpx;
     background: linear-gradient(90deg, #4557D1 0%, #75DBED 100%);
-    background: url('http://116.62.107.90:8673/images/logins/login_top.png') no-repeat;
+    background: url('../../static/images/logins/login_top.png') no-repeat;
     background-size: 100% 100%;
 
     .active_info {

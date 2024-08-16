@@ -10,41 +10,35 @@
           <view class="disBox notice_item" @tap="nextStep(1)" :class="{ 'active': currentStep == 1 }">
             <text class="notice_index">1</text>
             <view class="notice_title">打开蓝牙</view>
-            <image class="notice_img"
-              :src="`http://116.62.107.90:8673/images/tips/${currentStep == 1 ? 'arrow_active.png' : 'arrow_default.png'}`"
-              mode="scaleToFill" />
+            <image class="notice_img" :src="currentStep == 1 ? arrow_active : arrow_default" mode="scaleToFill" />
           </view>
         </view>
         <view class="boxFlex">
           <view class="disBox notice_item" @tap="nextStep(2)" :class="{ 'active': currentStep == 2 }">
             <text class="notice_index">2</text>
             <view class="notice_title">连接设备</view>
-            <image class="notice_img"
-              :src="`http://116.62.107.90:8673/images/tips/${currentStep == 2 ? 'arrow_active.png' : 'arrow_default.png'}`"
-              mode="scaleToFill" />
+            <image class="notice_img" :src="currentStep == 2 ? arrow_active : arrow_default" mode="scaleToFill" />
           </view>
         </view>
         <view class="boxFlex">
           <view class="disBox notice_item" @tap="nextStep(3)" :class="{ 'active': currentStep == 3 }">
             <text class="notice_index">3</text>
             <view class="notice_title">激活电子车牌</view>
-            <image class="notice_img"
-              :src="`http://116.62.107.90:8673/images/tips/${currentStep == 3 ? 'arrow_active.png' : 'arrow_default.png'}`"
-              mode="scaleToFill" />
+            <image class="notice_img" :src="currentStep == 3 ? arrow_active : arrow_default" mode="scaleToFill" />
           </view>
         </view>
       </view>
     </view>
     <view class="columnBoxFlex">
       <view class="blue_main blue_main1" v-if="currentStep == 1">
-        <image src="http://116.62.107.90:8673/images/tips/connect_blue1.png" class="connect_icon" mode="scaleToFill" />
+        <image src="../../static/images/tips/connect_blue1.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">确保手机已经蓝牙后点击下一步</view>
         <view class="open_blue">
           <view class="btn" @tap="openBlue">确认已打开</view>
         </view>
       </view>
       <view class="blue_main blue_main2" v-if="currentStep == 2">
-        <image src="http://116.62.107.90:8673/images/tips/connect_blue2.png" class="connect_icon" mode="scaleToFill" />
+        <image src="../../static/images/tips/connect_blue2.png" class="connect_icon" mode="scaleToFill" />
         <view class="blue_list">
           <view :class="item.active ? 'disBox active' : 'disBox'" v-for="(item, index) in blueList" :key="index">
             <view class="boxFlex">
@@ -76,7 +70,7 @@
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main3" v-if="currentStep == 3">
-        <image src="http://116.62.107.90:8673/images/tips/connect_blue3.png" class="connect_icon" mode="scaleToFill" />
+        <image src="../../static/images/tips/connect_blue3.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">请将电子车牌置于设备上方进行激活<br />正在激活电子车牌，请稍后…</view>
         <view class="open_blue">
           <!-- <view class="btn search_btn" @tap="readRandom">安全模块随机数</view>
@@ -86,7 +80,7 @@
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main4" v-if="currentStep == 4">
-        <image src="http://116.62.107.90:8673/images/tips/connect_blue4.png" class="connect_icon" mode="scaleToFill" />
+        <image src="../../static/images/tips/connect_blue4.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step">激活成功！</view>
         <view class="open_blue">
           <view class="btn" @tap="goForm" style="margin-bottom: 20rpx;">读写数据</view>
@@ -94,7 +88,7 @@
         </view>
       </view>
       <view class="blue_main blue_main1 blue_main4 blue_main5" v-if="currentStep == 5">
-        <image src="http://116.62.107.90:8673/images/tips/connect_blue4.png" class="connect_icon" mode="scaleToFill" />
+        <image src="../../static/images/tips/connect_blue4.png" class="connect_icon" mode="scaleToFill" />
         <view class="next_step" style="color:#B90000;">激活失败！</view>
         <view class="contact_btn"><text>联系客服</text></view>
         <view class="open_blue">
@@ -113,6 +107,9 @@ import navbar from '@/pages/components/navbar.vue'
 import { sendCmd, dealRecvData, ab2hex, currentStatus, tipsInfo, secRandom, safeSn, authStatus, writeStatus, getDeviceSecConfig, readRandom, addUserSelectSpec, addAOReadSpec } from "../../utils/bluetooth";
 import { storeToRefs } from 'pinia'
 import { useTagsStore } from '@/store'
+import arrow_active from '../../static/images/tips/arrow_active.png'
+import arrow_default from '../../static/images/tips/arrow_default.png'
+
 const tagsStore = useTagsStore()
 const { tagsInfo, blueToothDevices, isOpenOnBlue, samsn, isReadRules, readRules, writeRules, blueToothInit, startAddAO, addROArea } = storeToRefs(tagsStore) // 识读电子标识的具体内容
 
@@ -144,20 +141,20 @@ onUnload(() => {
   if (BLEConnection.value) {
     uni.closeBLEConnection({
       deviceId: blueToothInit.value.deviceId,
-      success (res) {
+      success(res) {
         console.log('断开蓝牙成功', res)
         setTimeout(() => {
           // 关闭蓝牙模块
           if (BluetoothAdapter.value) {
             uni.closeBluetoothAdapter({
-              success (res) {
+              success(res) {
                 console.log(res)
               },
             })
           }
         }, 200)
       },
-      fail (err) {
+      fail(err) {
         console.log('断开蓝牙失败', err)
       },
     })
@@ -169,7 +166,7 @@ onUnload(() => {
   } else {
     if (BluetoothAdapter.value) {
       uni.closeBluetoothAdapter({
-        success (res) {
+        success(res) {
           console.log(res)
         },
       })
@@ -182,7 +179,7 @@ onUnload(() => {
 const openBlue = () => {
   if (!BluetoothAdapter.value) {
     uni.openBluetoothAdapter({
-      success (res) {
+      success(res) {
         console.log('初始化蓝牙成功')
         console.log('open', res)
         BluetoothAdapter.value = true;
@@ -201,7 +198,7 @@ const openBlue = () => {
           })
         })
       },
-      fail (err) {
+      fail(err) {
         console.log('初始化蓝牙失败')
         console.error('open', err)
         // #ifdef APP-PLUS
@@ -283,7 +280,7 @@ const connectBlue = (item) => {
     mask: true
   });
   uni.stopBluetoothDevicesDiscovery({
-    success (res) {
+    success(res) {
       BluetoothDevicesDiscovery.value = false;
       console.log('停止搜索', res)
     },
@@ -304,7 +301,7 @@ const connectBlue = (item) => {
 
   uni.createBLEConnection({
     deviceId: item.deviceId,
-    success (res) {
+    success(res) {
       console.log('蓝牙已连接', res)
 
       setTimeout(function () {
@@ -329,22 +326,22 @@ const connectBlue = (item) => {
         uni.getBLEDeviceServices({
           // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
           deviceId: item.deviceId,
-          success (res) {
+          success(res) {
             uni.getBLEDeviceCharacteristics({
               // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
               deviceId: item.deviceId,
               // 这里的 serviceId 需要在 getBLEDeviceServices 接口中获取
               serviceId: blueToothInit.value.serviceId,
-              success (res) {
+              success(res) {
                 readBlueOn(item.deviceId);//启动蓝牙监听
               },
-              fail (res) {
+              fail(res) {
                 console.log('获取特征值失败', res)
               },
             })
 
           },
-          fail (res) {
+          fail(res) {
             console.log('获取service失败', res)
           },
         })
@@ -359,7 +356,7 @@ const connectBlue = (item) => {
       //   console.log(`device ${res.deviceId} state has changed, connected: ${res.connected}`)
       // })
     },
-    fail (err) {
+    fail(err) {
       console.log('蓝牙连接失败', err);
       clearTimeout(_timer); //关闭10000连接超时
       uni.hideLoading();
@@ -387,10 +384,10 @@ const readBlueOn = (params) => {
       serviceId: blueToothInit.value.serviceId ? blueToothInit.value.serviceId : '0000FFE0-0000-1000-8000-00805F9B34FB',
       // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
       characteristicId: blueToothInit.value.characteristicId_notify ? blueToothInit.value.characteristicId_notify : '0000FFE4-0000-1000-8000-00805F9B34FB',
-      success (res) {
+      success(res) {
         console.log('启用 notify 功能', res)
       },
-      fail (res) {
+      fail(res) {
         console.log(res)
       },
     })
@@ -417,7 +414,7 @@ const readBlueOn = (params) => {
     serviceId: blueToothInit.value.serviceId ? blueToothInit.value.serviceId : '0000FFE0-0000-1000-8000-00805F9B34FB',
     // 这里的 characteristicId 需要在 getBLEDeviceCharacteristics 接口中获取
     characteristicId: blueToothInit.value.characteristicId_notify ? blueToothInit.value.characteristicId_notify : '0000FFE4-0000-1000-8000-00805F9B34FB',
-    success (res) {
+    success(res) {
       console.log('启用 notify 功能', res)
       notifyBLEChar.value = true;
       blueToothInit.value.deviceId = params;
@@ -572,7 +569,7 @@ const readBlueOn = (params) => {
 
       })
     },
-    fail (res) {
+    fail(res) {
       console.log(res)
     },
   })

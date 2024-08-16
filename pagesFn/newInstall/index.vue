@@ -4,7 +4,7 @@ import { useNotify, useToast, useMessage } from 'wot-design-uni' // ui组件库
 import { toNavigation, makePhoneCall, debounce } from '@/utils'
 import returnPopup from '../components/returnPopup.vue'
 import { useWorkStore, useUserStore } from '@/store'
-import { getList, acceptOrder } from '@/api'
+import { getList,complete, acceptOrder } from '@/api'
 
 const { workDetail, workHandle } = storeToRefs(useWorkStore())
 const { userInfo } = storeToRefs(useUserStore())
@@ -28,6 +28,21 @@ const total = ref(0) // 总条数
 const isTriggered = ref(false) // 是否在下拉刷新中?
 const listState = ref('loading') // 加载状态
 const showLoadmore = ref(false) // 是否显示加载更多
+
+const postForm = ref({
+  comment: 1,
+  procInsId: null,
+  instanceId: null,
+  deployId: null,
+  taskId: null,
+  variables: {
+    comment: 1,
+    approval: null,
+    remark: null
+  },
+  executionId: null
+})
+
 onShow(() => {
   if (workList.value.length) resetBtn()
 })
@@ -107,11 +122,25 @@ const takeOrders = (item) => {
     cancelButtonText: "暂不接单",
   })
     .then(async () => {
-      const { code, data, msg } = await acceptOrder(item.orderId)
-      console.log("🚀 ~ .then ~ data:", data)
-      if (code != 0) return Toast.error(msg)
-      Toast.success(msg)
-      resetBtn()
+      postForm.value.procInsId = item.procInsId;
+      postForm.value.instanceId = item.procInsId;
+      postForm.value.deployId = item.deployId;
+      postForm.value.taskId = item.taskId;
+      postForm.value.executionId = item.executionId;
+      postForm.value.variables.approval = userInfo.value.userId;
+      console.log("🚀 ~ .then ~ postForm.value:", postForm.value)
+      const { code, data, msg } = await complete(postForm.value)
+      if (code == 0) {
+        const { code, data, msg } = await acceptOrder(item.orderId)
+        console.log("🚀 ~ .then ~ data:", data)
+        if (code != 0) return Toast.error(msg)
+        Toast.success(msg)
+        resetBtn()
+      } else {
+        return Toast.error(msg)
+      }
+
+
     })
     .catch(() => { });
 }
@@ -153,7 +182,7 @@ const handleWork = (item) => {
       <view class="title_box">
         <view class="left" @tap="leftBtn">
           <!-- <wd-icon name="thin-arrow-left" class="left_icon" size="20px"></wd-icon> -->
-          <image src="http://116.62.107.90:8673/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
+          <image src="../../static/images/icons/fhui.png" class="left_img" mode="scaleToFill" />
         </view>
         <text class="title">新装车辆</text>
         <view class="right"></view>
@@ -161,9 +190,9 @@ const handleWork = (item) => {
       </view>
       <view class="search_box">
         <view class="search">
-          <image class="search_img" src="http://116.62.107.90:8673/images/homeMap/search.png" mode="scaleToFill" />
+          <image class="search_img" src="../../static/images/homeMap/search.png" mode="scaleToFill" />
           <input type="text" v-model="getForm.search" placeholder="搜索" @input="searchInput">
-          <image class="qr_img" src="http://116.62.107.90:8673/images/fns/qr_img.png" @tap="scanBtn"
+          <image class="qr_img" src="../../static/images/fns/qr_img.png" @tap="scanBtn"
             mode="scaleToFill" />
         </view>
       </view>
@@ -173,7 +202,7 @@ const handleWork = (item) => {
       @refresherrefresh="onRefresherrefresh" :refresher-triggered="isTriggered" refresher-enabled :lower-threshold="50">
       <view class="work_item" v-for="(item, idx) in workList" :key="idx" @tap="clickItem(item)">
         <view class="work_top">
-          <image src="http://116.62.107.90:8673/images/fns/map.png" class="work_icon" mode="scaleToFill" />
+          <image src="../../static/images/fns/map.png" class="work_icon" mode="scaleToFill" />
           <view class="work_title">
             <text class="tit">{{ item?.clientName ? item?.clientName : '-' }}-{{ item?.carPlate ? item?.carPlate :
               '-' }}</text>
@@ -181,7 +210,7 @@ const handleWork = (item) => {
             <!-- <text class="tags tag2">待新装</text> -->
             <!-- <text class="tags tag3">待运维</text> -->
           </view>
-          <image src="http://116.62.107.90:8673/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
+          <image src="../../static/images/icons/item_arrow.png" class="item_arrow" mode="scaleToFill" />
         </view>
         <view class="work_center ">
           <view class="work_it">
@@ -193,7 +222,7 @@ const handleWork = (item) => {
             <view class="label">联系电话:</view>
             <view class="value isImg">
               <text>{{ item?.contactPhone ? item?.contactPhone : '-' }}</text>
-              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/phone.png"
+              <image class="position_img" src="../../static/images/homeMap/phone.png"
                 @tap.stop="makePhoneCall(item?.contactPhone)" mode="scaleToFill" />
             </view>
           </view>
@@ -208,7 +237,7 @@ const handleWork = (item) => {
             <view class="label">地址:</view>
             <view class="value isImg">
               <text>{{ item?.address ? item?.address : '-' }}</text>
-              <image class="position_img" src="http://116.62.107.90:8673/images/homeMap/address.png"
+              <image class="position_img" src="../../static/images/homeMap/address.png"
                 @tap.stop="toNavigation(item)" mode="scaleToFill" />
             </view>
           </view>

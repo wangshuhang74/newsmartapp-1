@@ -55,7 +55,7 @@ const handlePopupsClose = () => {
           <button class="firmId_close_btn" @click="toWeChatAccount(qr_code)">保存二维码打开微信扫一扫</button>
 
           <view class="firmId_close">
-            <image class="img_close" @tap="handlePopupsClose" src="http://116.62.107.90:8673/images/logins/close.png"
+            <image class="img_close" @tap="handlePopupsClose" src="../../static/images/logins/close.png"
               mode="scaleToFill" />
           </view>
         </view>
@@ -83,7 +83,7 @@ const handlePopupsClose = () => {
       width: 527rpx;
       height: 666rpx;
       background-color: transparent !important;
-      background: url('http://116.62.107.90:8673/images/logins/firmId_box.png');
+      background: url('../../static/images/logins/firmId_box.png');
       background-size: 100% 100%;
       border-radius: 20rpx;
       position: relative;

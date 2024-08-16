@@ -96,7 +96,7 @@ const toPages = (item) => {
       <view class="title">我的任务</view>
     </view>
     <view class="picture_box">
-      <image class="image_bg" src="http://116.62.107.90:8673/images/fns/fn_bg.png" mode="scaleToFill" />
+      <image class="image_bg" src="../../static/images/fns/fn_bg.png" mode="scaleToFill" />
     </view>
     <view class="fn_list">
       <view class="task_item" v-for="(item, index) in fnList" :key="index" @tap="toPages(item)"
