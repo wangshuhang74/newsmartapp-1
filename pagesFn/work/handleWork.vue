@@ -48,7 +48,7 @@ const variableXZ = { //新装
   remark: null, //备注
   // ---------------------------- 附件 ----------------------------
   drivingLicense: [],//行驶证 ,
-  recPic: [],// 新车记录仪图片
+  recPic: [],// 行车记录仪图片
   driverLicense: [], // 驾驶证 ,
   managerFile: [], // 管理员信息附件 ,
   electricalFile: [],// 电气附件 ,
@@ -1261,7 +1261,7 @@ const verifyForm = () => {
           return true
         }
         if (!item.recPic || item.recPic.length == 0) {
-          verifyErr(`施工信息 ${idx + 1} - 请上传新车记录仪图片!`)
+          verifyErr(`施工信息 ${idx + 1} - 请上传行车记录仪图片!`)
           workCurrent.value = idx
           return true
         }
@@ -1736,7 +1736,7 @@ const bluetoothBtn = (item) => {
                 <view class="up_list" v-if="item.deviceType == '汽车行驶记录仪'">
 
                   <view class="upImg_box">
-                    <view class="label requiredLabel">新车记录仪图片:<text class="up_tip">含设备序列号、安全芯片ID、安全芯片时间、实时验证码。</text>
+                    <view class="label requiredLabel">行车记录仪图片:<text class="up_tip">含设备序列号、安全芯片ID、安全芯片时间、实时验证码。</text>
                     </view>
                     <view class="img_box">
                       <view class="img_item" v-for="(img, index) in item.recPic"

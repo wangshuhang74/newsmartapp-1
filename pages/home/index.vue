@@ -45,7 +45,10 @@ onShow(() => {
   const isLogin = userStore.isLoginFn()
   // #ifdef APP-PLUS
   console.log("🚀 ~ onShow ~ isLogin:", isLogin)
-  if (isLogin) checkUpdate()//如果已经登录就检查更新
+  if (isLogin) {
+    checkUpdate()//如果已经登录就检查更新
+    if (userMap.value.latitude && userMap.value.longitude) getListFn() // 每次打开这个页面如果已经定位了就获取列表
+  }
   //#endif
   if (wordList.value.length == 0) {
     getLocation()
@@ -210,8 +213,7 @@ const clickItem = (item) => {
           <image class="search_img" src="../../static/images/homeMap/search.png" mode="scaleToFill" />
           <input type="text" placeholder="查线路，地点">
         </view>
-        <image class="announcementIcon" src="../../static/images/homeMap/announcement.png"
-          mode="scaleToFill" />
+        <image class="announcementIcon" src="../../static/images/homeMap/announcement.png" mode="scaleToFill" />
       </view>
     </view>
     <view class="map_box">
@@ -219,8 +221,7 @@ const clickItem = (item) => {
         :latitude="userMap.latitude" :markers="markers" @markertap="onMarkerTap">
       </map>
       <cover-view class="right_box">
-        <cover-image class=right_location src="../../static/images/homeMap/right_location.png"
-          @tap="getLocation" />
+        <cover-image class=right_location src="../../static/images/homeMap/right_location.png" @tap="getLocation" />
         <cover-view class="scan_box">
           <!-- fns/qr_img.png -->
           <cover-image class="scan" src="../../static/images/homeMap/scan.png" @tap="scanBtn" />
@@ -271,8 +272,7 @@ const clickItem = (item) => {
           <cover-view class="item">
             <cover-view class="label">地址：</cover-view>
             <cover-view class="val">{{ wordcard?.address ? wordcard?.address : '-' }}</cover-view>
-            <cover-image class="image" src="../../static/images/homeMap/address.png"
-              @tap="toNavigation(wordcard)" />
+            <cover-image class="image" src="../../static/images/homeMap/address.png" @tap="toNavigation(wordcard)" />
           </cover-view>
 
           <cover-view class="item">

@@ -187,7 +187,7 @@ const handleWork = (item) => {
         <view class="search">
           <image class="search_img" src="../../static/images/homeMap/search.png" mode="scaleToFill" />
           <input type="text" v-model="getForm.search" placeholder="搜索" @input="searchInput">
-          <image class="qr_img" src="../../static/images/fn/qr_img.png" @tap="scanBtn"
+          <image class="qr_img" src="../../static/images/fns/qr_img.png" @tap="scanBtn"
             mode="scaleToFill" />
         </view>
       </view>

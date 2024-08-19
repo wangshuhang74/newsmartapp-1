@@ -54,7 +54,7 @@ onShow(() => {
     workDetail.value.isHistory = workDetail.value.isHistory ? true : false // 是否是历史记录页面进入的详情页
     workInfo.value = { ...workDetail.value }
     getWork.value.orderId = workDetail.value.orderId
-    getWork.value.type = workDetail.value.orderType == 2 ? 3 : workDetail.value.orderType == 3 ? 4 : null // orderType == 4 ? 5 : null //新车记录仪
+    getWork.value.type = workDetail.value.orderType == 2 ? 3 : workDetail.value.orderType == 3 ? 4 : null // orderType == 4 ? 5 : null //行车记录仪
     if (getWork.value.type && !workDetail.value.isAssignTask && !workDetail.value.isAuditTask) getWorkFn()
     getOrderInfo()
     console.log("🚀 ~ onLoad ~ workDetail.value:111111", workDetail.value)
