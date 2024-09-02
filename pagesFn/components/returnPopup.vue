@@ -72,7 +72,7 @@ const getAppOrderManagerFn = async (id) => {
   superior.value.phone = data.phone
   postForm.value.variables.approval = data.userId
 }
-
+ 
 const isOkBtn = async () => {
   if (!postForm.value.variables.remark) return Toast.warning('请输入理由!')
   console.log("postForm.value", postForm.value);
@@ -82,6 +82,7 @@ const isOkBtn = async () => {
   handlePopupsClose('refresh')
 }
 const handlePopupsClose = (val) => {
+  console.log("🚀 ~ handlePopupsClose ~ val:", val)
   emits('CloseClick', val)
 };
 

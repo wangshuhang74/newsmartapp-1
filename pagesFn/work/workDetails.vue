@@ -61,11 +61,7 @@ onShow(() => {
   } else {
     console.log("🚀 ~ onLoad ~ workDetail.value:222222", workDetail.value)
     Toast.warning("没有找到该工单信息")
-    setTimeout(() => {
-      uni.navigateBack({
-        delta: 1
-      })
-    }, 1000)
+    backToList()
   }
 })
 
@@ -79,12 +75,7 @@ const getOrderInfo = async () => {
   const { code, data, msg } = await getAppOrderInfo(workInfo.value.orderId)
   if (code != 0) {
     Toast.error(msg)
-    setTimeout(() => {
-      Toast.close()
-      uni.navigateBack({
-        delta: 1
-      })
-    }, 600)
+    backToList()
   } else {
     Toast.close()
     workInfoApi.value = data
@@ -118,9 +109,7 @@ const assignClose = (val) => {
   if (val != 'refresh') return
   Toast.success("指派成功!")
   assignRefresh.value = true
-  uni.navigateBack({
-    delta: 1
-  })
+  backToList()
 }
 
 const returnBtn = (item) => { // 退回
@@ -132,7 +121,9 @@ const returnClose = (val) => {
   returnShow.value = false
   returnInfo.value = {}
   if (val != 'refresh') return
-  getWorkFn()
+  // getWorkFn()
+  Toast.success("返还成功!")
+  backToList()
 }
 
 const auditBtn = (item) => {
@@ -146,9 +137,12 @@ const auditClose = (val) => {
   if (val != 'refresh') return
   Toast.success("审核成功!")
   auditRefresh.value = true
-  uni.navigateBack({
-    delta: 1
-  })
+  backToList()
+}
+
+const backToList = () => {
+  Toast.close()
+  setTimeout(() => { uni.navigateBack({ delta: 1 }) }, 1000)
 }
 
 const takeOrders = (item) => {
@@ -199,7 +193,7 @@ const copyBtn = (val) => {
 }
 
 const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
-  return item.isAccept == 1 && workInfo.isDealOrder == 0 && !item.isAssignTask && !item.isAuditTask && (userinfo.rules.includes(5) || userinfo.rules.includes(6))
+  return item.isAccept == 1 && workInfo.isDealOrder == 0 && !item.isAssignTask && !item.isAuditTask && (userinfo.ruleId == 5 || userinfo.ruleId == 6)
 }
 
 
@@ -218,8 +212,8 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
             <view class="label">工单编号:</view>
             <view class="value">
               <text>{{ workInfoApi?.orderId ? workInfoApi?.orderId : '-' }}</text>
-              <image @tap="copyBtn(workInfoApi?.orderId)" class="copy"
-                src="../../static/images/icons/copy.png" mode="scaleToFill" />
+              <image @tap="copyBtn(workInfoApi?.orderId)" class="copy" src="../../static/images/icons/copy.png"
+                mode="scaleToFill" />
             </view>
           </view>
 
@@ -432,9 +426,9 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
       <!-- 如果 records.length 是空的 说明这个工单不是待办的工单 只能显示在指派和审核中 -->
       <view class="foot_box" v-if="!workInfo.isHistory">
         <button class="footBtn" @tap="returnBtn(workInfo)"
-          v-if="workInfo.isAccept == 0 && userInfo.rules.includes(6)">返还</button>
+          v-if="workInfo.isAccept == 0 && userInfo.ruleId == 6">返还</button>
         <button class="footBtn" @tap="takeOrders(workInfo)"
-          v-if="workInfo.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6)) && !workInfo.isAssignTask && !workInfo.isAuditTask">接单</button>
+          v-if="workInfo.isAccept == 0 && (userInfo.ruleId == 5 || userInfo.ruleId == 6) && !workInfo.isAssignTask && !workInfo.isAuditTask">接单</button>
         <button class="footBtn" v-if="checkRules(userInfo, workInfo, workInfoApi)"
           @tap="handleWork(workInfo)">处理</button>
         <button class="footBtn" v-if="workInfo.isAssignTask" @tap="assignBtn(workInfo)">指派</button>

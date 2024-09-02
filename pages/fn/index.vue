@@ -37,7 +37,7 @@ const fnList = ref([
     icon: newCar,
     msgNum: 0,
     path: '/pagesFn/newInstall/index',
-    permission: [1, 2, 3] // 1企业 2 主管 3 个人
+    permission: [1, 2, 3, 4, 5, 6] // 1企业 2 主管 3 个人
   },
   {
     id: '2',
@@ -45,7 +45,7 @@ const fnList = ref([
     icon: oldCar,
     msgNum: 0,
     path: '/pagesFn/oldMaintain/index',
-    permission: [1, 2, 3]
+    permission: [1, 2, 3, 4, 5, 6]
   },
   {
     id: '3',
@@ -53,7 +53,7 @@ const fnList = ref([
     icon: assign,
     msgNum: 0,
     path: '/pagesFn/assignTask/index',
-    permission: [1, 2,]
+    permission: [1, 2, 3, 4, 5,]
   },
   {
     id: '4',
@@ -61,7 +61,7 @@ const fnList = ref([
     icon: audit,
     msgNum: 0,
     path: '/pagesFn/AuditTask/index',
-    permission: [1, 2,]
+    permission: [1, 2, 3, 4, 5,]
   },
   {
     id: '5',
@@ -69,7 +69,7 @@ const fnList = ref([
     icon: history,
     msgNum: 0,
     path: '/pagesFn/historyList/index',
-    permission: [1, 2, 3]
+    permission: [1, 2, 3, 4, 5, 6]
   },
   {
     id: '6',
@@ -77,7 +77,7 @@ const fnList = ref([
     icon: electronicsTag,
     msgNum: 0,
     path: '/pagesFn/electronicsTag/index',
-    permission: [1, 2, 3]
+    permission: [1, 2, 3, 4, 5, 6]
   },
 ])
 

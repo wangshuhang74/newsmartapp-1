@@ -109,7 +109,7 @@ const itemClick = (item) => {
         <view class="active_info_right" v-if="userInfo.userName || userInfo.phone">
           <view class="title_box">
             <text class="title">{{ userInfo.userName ? userInfo.userName : userInfo.phone }}</text>
-            <view class="type_box" v-if="userInfo.roleName">【{{ userInfo.roleName }}】</view>
+            <view class="type_box" v-if="userInfo.nickName">【{{ userInfo.nickName }}】</view>
             <view class="tag_box" v-if="userInfo.tags && userInfo.tags.length > 0">
               <text class="tag" v-for="(item, idx) in userInfo.tags" :key="idx">{{ item }}</text>
             </view>

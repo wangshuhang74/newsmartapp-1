@@ -187,8 +187,7 @@ const handleWork = (item) => {
         <view class="search">
           <image class="search_img" src="../../static/images/homeMap/search.png" mode="scaleToFill" />
           <input type="text" v-model="getForm.search" placeholder="搜索" @input="searchInput">
-          <image class="qr_img" src="../../static/images/fns/qr_img.png" @tap="scanBtn"
-            mode="scaleToFill" />
+          <image class="qr_img" src="../../static/images/fns/qr_img.png" @tap="scanBtn" mode="scaleToFill" />
         </view>
       </view>
     </view>
@@ -232,8 +231,8 @@ const handleWork = (item) => {
             <view class="label">地址:</view>
             <view class="value isImg">
               <text>{{ item?.address ? item?.address : '-' }}</text>
-              <image class="position_img" src="../../static/images/homeMap/address.png"
-                @tap.stop="toNavigation(item)" mode="scaleToFill" />
+              <image class="position_img" src="../../static/images/homeMap/address.png" @tap.stop="toNavigation(item)"
+                mode="scaleToFill" />
             </view>
           </view>
 
@@ -249,13 +248,13 @@ const handleWork = (item) => {
 
         </view>
         <view class="btn_box">
-          <view class="btn" v-if="item.isAccept == 0 && userInfo.rules.includes(6)" @tap.stop="returnBtn(item)">返还
+          <view class="btn" v-if="item.isAccept == 0 && userInfo.ruleId == 6" @tap.stop="returnBtn(item)">返还
           </view>
-          <view class="btn" v-if="item.isAccept == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
+          <view class="btn" v-if="item.isAccept == 0 && (userInfo.ruleId == 5 || userInfo.ruleId == 6)"
             @tap.stop="takeOrders(item)">接单
           </view>
           <view class="btn"
-            v-if="item.isAccept == 1 && item.isDealOrder == 0 && (userInfo.rules.includes(5) || userInfo.rules.includes(6))"
+            v-if="item.isAccept == 1 && item.isDealOrder == 0 && (userInfo.ruleId == 5 || userInfo.ruleId == 6)"
             @tap.stop="handleWork(item)">处理</view>
         </view>
       </view>

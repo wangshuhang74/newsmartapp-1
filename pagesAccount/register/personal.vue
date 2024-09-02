@@ -102,6 +102,13 @@ const CloseClick = () => {
     <view class="personal_flow">
       <view class="input_item">
         <view class="left_icon">
+          <image src="../../static/images/icons/userName.png"></image>
+        </view>
+        <input v-model="postForm.userName" type="text" class="input" placeholder="请输入用户名称" />
+      </view>
+
+      <view class="input_item">
+        <view class="left_icon">
           <image src="../../static/images/icons/phone_icon.png"></image>
         </view>
         <input v-model="postForm.phone" type="text" class="input" maxlength="11" placeholder="请输入手机号" />

@@ -39,9 +39,9 @@ const getLoginHistoryFn = async () => {
 }
 
 const handleChangeAccout = (param) => {
-  if (param.phone === userInfo.value.phone) return Toast.warning("当前账号已登录");
+  if (param.userName === userInfo.value.userName) return Toast.warning("当前账号已登录");
   userStore.loginInfo({
-    phone: param.phone,
+    userName: param.userName,
     password: param.password,
     isLastingCookie: false,
     phoneId: deviceId.value,
@@ -67,12 +67,12 @@ const userTypeList = {
       <text class="tps">轻触账号以登录</text>
       <view class="accountList">
         <view v-for="(item, key, index) in accountList" :index="index" class="account_item"
-          @tap="handleChangeAccout(item)" :key="index" :class="item.phone === userInfo.phone ? 'active' : ''">
-          <text class="userName"><text v-if="item?.rules">【{{ userTypeList[item?.rules[0]] ?
-            userTypeList[item?.rules[0]] : '普通角色' }}】</text> {{ item.userName ?
+          @tap="handleChangeAccout(item)" :key="index" :class="item.userName === userInfo.userName ? 'active' : ''">
+          <text class="userName"><text v-if="item?.rules">【{{ item?.ruleId ?
+            userTypeList[item?.ruleId] : '普通角色' }}】</text> {{ item.userName ?
                 item.userName : "" }} {{
-              item.phone }}</text>
-          <text class="logining" v-if="item.phone === userInfo.phone">当前登录账号</text>
+              item.nickName }}</text>
+          <text class="logining" v-if="item.userName === userInfo.userName">当前登录账号</text>
         </view>
         <wd-status-tip v-if="accountList.length == 0" image="content" tip="暂无账号" />
       </view>

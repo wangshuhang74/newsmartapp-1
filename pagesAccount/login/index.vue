@@ -11,7 +11,7 @@ const userStore = useUserStore()
 const { userInfo, deviceId, loginForm } = storeToRefs(userStore)
 const visible = ref(false)
 const postForm = ref({
-  phone: null,
+  userName: null,
   password: null,
   isLastingCookie: false,
   phoneId: null,
@@ -20,7 +20,7 @@ const postForm = ref({
 
 onLoad(() => {
   if (loginForm.value.isLastingCookie) {
-    postForm.value.phone = loginForm.value.phone
+    postForm.value.userName = loginForm.value.userName
     postForm.value.password = loginForm.value.password
     postForm.value.isLastingCookie = loginForm.value.isLastingCookie
   }
@@ -38,8 +38,8 @@ onLoad(() => {
 
 
 const loginBtn = async () => {
-  if (!postForm.value.phone) {
-    return Toast.warning('请输入用户名或手机号')
+  if (!postForm.value.userName) {
+    return Toast.warning('请输入用户名')
   }
   if (!postForm.value.password) {
     return Toast.warning('请输入登录密码')
@@ -94,9 +94,9 @@ const visibleBtn = () => {
     <view class="forms">
       <view class="input_item">
         <image src="../../static/images/icons/user.png" mode="scaleToFill" class="input_icon" />
-        <input v-model="postForm.phone" placeholder="请输入用户名/手机号" />
-        <image v-if="postForm.phone" src="../../static/images/icons/clear.png" mode="scaleToFill"
-          class="input_icon" @tap="postForm.phone = ''" />
+        <input v-model="postForm.userName" placeholder="请输入用户名/手机号" />
+        <image v-if="postForm.userName" src="../../static/images/icons/clear.png" mode="scaleToFill"
+          class="input_icon" @tap="postForm.userName = ''" />
       </view>
       <view class="input_item">
         <image src="../../static/images/icons/password.png" mode="scaleToFill" class="input_icon" />

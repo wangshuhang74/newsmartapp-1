@@ -43,13 +43,13 @@ watch(() => {
 
 onShow(() => {
   const isLogin = userStore.isLoginFn()
-  // #ifdef APP-PLUS
-  console.log("🚀 ~ onShow ~ isLogin:", isLogin)
+  console.log("🚀 ~ onShow ~ isLogin:是否登录", isLogin)
   if (isLogin) {
+    // #ifdef APP-PLUS
     checkUpdate()//如果已经登录就检查更新
+    //#endif
     if (userMap.value.latitude && userMap.value.longitude) getListFn() // 每次打开这个页面如果已经定位了就获取列表
   }
-  //#endif
   if (wordList.value.length == 0) {
     getLocation()
   }
@@ -64,7 +64,8 @@ const getListFn = async () => {
   wordList.value = []
   newEquip.value = ref({})
   oldMaintain.value = ref({})
-  markers.value = [{ orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]
+  // markers.value = [{ orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]
+  markers.value = []
   setMyMarker(userMap.value)
   let getForm1 = {
     pageNum: 1,
@@ -89,9 +90,10 @@ const getListFn = async () => {
     if (code2 != 0) return Toast.error(msg2);
     oldMaintain.value = data2;
 
-
     wordList.value = [...data1.records, ...data2.records]
-    addMarkers([...wordList.value, { orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]);
+    // addMarkers([...wordList.value, { orderId: new Date().getTime(), lat: 39.90923, lng: 116.397428, orderType: 3, }]);
+    addMarkers(wordList.value);
+
   } catch (error) {
     Toast.error("获取工单列表失败");
     console.error(error);
@@ -99,8 +101,6 @@ const getListFn = async () => {
 }
 const addMarkers = (list) => {
   markers.value = list.map((item) => {
-    // console.log("item.lat", item.lat);
-    // console.log("item.lng", item.lng);
     return {
       id: Number(item.orderId),
       latitude: item.lat,
