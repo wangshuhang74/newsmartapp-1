@@ -44,11 +44,11 @@ watch(() => {
 onShow(() => {
   const isLogin = userStore.isLoginFn()
   console.log("🚀 ~ onShow ~ isLogin:是否登录", isLogin)
-  if (isLogin) {
-    // #ifdef APP-PLUS
-    checkUpdate()//如果已经登录就检查更新
-    //#endif
-    if (userMap.value.latitude && userMap.value.longitude) getListFn() // 每次打开这个页面如果已经定位了就获取列表
+  // #ifdef APP-PLUS
+  checkUpdate()  //检查更新
+  //#endif
+  if (isLogin) { //如果已经登录 每次打开这个页面如果已经定位了就获取列表
+    if (userMap.value.latitude && userMap.value.longitude) getListFn()
   }
   if (wordList.value.length == 0) {
     getLocation()

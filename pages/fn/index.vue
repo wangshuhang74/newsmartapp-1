@@ -10,7 +10,7 @@ import history from '@/static/images/fns/history.png'
 
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
-console.log("🚀 ~ userInfo:", userInfo.value) // userInfo.userType
+console.log("🚀 ~ userInfo:", userInfo.value) // userInfo.ruleId
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -100,7 +100,7 @@ const toPages = (item) => {
     </view>
     <view class="fn_list">
       <view class="task_item" v-for="(item, index) in fnList" :key="index" @tap="toPages(item)"
-        :class="{ isHide: item?.permission && !item?.permission.includes(userInfo.userType) }">
+        :class="{ isHide: item?.permission && !item?.permission.includes(userInfo.ruleId) }">
         <image :src="item.icon" mode="scaleToFill" />
         <view class="name">
           {{ item.name }}

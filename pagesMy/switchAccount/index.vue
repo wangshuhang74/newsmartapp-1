@@ -68,7 +68,7 @@ const userTypeList = {
       <view class="accountList">
         <view v-for="(item, key, index) in accountList" :index="index" class="account_item"
           @tap="handleChangeAccout(item)" :key="index" :class="item.userName === userInfo.userName ? 'active' : ''">
-          <text class="userName"><text v-if="item?.rules">【{{ item?.ruleId ?
+          <text class="userName"><text v-if="item?.ruleId">【{{ item?.ruleId ?
             userTypeList[item?.ruleId] : '普通角色' }}】</text> {{ item.userName ?
                 item.userName : "" }} {{
               item.nickName }}</text>

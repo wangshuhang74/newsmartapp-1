@@ -1,4 +1,4 @@
-<script  setup>
+<script setup>
 import navbar from '@/pages/components/navbar.vue'
 const Equipment = ref({})
 
@@ -29,7 +29,7 @@ onLoad(() => {
         <image class="logo_img" src="../../static/images/logins/logo.png" mode="scaleToFill" />
       </view>
 
-      <view class="about_name">{{ Equipment?.appName ? Equipment?.appName : '智慧运维' }}</view>
+      <view class="about_name">{{ Equipment?.appName ? Equipment?.appName : '智慧运维' }} 测试版</view>
       <view class="about_v">版本：{{ Equipment?.versionNum }}</view>
       <view class="about_text">智慧运维是一款便携于一线运维人员使用的工具软件，提高运维人员工作效率，方便运维联系用户，在线提交工单、审核工单的软件。</view>
 

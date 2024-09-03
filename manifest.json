@@ -2,8 +2,8 @@
     "name" : "智慧运维",
     "appid" : "__UNI__F40DA66",
     "description" : "智慧运维是一款便携于一线运维人员使用的工具软件，提高运维人员工作效率，方便运维联系用户，在线提交工单、审核工单的软件。",
-    "versionName" : "2.9.8.7",
-    "versionCode" : 2987,
+    "versionName" : "2.9.8.8",
+    "versionCode" : 2988,
     "transformPx" : false,
     "app-plus" : {
         "compatible" : {

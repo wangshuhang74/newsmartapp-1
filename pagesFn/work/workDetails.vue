@@ -261,8 +261,16 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
         <view class="car_boxs" v-for="(item, idx) in workInfoApi?.orderExtras" :key="idx">
           <!-- 新装 -->
           <view v-if="workInfoApi?.orderType == 3">
+
             <view class="info_item">
-              <view class="label">车牌号码/VIN码:</view>
+              <view class="label">VIN码:</view>
+              <view class="value">
+                <text>{{ item?.vinCode ? item?.vinCode : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">车牌号码:</view>
               <view class="value">
                 <text>{{ item?.carPlate ? item?.carPlate : '-' }}</text>
               </view>
@@ -290,7 +298,6 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
               </view>
             </view>
 
-
             <view class="info_item">
               <view class="label">设备序列号:</view>
               <view class="value">
@@ -309,6 +316,13 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
               <view class="label">Sim卡号:</view>
               <view class="value">
                 <text>{{ item?.simNum ? item?.simNum : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">IMEI:</view>
+              <view class="value">
+                <text>{{ item?.imei ? item?.imei : '-' }}</text>
               </view>
             </view>
 
@@ -330,7 +344,14 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
           <!-- 维护 -->
           <view v-if="workInfoApi?.orderType == 2">
             <view class="info_item">
-              <view class="label">车牌号码/VIN码:</view>
+              <view class="label">VIN码:</view>
+              <view class="value">
+                <text>{{ item?.vinCode ? item?.vinCode : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">车牌号码:</view>
               <view class="value">
                 <text>{{ item?.carPlate ? item?.carPlate : '-' }}</text>
               </view>
@@ -351,7 +372,6 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
               </view>
             </view>
 
-
             <view class="info_item">
               <view class="label">设备序列号:</view>
               <view class="value">
@@ -366,11 +386,17 @@ const checkRules = (userinfo, item, workInfo) => {// 处理按钮权限
               </view>
             </view>
 
-
             <view class="info_item">
               <view class="label">Sim卡号:</view>
               <view class="value">
                 <text>{{ item?.simNum ? item?.simNum : '-' }}</text>
+              </view>
+            </view>
+
+            <view class="info_item">
+              <view class="label">IMEI:</view>
+              <view class="value">
+                <text>{{ item?.imei ? item?.imei : '-' }}</text>
               </view>
             </view>
 

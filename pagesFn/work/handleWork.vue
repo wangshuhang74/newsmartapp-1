@@ -36,11 +36,14 @@ const upIdx = ref(null) // 上传下标
 const variableXZ = { //新装
   deviceType: null, // 设备类型 ,
   carPlate: null, // 车牌号码 
+  vinCode: null, // VIN码
   carType: null, // 车辆类型
   beforeApplyPic: [], // 维护前照片 ,
   deviceBrand: null,//设备品牌 ,
   deviceSerial: null,//设备序列号 ,
+  imeI: null, // IMEI
   tpmId: null,//设备安全芯片ID 
+  recordSerial: null,// 行车记录仪编码
   tpmTime: null,//设备安全芯片时间
   verifyCode: null,//设备安全芯片验证码
   deviceModel: null, // 设备型号
@@ -62,6 +65,7 @@ const variableXZ = { //新装
 }
 const variableWH = {//维护
   carPlate: null,  // 车牌号码 
+  vinCode: null, // VIN码
   carType: null, // 车辆类型
   beforeApplyPic: [], // 维护前照片 ,
   faultType: null, // 故障分类
@@ -89,6 +93,7 @@ const variableWH = {//维护
   replacePart: null, // 更换的部件
   deviceBrand: null,//设备品牌 ,
   deviceSerial: null,//设备序列号 ,
+  imeI: null, // IMEI
   deviceModel: null, // 设备型号
   simNum: null,//sim卡号
   channelType: [],//通道类型 ,
@@ -220,6 +225,7 @@ const selectClose = (val) => {
           item.replacePart = null // 更换的部件
           item.deviceBrand = null // 设备品牌
           item.deviceSerial = null // 设备序列号
+          item.imeI = null // IMEI
           item.deviceModel = null // 设备型号
           item.simNum = null // sim卡号
           item.channelType = [] // 通道类型
@@ -1142,6 +1148,16 @@ const verifyForm = () => {
   }
   if (workHandle.value.orderType == 2) { //维护
     const isValid = postForm.value.applyInfo.some((item, idx) => {
+      if (!item.carPlate) {
+        verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码!`)
+        workCurrent.value = idx
+        return true
+      }
+      if (!item.vinCode) {
+        verifyErr(`施工信息 ${idx + 1} - 请输入VIN码!`)
+        workCurrent.value = idx
+        return true
+      }
       if (!item.faultType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择故障分类!`)
         workCurrent.value = idx
@@ -1180,6 +1196,11 @@ const verifyForm = () => {
           workCurrent.value = idx
           return true
         }
+        if (!item.imeI) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择设备IMEI码!`)
+          workCurrent.value = idx
+          return true
+        }
 
         if (!item.deviceModel) {
           verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
@@ -1209,11 +1230,11 @@ const verifyForm = () => {
         return true
       }
 
-      //if (!item.carPlate) {
-      //  verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码/VIN码!`)
-      //  workCurrent.value = idx
-      //  return true
-      //}
+      if (!item.carPlate) {
+        verifyErr(`施工信息 ${idx + 1} - 请输入车牌号码!`)
+        workCurrent.value = idx
+        return true
+      }
 
       if (!item.carType) {
         verifyErr(`施工信息 ${idx + 1} - 请选择车辆类型!`)
@@ -1232,6 +1253,11 @@ const verifyForm = () => {
         return true
       }
 
+      if (!item.imeI) {
+        verifyErr(`施工信息 ${idx + 1} - 请选择设备IMEI码!`)
+        workCurrent.value = idx
+        return true
+      }
       if (!item.deviceModel) {
         verifyErr(`施工信息 ${idx + 1} - 请选择设备型号!`)
         workCurrent.value = idx
@@ -1249,6 +1275,12 @@ const verifyForm = () => {
           workCurrent.value = idx
           return true
         }
+        if (!item.recordSerial) {
+          verifyErr(`施工信息 ${idx + 1} - 请选择行车记录仪编码!`)
+          workCurrent.value = idx
+          return true
+        }
+
         if (!item.tpmTime) {
           verifyErr(`施工信息 ${idx + 1} - 请选择设备安全芯片时间!`)
           workCurrent.value = idx
@@ -1432,7 +1464,8 @@ const bluetoothBtn = (item) => {
                   <image class="operate_img" @tap="delWorkBtn(idx)" v-if="postForm.applyInfo.length > 1"
                     src="../../static/images/icons/delWork1.png" mode="scaleToFill" />
                 </view>
-                <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
+                <wd-input type="text" v-model="item.vinCode" required label="VIN码:" placeholder="请输入" />
+                <wd-input type="text" v-model="item.carPlate" required label="车牌号码:" placeholder="请输入" />
                 <view class="inp_item">
                   <view class="label">车辆类型:</view>
                   <view class="inp_value" @tap="openSelect(item, idx, 'carType')">
@@ -1575,6 +1608,7 @@ const bluetoothBtn = (item) => {
                     </view>
                   </view>
                   <wd-input type="text" v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+                  <wd-input type="text" v-model="item.imeI" label="IMEI:" placeholder="请输入" required />
                   <wd-input type="text" v-model="item.deviceModel" label="设备型号:" placeholder="请输入" required />
                   <wd-input type="text" v-model="item.simNum" label="SIM卡号:" placeholder="请输入" required />
 
@@ -1631,7 +1665,8 @@ const bluetoothBtn = (item) => {
                     <image class="select_icon" :src="select_icon" mode="scaleToFill" />
                   </view>
                 </view>
-                <wd-input type="text" v-model="item.carPlate" label="车牌号码/VIN码:" placeholder="请输入" />
+                <wd-input type="text" v-model="item.vinCode" required label="VIN码:" placeholder="请输入" />
+                <wd-input type="text" v-model="item.carPlate" label="车牌号码:" placeholder="请输入" />
 
                 <view class="inp_item">
                   <view class="label">车辆类型:</view>
@@ -1677,8 +1712,13 @@ const bluetoothBtn = (item) => {
                 </view>
 
                 <wd-input type="text" v-else v-model="item.deviceSerial" label="设备序列号:" placeholder="请输入" required />
+                <wd-input type="text" v-model="item.imeI" label="IMEI:" placeholder="请输入" required />
+
                 <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.tpmId"
                   label="设备安全芯片ID:" placeholder="请输入" required />
+
+                <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.recordSerial"
+                  label="行车记录仪编码:" placeholder="请输入" required />
 
                 <wd-input type="text" v-if="item.deviceType && item.deviceType == '汽车行驶记录仪'" v-model="item.tpmTime"
                   label="安全芯片时间:" placeholder="请输入" required />
