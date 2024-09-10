@@ -67,12 +67,12 @@ const getAppOrderManagerFn = async (id) => {
   const { code, data, msg } = await getAppOrderManager(id)
   console.log("🚀 ~ getAppOrderManagerFn ~ data:", data)
   if (code != 0) return
-  superior.value.personnel = data.userName + "-" + data.phone
+  superior.value.personnel = data.userName + "-" + data.phone ? data.phone : ""
   superior.value.userName = data.userName
-  superior.value.phone = data.phone
+  superior.value.phone = data.phone ? data.phone : ""
   postForm.value.variables.approval = data.userId
 }
- 
+
 const isOkBtn = async () => {
   if (!postForm.value.variables.remark) return Toast.warning('请输入理由!')
   console.log("postForm.value", postForm.value);
@@ -102,8 +102,8 @@ const handlePopupsClose = (val) => {
       <view class="input_box">
         <view class="input_phone">
           <text>上级主管: {{ superior.personnel ? superior.personnel : '未获取到上级信息!' }}</text>
-          <image class="position_img" src="../../static/images/homeMap/phone.png"
-            @tap="makePhoneCall(superior.phone)" mode="scaleToFill" v-if="superior.personnel" />
+          <image class="position_img" src="../../static/images/homeMap/phone.png" @tap="makePhoneCall(superior.phone)"
+            mode="scaleToFill" v-if="superior.personnel" />
         </view>
 
 
@@ -132,15 +132,17 @@ const handlePopupsClose = (val) => {
 </template>
 <style lang="scss" scoped>
 .requiredLabel {
-    position: relative;
-    &::before {
-        content: '*';
-        color: red;
-        position: absolute;
-        left: -16rpx;
-        top: -4rpx;
-    }
+  position: relative;
+
+  &::before {
+    content: '*';
+    color: red;
+    position: absolute;
+    left: -16rpx;
+    top: -4rpx;
+  }
 }
+
 .popupContent {
   width: 100%;
   height: 620rpx;

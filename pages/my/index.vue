@@ -30,13 +30,13 @@ const fnList = [
     icon: icon1,
     type: 'navigateTo'
   },
-  {
-    id: 2,
-    title: '用户收款',
-    path: '/pagesMy/receiveUser/index',
-    icon: sk_icon,
-    type: 'navigateTo'
-  },
+  // {
+  //   id: 2,
+  //   title: '用户收款',
+  //   path: '/pagesMy/receiveUser/index',
+  //   icon: sk_icon,
+  //   type: 'navigateTo'
+  // },
   {
     id: 3,
     title: '切换账号',

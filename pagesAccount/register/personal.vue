@@ -26,6 +26,7 @@ onLoad(() => {
 
 const registerBtn = async () => {
   console.log("postForm", postForm.value);
+  if (!postForm.value.userName) return Toast.warning('请输入用户名称')
   if (!postForm.value.captcha) return Toast.warning('请输入验证码')
   if (!postForm.value.password) return Toast.warning('请输入密码')
   if (!postForm.value.repeatPwd) return Toast.warning('请确认密码')

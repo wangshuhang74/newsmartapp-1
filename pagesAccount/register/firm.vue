@@ -60,7 +60,7 @@ function handleConfirm({ value }) {
 
 const registerBtn = async () => {
   console.log("postForm", postForm.value);
-  if (!postForm.value.userName) return Toast.warning('请输入用户名称')
+  if (!postForm.value.userName) return Toast.warning('请输入企业用户名称')
   if (!postForm.value.captcha) return Toast.warning('请输入验证码')
   if (!postForm.value.password) return Toast.warning('请输入密码')
   if (!postForm.value.repeatPwd) return Toast.warning('请确认密码')
@@ -158,7 +158,7 @@ const SendCodeApi = async () => {
         <view class="left_icon">
           <image src="../../static/images/icons/userName.png"></image>
         </view>
-        <input v-model="postForm.userName" type="text" class="input" placeholder="请输入用户名称" />
+        <input v-model="postForm.userName" type="text" class="input" placeholder="请输入企业用户名称" />
       </view>
 
       <view class="input_item">
